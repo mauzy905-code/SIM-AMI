@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Pendaftaran - RSUD AJI MUHAMMAD IDRIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
+    <div id="loginOverlay" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-950/50 backdrop-blur-md"></div>
+        <div class="relative min-h-full flex items-center justify-center p-4">
+            <div class="w-full max-w-md overflow-hidden rounded-[28px] border border-white/70 bg-white/95 shadow-[0_30px_80px_-28px_rgba(15,23,42,0.55)]">
+                <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-7 py-6">
+                    <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-50">Akses Terbatas</div>
+                    <div class="mt-4 text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">RSUD AJI MUHAMMAD IDRIS</div>
+                    <div class="mt-2 text-white text-3xl font-black tracking-tight">Login Admin</div>
+                    <div class="text-emerald-100 text-sm font-semibold mt-2">Masuk untuk mengakses pendaftaran, rekap pasien, dan backup data.</div>
+                </div>
+                <div class="p-7 space-y-5">
+                    <div>
+                        <label class="block text-slate-700 font-semibold mb-2">Email</label>
+                        <input id="loginEmail" type="email" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="admin@rsud.id">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 font-semibold mb-2">Password</label>
+                        <input id="loginPassword" type="password" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="••••••••">
+                    </div>
+                    <button id="loginBtn" type="button" class="w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] py-3.5 text-white font-bold shadow-[0_16px_30px_-14px_rgba(5,150,105,0.55)] transition hover:brightness-105">
+                        Masuk
+                    </button>
+                    <div id="loginError" class="text-sm font-semibold text-red-600 hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="drawerOverlay" class="fixed inset-0 z-40 hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur"></div>
+    </div>
+    <aside id="drawer" class="fixed z-50 top-0 left-0 h-full w-[340px] -translate-x-full border-r border-white/70 bg-white/95 shadow-[0_30px_80px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl transition-transform duration-200">
+        <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-6 py-6">
+            <div class="text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">RSUD AJI MUHAMMAD IDRIS</div>
+            <div class="text-white text-2xl font-black tracking-tight mt-2">Menu Admin</div>
+            <div class="text-emerald-50/90 text-sm font-semibold mt-2">Navigasi cepat untuk pendaftaran, rekap, dan utilitas sistem.</div>
+        </div>
+        <div class="p-5 space-y-3">
+            <button id="menuPendaftaran" type="button" class="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 text-left font-bold text-emerald-900 transition hover:bg-emerald-100">
+                Pendaftaran Pasien
+            </button>
+            <button id="menuRekap" type="button" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
+                Rekap Pendaftaran
+            </button>
+            <div class="my-4 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent"></div>
+            <a href="mesin-antrian.html" class="block rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-emerald-50" target="_blank" rel="noreferrer">Mesin Antrian</a>
+            <a href="display.html" class="block rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-emerald-50" target="_blank" rel="noreferrer">Display TV</a>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-600">
+                Gunakan menu ini untuk berpindah tampilan tanpa mengganggu alur kerja petugas.
+            </div>
+            <div class="my-4 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent"></div>
+            <button id="logoutBtnDrawer" type="button" class="w-full rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-left font-bold text-red-700 transition hover:bg-red-100">
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <header class="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <button id="burgerBtn" type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-white shadow-sm transition hover:bg-emerald-50">
+                    <span class="sr-only">Menu</span>
+                    <div class="space-y-1.5">
+                        <div class="h-0.5 w-5 bg-slate-700"></div>
+                        <div class="h-0.5 w-5 bg-slate-700"></div>
+                        <div class="h-0.5 w-5 bg-slate-700"></div>
+                    </div>
+                </button>
+                <div class="min-w-0">
+                    <div class="truncate text-slate-900 font-black tracking-tight text-base md:text-xl">Manajemen Pendaftaran Pasien</div>
+                    <div class="truncate text-slate-500 text-xs md:text-sm font-semibold">Sistem Administrasi UGD dan Poliklinik</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden 2xl:flex items-center rounded-full border border-emerald-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
+                    RSUD AJI MUHAMMAD IDRIS
+                </div>
+                <button id="logoutBtnTop" type="button" class="hidden md:inline-flex items-center justify-center rounded-xl border border-emerald-100 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-emerald-50">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-5 lg:p-6">
+        <section id="viewPendaftaran" class="hidden">
+            <div class="space-y-5">
+                <div class="overflow-hidden rounded-[32px] border border-white/70 bg-white/85 shadow-[0_28px_80px_-28px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+                    <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-5 py-5 md:px-6">
+                        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                            <div class="max-w-3xl">
+                                <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-50">Panel Admin</div>
+                                <div class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-white">Pendaftaran Pasien & Rekap Terpadu</div>
+                                <div class="mt-2 text-sm md:text-base font-semibold leading-relaxed text-emerald-50/95">Kelola registrasi pasien baru maupun lama, pantau antrean, dan akses rekap data dalam satu dashboard yang rapi dan efisien.</div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 min-w-full xl:min-w-[360px]">
+                                <div class="rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3.5 text-white">
+                                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-100">Workflow</div>
+                                    <div class="mt-1.5 text-lg font-black">Terintegrasi</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3.5 text-white">
+                                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-100">Akses</div>
+                                    <div class="mt-1.5 text-lg font-black">Admin Only</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3.5 text-white">
+                                    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-100">Backup</div>
+                                    <div class="mt-1.5 text-lg font-black">Excel Ready</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-12">
+                    <div class="xl:col-span-5">
+                        <div class="overflow-hidden rounded-[30px] border border-white/70 bg-white/90 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                            <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#f0fdfa_0%,_#eff6ff_100%)] px-5 py-5">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-700">Pendaftaran</div>
+                                        <div class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Input Data Pasien</div>
+                                        <div class="mt-1.5 text-sm font-semibold text-slate-500">Pilih unit, jenis pasien, nomor antrean, lalu lengkapi identitas pasien dengan cepat.</div>
+                                    </div>
+                                    <div class="hidden md:flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl shadow-sm">🗂️</div>
+                                </div>
+                            </div>
+                            <div class="p-5 md:p-6">
+                                <form id="registrationForm" class="space-y-4">
+                                <input type="hidden" id="no_rm">
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Jenis Pendaftaran</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button id="modeBaruBtn" type="button" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-left transition shadow-sm">
+                                            <div class="text-sm font-bold text-emerald-900">Pasien Baru</div>
+                                            <div class="mt-1 text-xs font-semibold text-slate-500">No RM dibuat otomatis</div>
+                                        </button>
+                                        <button id="modeLamaBtn" type="button" class="rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left transition shadow-sm hover:bg-emerald-50">
+                                            <div class="text-sm font-bold text-slate-900">Pasien Lama</div>
+                                            <div class="mt-1 text-xs font-semibold text-slate-500">Cari data dengan No RM</div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="pasienBaruPanel" class="rounded-[24px] border border-emerald-100 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#f0fdfa_100%)] p-4">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div class="text-sm font-bold text-emerald-900">Nomor Rekam Medis Otomatis</div>
+                                            <div class="text-xs font-semibold text-slate-500 mt-1">Nomor RM akan dibuat otomatis dan tercetak di stiker setelah data disimpan.</div>
+                                        </div>
+                                        <div id="noRmPreview" class="rounded-2xl border border-emerald-100 bg-white px-4 py-2.5 text-sm font-extrabold tracking-[0.2em] text-blue-700 shadow-sm">
+                                            -
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="pasienLamaPanel" class="hidden rounded-[24px] border border-blue-100 bg-[linear-gradient(135deg,_#eff6ff_0%,_#f8fbff_100%)] p-4 space-y-3">
+                                    <div>
+                                        <label class="block text-slate-700 font-semibold mb-2">Nomor Rekam Medis Pasien Lama</label>
+                                        <div class="flex flex-col md:flex-row gap-3">
+                                            <input type="text" id="no_rm_lookup" class="flex-1 rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500" placeholder="Masukkan No RM, contoh 123456">
+                                            <button id="cariPasienBtn" type="button" class="md:w-auto rounded-2xl border border-blue-200 bg-white px-5 py-3 font-bold text-blue-700 shadow-sm transition hover:bg-blue-50">
+                                                Cari Data
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="pasienLookupInfo" class="hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Unit Tujuan</label>
+                                    <select id="unitSelect" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required>
+                                        <option value="">Pilih Unit</option>
+                                        <option value="UGD">🏥 Unit Gawat Darurat</option>
+                                        <option value="POLIKLINIK">🩺 Poliklinik</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Jenis Pasien</label>
+                                    <select id="jenis_pasien" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required>
+                                        <option value="">Pilih Jenis Pasien</option>
+                                        <option value="BPJS">BPJS</option>
+                                        <option value="UMUM">Umum</option>
+                                    </select>
+                                </div>
+                                </div>
+
+                                <div id="poliTujuanWrap" class="hidden">
+                                    <label class="block text-slate-700 font-semibold mb-2">Poli Tujuan</label>
+                                    <select id="poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                        <option value="">Pilih Poli</option>
+                                        <option value="SPESIALIS_ANAK">Spesialis Anak</option>
+                                        <option value="SPESIALIS_PENYAKIT_DALAM">Spesialis Penyakit Dalam</option>
+                                        <option value="DOKTER_UMUM">Dokter Umum</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Nomor Antrian</label>
+                                    <select id="no_antrian" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required>
+                                        <option value="">Pilih Nomor Antrian</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Nama Pasien</label>
+                                    <input type="text" id="nama_pasien" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan nama pasien" required>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-slate-700 font-semibold mb-2">NIK</label>
+                                        <input type="text" id="nik" inputmode="numeric" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan NIK" required>
+                                    </div>
+                                    <div id="noBpjsWrap">
+                                        <label class="block text-slate-700 font-semibold mb-2">Nomor BPJS</label>
+                                        <input type="text" id="no_bpjs" inputmode="numeric" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan nomor BPJS">
+                                        <div class="mt-1 text-xs font-semibold text-slate-500">Isi jika tersedia. Untuk pasien BPJS, nomor ini tetap wajib diinput.</div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-slate-700 font-semibold mb-2">Jenis Kelamin</label>
+                                        <select id="jenis_kelamin" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required>
+                                            <option value="">Pilih Jenis Kelamin</option>
+                                            <option value="Laki-laki">Laki-laki</option>
+                                            <option value="Perempuan">Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-700 font-semibold mb-2">Tanggal Lahir</label>
+                                        <input type="date" id="tanggal_lahir" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Umur</label>
+                                    <input type="number" id="umur" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan umur" required>
+                                </div>
+
+                                <button id="saveBtn" type="submit" class="w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] px-6 py-3.5 text-white font-bold shadow-[0_16px_30px_-14px_rgba(5,150,105,0.55)] transition hover:brightness-105">
+                                    Simpan Data Pasien
+                                </button>
+                                <div id="saveError" class="text-sm font-semibold text-red-600 hidden"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xl:col-span-7 space-y-5">
+                        <div class="overflow-hidden rounded-[30px] border border-white/70 bg-white/90 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                            <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#f0fdfa_0%,_#eff6ff_100%)] px-5 py-5">
+                                <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-blue-700">Status Hari Ini</div>
+                                <div class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Ringkasan Aktivitas Pendaftaran</div>
+                                <div class="mt-1.5 text-sm font-semibold text-slate-500">Pantau status antrean dan jumlah pasien yang sudah masuk pada hari ini.</div>
+                            </div>
+                            <div class="p-5 md:p-6">
+                                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                    <div class="rounded-[24px] border border-emerald-100 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#f0fdfa_100%)] p-4 shadow-sm">
+                                        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-700">Menunggu</div>
+                                        <div id="statMenunggu" class="mt-2 text-3xl font-black tracking-tight text-emerald-800">-</div>
+                                        <div class="mt-1.5 text-sm font-semibold text-slate-500">Pasien yang belum diproses</div>
+                                    </div>
+                                    <div class="rounded-[24px] border border-sky-100 bg-[linear-gradient(135deg,_#eff6ff_0%,_#f8fbff_100%)] p-4 shadow-sm">
+                                        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-700">Terdaftar</div>
+                                        <div id="statTerdaftar" class="mt-2 text-3xl font-black tracking-tight text-blue-800">-</div>
+                                        <div class="mt-1.5 text-sm font-semibold text-slate-500">Antrean yang sudah diinput</div>
+                                    </div>
+                                    <div class="rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fafc_100%)] p-4 shadow-sm">
+                                        <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">Total Hari Ini</div>
+                                        <div id="statPasien" class="mt-2 text-3xl font-black tracking-tight text-slate-900">-</div>
+                                        <div class="mt-1.5 text-sm font-semibold text-slate-500">Jumlah seluruh pasien hari ini</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 rounded-[24px] border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 text-sm font-semibold text-slate-600">
+                                    Gunakan menu di kiri atas untuk berpindah cepat antara formulir pendaftaran dan rekap data pasien.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="viewRekap" class="hidden">
+            <div class="overflow-hidden rounded-[30px] border border-white/70 bg-white/90 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#f0fdfa_0%,_#eff6ff_100%)] px-5 py-5">
+                    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-700">Rekap Pasien</div>
+                            <div class="mt-1.5 text-xl md:text-2xl font-black tracking-tight text-slate-900">Rekap Pendaftaran Pasien</div>
+                            <div class="mt-1.5 text-sm font-semibold text-slate-500">Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.</div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="r_meta" class="inline-flex items-center rounded-full border border-emerald-100 bg-white px-3 py-1 text-xs md:text-sm font-semibold text-slate-600 shadow-sm">Memuat...</span>
+                            <button id="r_export" type="button" class="rounded-xl border border-emerald-200 bg-white px-3.5 py-2 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50">
+                                Download Excel
+                            </button>
+                            <button id="r_refresh" type="button" class="rounded-xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] px-3.5 py-2 text-sm text-white font-bold shadow-[0_14px_24px_-12px_rgba(5,150,105,0.5)] transition hover:brightness-105">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 md:p-6">
+                    <div class="rounded-[28px] border border-emerald-100 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fbff_100%)] p-4 md:p-5 shadow-sm">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                        <div class="lg:col-span-4">
+                            <label class="block text-slate-700 font-semibold mb-2">Cari (Nama / NIK / No BPJS / No RM / No Antrian)</label>
+                            <input id="r_q" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari...">
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="block text-slate-700 font-semibold mb-2">Unit</label>
+                            <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                <option value="">Semua Unit</option>
+                                <option value="UGD">UGD</option>
+                                <option value="POLIKLINIK">Poliklinik</option>
+                            </select>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="block text-slate-700 font-semibold mb-2">Jenis Pasien</label>
+                            <select id="r_jenis_pasien" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                <option value="">Semua Jenis</option>
+                                <option value="BPJS">BPJS</option>
+                                <option value="UMUM">Umum</option>
+                            </select>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="block text-slate-700 font-semibold mb-2">Poli</label>
+                            <select id="r_poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                <option value="">Semua Poli</option>
+                                <option value="UGD">UGD</option>
+                                <option value="SPESIALIS_ANAK">Spesialis Anak</option>
+                                <option value="SPESIALIS_PENYAKIT_DALAM">Spesialis Penyakit Dalam</option>
+                                <option value="DOKTER_UMUM">Dokter Umum</option>
+                            </select>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <label class="block text-slate-700 font-semibold mb-2">Dari</label>
+                            <input id="r_from" type="date" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                        </div>
+                        <div class="lg:col-span-1">
+                            <label class="block text-slate-700 font-semibold mb-2">Sampai</label>
+                            <input id="r_to" type="date" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div class="text-sm text-slate-600 font-semibold" id="r_pageLabel">Halaman 1</div>
+                        <div class="flex items-center gap-2">
+                            <button id="r_prev" type="button" class="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm shadow-sm transition hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Sebelumnya</button>
+                            <button id="r_next" type="button" class="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm shadow-sm transition hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Berikutnya</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 overflow-auto rounded-[28px] border border-emerald-100 bg-white shadow-sm max-h-[70vh]">
+                        <table class="min-w-full text-left">
+                            <thead class="sticky top-0 z-10 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#eff6ff_100%)]">
+                                <tr class="text-emerald-900">
+                                    <th class="px-4 py-3 text-sm font-bold">Waktu Daftar</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Unit</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Jenis Pasien</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Poli</th>
+                                    <th class="px-4 py-3 text-sm font-bold">No Antrian</th>
+                                    <th class="px-4 py-3 text-sm font-bold">No RM</th>
+                                    <th class="px-4 py-3 text-sm font-bold">NIK</th>
+                                    <th class="px-4 py-3 text-sm font-bold">No BPJS</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Nama</th>
+                                    <th class="px-4 py-3 text-sm font-bold">JK</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Tgl Lahir</th>
+                                    <th class="px-4 py-3 text-sm font-bold">Umur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="r_rows" class="divide-y divide-emerald-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="stickerContainer" class="hidden">
+        <div id="sticker" style="width: 50mm; height: 30mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 7pt; line-height: 1.15;">
+            <div style="text-align: center; font-weight: bold; font-size: 7pt;">RSUD AJI MUHAMMAD IDRIS</div>
+            <div style="margin-top: 1mm;">
+                <div style="display: flex; justify-content: space-between; gap: 2mm;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b>Nama</b>: <span id="sticker_nama"></span></div>
+                        <div><b>Tgl Lahir</b>: <span id="sticker_tgl_lahir"></span></div>
+                        <div><b>JK</b>: <span id="sticker_jk"></span></div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 6.5pt;"><b>Waktu</b></div>
+                        <div style="font-size: 6.5pt;"><span id="sticker_waktu"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 1mm;">
+                <div style="font-size: 6.5pt;"><b>No RM</b>: <span id="sticker_no_rm"></span></div>
+                <svg id="barcode" style="width: 100%; height: 10mm;"></svg>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @media print {
+            html, body {
+                width: 50mm;
+                height: 30mm;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+            body > * {
+                display: none !important;
+            }
+            #stickerContainer {
+                display: block !important;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 50mm;
+                height: 30mm;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            #sticker {
+                width: 50mm !important;
+                height: 30mm !important;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            @page { size: 50mm 30mm; margin: 0; }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
+            if (typeof window.supabase !== 'undefined') {
+                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+                const viewPendaftaran = document.getElementById('viewPendaftaran');
+                const viewRekap = document.getElementById('viewRekap');
+
+                const loginOverlay = document.getElementById('loginOverlay');
+                const loginEmail = document.getElementById('loginEmail');
+                const loginPassword = document.getElementById('loginPassword');
+                const loginBtn = document.getElementById('loginBtn');
+                const loginError = document.getElementById('loginError');
+
+                const burgerBtn = document.getElementById('burgerBtn');
+                const drawer = document.getElementById('drawer');
+                const drawerOverlay = document.getElementById('drawerOverlay');
+                const menuPendaftaran = document.getElementById('menuPendaftaran');
+                const menuRekap = document.getElementById('menuRekap');
+                const logoutBtnTop = document.getElementById('logoutBtnTop');
+                const logoutBtnDrawer = document.getElementById('logoutBtnDrawer');
+                const modeBaruBtn = document.getElementById('modeBaruBtn');
+                const modeLamaBtn = document.getElementById('modeLamaBtn');
+                const pasienBaruPanel = document.getElementById('pasienBaruPanel');
+                const pasienLamaPanel = document.getElementById('pasienLamaPanel');
+                const noRmPreview = document.getElementById('noRmPreview');
+                const noRmLookup = document.getElementById('no_rm_lookup');
+                const cariPasienBtn = document.getElementById('cariPasienBtn');
+                const pasienLookupInfo = document.getElementById('pasienLookupInfo');
+
+                let patientMode = 'baru';
+                let loadedOldPatient = null;
+
+                function openDrawer() {
+                    drawer.classList.remove('-translate-x-full');
+                    drawerOverlay.classList.remove('hidden');
+                }
+
+                function closeDrawer() {
+                    drawer.classList.add('-translate-x-full');
+                    drawerOverlay.classList.add('hidden');
+                }
+
+                function setActiveMenu(view) {
+                    if (view === 'pendaftaran') {
+                        menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
+                        menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                    } else {
+                        menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
+                        menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                    }
+                }
+
+                function showView(view) {
+                    if (view === 'rekap') {
+                        viewPendaftaran.classList.add('hidden');
+                        viewRekap.classList.remove('hidden');
+                        setActiveMenu('rekap');
+                    } else {
+                        viewRekap.classList.add('hidden');
+                        viewPendaftaran.classList.remove('hidden');
+                        setActiveMenu('pendaftaran');
+                    }
+                }
+
+                async function requireSession() {
+                    const { data } = await supabaseClient.auth.getSession();
+                    const session = data?.session || null;
+                    if (!session) {
+                        loginOverlay.classList.remove('hidden');
+                        viewPendaftaran.classList.add('hidden');
+                        viewRekap.classList.add('hidden');
+                        return null;
+                    }
+                    loginOverlay.classList.add('hidden');
+                    logoutBtnTop.classList.remove('hidden');
+                    return session;
+                }
+
+                async function login() {
+                    loginError.classList.add('hidden');
+                    const email = (loginEmail.value || '').trim();
+                    const password = loginPassword.value || '';
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) {
+                        loginError.textContent = error.message;
+                        loginError.classList.remove('hidden');
+                        return;
+                    }
+                    await requireSession();
+                    showView('pendaftaran');
+                    await refreshStats();
+                    await r_reloadToFirstPage();
+                }
+
+                async function logout() {
+                    await supabaseClient.auth.signOut();
+                    loginPassword.value = '';
+                    loginOverlay.classList.remove('hidden');
+                    viewPendaftaran.classList.add('hidden');
+                    viewRekap.classList.add('hidden');
+                    closeDrawer();
+                }
+
+                burgerBtn.addEventListener('click', () => openDrawer());
+                drawerOverlay.addEventListener('click', () => closeDrawer());
+                menuPendaftaran.addEventListener('click', async () => {
+                    closeDrawer();
+                    showView('pendaftaran');
+                    await refreshStats();
+                });
+                menuRekap.addEventListener('click', async () => {
+                    closeDrawer();
+                    showView('rekap');
+                    await r_reloadToFirstPage();
+                });
+                logoutBtnTop.addEventListener('click', () => logout());
+                logoutBtnDrawer.addEventListener('click', () => logout());
+                loginBtn.addEventListener('click', () => login());
+                loginPassword.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') login();
+                });
+
+                function generateNoRM() {
+                    const random = Math.floor(100000 + Math.random() * 900000);
+                    return random.toString();
+                }
+
+                function showLookupInfo(message, tone) {
+                    pasienLookupInfo.textContent = message;
+                    pasienLookupInfo.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
+
+                    if (tone === 'error') {
+                        pasienLookupInfo.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+                    } else if (tone === 'success') {
+                        pasienLookupInfo.classList.add('border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
+                    } else {
+                        pasienLookupInfo.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
+                    }
+                }
+
+
+                function clearIdentityFields() {
+                    document.getElementById('nama_pasien').value = '';
+                    document.getElementById('nik').value = '';
+                    document.getElementById('no_bpjs').value = '';
+                    document.getElementById('jenis_kelamin').value = '';
+                    document.getElementById('tanggal_lahir').value = '';
+                    document.getElementById('umur').value = '';
+                }
+
+                function fillPatientFields(patient) {
+                    document.getElementById('nama_pasien').value = patient?.nama_pasien || '';
+                    document.getElementById('nik').value = patient?.nik || '';
+                    document.getElementById('no_bpjs').value = patient?.no_bpjs || '';
+                    document.getElementById('jenis_kelamin').value = patient?.jenis_kelamin || '';
+                    document.getElementById('tanggal_lahir').value = patient?.tanggal_lahir || '';
+                    document.getElementById('umur').value = patient?.umur ?? '';
+                }
+
+                function setPatientMode(mode) {
+                    patientMode = mode;
+                    loadedOldPatient = null;
+                    pasienLookupInfo.classList.add('hidden');
+                    noRmLookup.value = '';
+
+                    if (mode === 'lama') {
+                        pasienBaruPanel.classList.add('hidden');
+                        pasienLamaPanel.classList.remove('hidden');
+                        modeBaruBtn.className = 'rounded-xl border border-emerald-100 bg-white px-4 py-3 text-left transition hover:bg-emerald-50';
+                        modeLamaBtn.className = 'rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-left transition';
+                        document.getElementById('no_rm').value = '';
+                        noRmPreview.textContent = '-';
+                        clearIdentityFields();
+                        noRmLookup.focus();
+                    } else {
+                        pasienLamaPanel.classList.add('hidden');
+                        pasienBaruPanel.classList.remove('hidden');
+                        modeBaruBtn.className = 'rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left transition';
+                        modeLamaBtn.className = 'rounded-xl border border-emerald-100 bg-white px-4 py-3 text-left transition hover:bg-emerald-50';
+                        clearIdentityFields();
+                        document.getElementById('no_rm').value = generateNoRM();
+                        noRmPreview.textContent = document.getElementById('no_rm').value;
+                    }
+                }
+
+                async function lookupPasienLama() {
+                    const noRm = (noRmLookup.value || '').trim();
+                    pasienLookupInfo.classList.add('hidden');
+                    loadedOldPatient = null;
+
+                    if (!noRm) {
+                        showLookupInfo('Masukkan nomor rekam medis pasien lama terlebih dahulu.', 'error');
+                        return;
+                    }
+
+                    cariPasienBtn.disabled = true;
+                    cariPasienBtn.textContent = 'Mencari...';
+
+                    try {
+                        const { data, error } = await withTimeout(
+                            supabaseClient
+                                .from('pasien')
+                                .select('no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur')
+                                .eq('no_rm', noRm)
+                                .order('created_at', { ascending: false })
+                                .limit(1),
+                            15000,
+                            'Cari pasien lama'
+                        );
+
+                        if (error) throw new Error(error.message);
+
+                        if (!data || data.length === 0) {
+                            document.getElementById('no_rm').value = '';
+                            clearIdentityFields();
+                            showLookupInfo('No RM tidak ditemukan. Jika pasien belum pernah terdaftar, pilih mode Pasien Baru.', 'error');
+                            return;
+                        }
+
+                        loadedOldPatient = data[0];
+                        document.getElementById('no_rm').value = loadedOldPatient.no_rm;
+                        fillPatientFields(loadedOldPatient);
+                        showLookupInfo(`Data pasien ditemukan: ${loadedOldPatient.nama_pasien}. Silakan cek data lalu simpan pendaftaran.`, 'success');
+                    } catch (err) {
+                        showLookupInfo('Gagal mencari data pasien lama: ' + (err?.message || String(err)), 'error');
+                    } finally {
+                        cariPasienBtn.disabled = false;
+                        cariPasienBtn.textContent = 'Cari Data';
+                    }
+                }
+
+                function getTodayRangeISO() {
+                    const start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    return { startISO: start.toISOString(), endISO: end.toISOString() };
+                }
+
+                async function loadAvailableAntrian(unit, jenisPasien) {
+                    const select = document.getElementById('no_antrian');
+                    if (!unit) {
+                        select.innerHTML = '<option value="">Pilih Unit Terlebih Dahulu</option>';
+                        return;
+                    }
+                    if (!jenisPasien) {
+                        select.innerHTML = '<option value="">Pilih Jenis Pasien Terlebih Dahulu</option>';
+                        return;
+                    }
+                    const poliTujuan = document.getElementById('poli_tujuan').value;
+                    if (unit === 'POLIKLINIK' && !poliTujuan) {
+                        select.innerHTML = '<option value="">Pilih Poli Terlebih Dahulu</option>';
+                        return;
+                    }
+                    
+                    const { startISO, endISO } = getTodayRangeISO();
+                    const { data, error } = await supabaseClient
+                        .from('antrian')
+                        .select('*')
+                        .gte('created_at', startISO)
+                        .lte('created_at', endISO)
+                        .eq('unit', unit)
+                        .eq('jenis_pasien', jenisPasien)
+                        .eq('poli_tujuan', unit === 'POLIKLINIK' ? poliTujuan : 'UGD')
+                        .in('status', ['menunggu', 'MENUNGGU', 'Menunggu'])
+                        .order('created_at', { ascending: true });
+                    
+                    if (error) {
+                        console.error('Error loading antrian:', error);
+                        return;
+                    }
+                    
+                    select.innerHTML = '<option value="">Pilih Nomor Antrian</option>';
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.no_antrian;
+                        option.textContent = item.no_antrian;
+                        select.appendChild(option);
+                    });
+                }
+
+                async function initForm() {
+                    setPatientMode('baru');
+                    const wrap = document.getElementById('poliTujuanWrap');
+                    const poliSelect = document.getElementById('poli_tujuan');
+                    wrap.classList.add('hidden');
+                    poliSelect.required = false;
+                    poliSelect.value = 'UGD';
+                    syncNoBpjsField();
+                }
+
+                function withTimeout(promise, ms, label) {
+                    return Promise.race([
+                        promise,
+                        new Promise((_, reject) => window.setTimeout(() => reject(new Error(label + ' timeout')), ms))
+                    ]);
+                }
+
+
+                function formatLocalDateTime(date) {
+                    const pad2 = (n) => String(n).padStart(2, '0');
+                    const dd = pad2(date.getDate());
+                    const mm = pad2(date.getMonth() + 1);
+                    const yyyy = date.getFullYear();
+                    const hh = pad2(date.getHours());
+                    const min = pad2(date.getMinutes());
+                    return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
+                }
+
+                function refreshAntrianDropdown() {
+                    loadAvailableAntrian(
+                        document.getElementById('unitSelect').value,
+                        document.getElementById('jenis_pasien').value
+                    );
+                }
+
+                function syncNoBpjsField() {
+                    const wrap = document.getElementById('noBpjsWrap');
+                    const input = document.getElementById('no_bpjs');
+                    wrap.classList.remove('hidden');
+                    input.required = false;
+                }
+
+                // Event listener untuk memilih unit
+                document.getElementById('unitSelect').addEventListener('change', function() {
+                    const unit = this.value;
+                    const wrap = document.getElementById('poliTujuanWrap');
+                    const poliSelect = document.getElementById('poli_tujuan');
+                    if (unit === 'POLIKLINIK') {
+                        wrap.classList.remove('hidden');
+                        poliSelect.required = true;
+                        poliSelect.value = '';
+                    } else {
+                        wrap.classList.add('hidden');
+                        poliSelect.required = false;
+                        poliSelect.value = 'UGD';
+                    }
+                    refreshAntrianDropdown();
+                });
+                document.getElementById('jenis_pasien').addEventListener('change', function() {
+                    syncNoBpjsField();
+                    refreshAntrianDropdown();
+                });
+                document.getElementById('poli_tujuan').addEventListener('change', function() {
+                    refreshAntrianDropdown();
+                });
+                modeBaruBtn.addEventListener('click', () => setPatientMode('baru'));
+                modeLamaBtn.addEventListener('click', () => setPatientMode('lama'));
+                cariPasienBtn.addEventListener('click', () => lookupPasienLama());
+                noRmLookup.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        lookupPasienLama();
+                    }
+                });
+                noRmLookup.addEventListener('input', () => {
+                    if (patientMode === 'lama') {
+                        loadedOldPatient = null;
+                        document.getElementById('no_rm').value = '';
+                        pasienLookupInfo.classList.add('hidden');
+                    }
+                });
+
+                document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const saveErrorEl = document.getElementById('saveError');
+                    saveErrorEl.classList.add('hidden');
+                    const saveBtn = document.getElementById('saveBtn');
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Menyimpan...';
+
+                    const no_rm = (document.getElementById('no_rm').value || '').trim();
+                    const no_antrian = document.getElementById('no_antrian').value;
+                    const unit = document.getElementById('unitSelect').value;
+                    const jenis_pasien = document.getElementById('jenis_pasien').value;
+                    const poli_tujuan = unit === 'POLIKLINIK' ? document.getElementById('poli_tujuan').value : 'UGD';
+                    const nama_pasien = document.getElementById('nama_pasien').value.trim();
+                    const nik = document.getElementById('nik').value.trim();
+                    const no_bpjs = document.getElementById('no_bpjs').value.trim();
+                    const jenis_kelamin = document.getElementById('jenis_kelamin').value;
+                    const tanggal_lahir = document.getElementById('tanggal_lahir').value;
+                    const umur = document.getElementById('umur').value;
+                    const waktu_daftar = new Date();
+
+                    try {
+                        if (patientMode === 'lama' && !loadedOldPatient) {
+                            throw new Error('Pilih Pasien Lama lalu cari No RM terlebih dahulu sampai data pasien ditemukan.');
+                        }
+
+                        if (!no_rm) {
+                            throw new Error('Nomor rekam medis belum tersedia. Silakan cek mode pasien lalu coba lagi.');
+                        }
+
+                        if (!nik) {
+                            throw new Error('NIK wajib diisi.');
+                        }
+
+                        if (jenis_pasien === 'BPJS' && !no_bpjs) {
+                            throw new Error('Nomor BPJS wajib diisi untuk pasien BPJS.');
+                        }
+
+                        const insertRes = await withTimeout(
+                            supabaseClient
+                                .from('pasien')
+                                .insert([{
+                                    no_rm,
+                                    nama_pasien,
+                                    nik,
+                                    no_bpjs: no_bpjs ? no_bpjs : null,
+                                    jenis_kelamin,
+                                    tanggal_lahir,
+                                    umur,
+                                    no_antrian,
+                                    unit,
+                                    jenis_pasien,
+                                    poli_tujuan,
+                                    created_at: waktu_daftar.toISOString()
+                                }]),
+                            15000,
+                            'Simpan pasien'
+                        );
+
+                        if (insertRes?.error) {
+                            throw new Error(insertRes.error.message);
+                        }
+
+                        const updateRes = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .update({ status: 'terdaftar', nama_pasien })
+                                .eq('no_antrian', no_antrian)
+                                .eq('unit', unit)
+                                .eq('jenis_pasien', jenis_pasien)
+                                .eq('poli_tujuan', poli_tujuan),
+                            15000,
+                            'Update antrian'
+                        );
+
+                        if (updateRes?.error) {
+                            saveErrorEl.textContent = 'Data pasien tersimpan, tetapi gagal update antrean: ' + updateRes.error.message;
+                            saveErrorEl.classList.remove('hidden');
+                        }
+
+                        document.getElementById('sticker_nama').textContent = nama_pasien;
+                        document.getElementById('sticker_tgl_lahir').textContent = tanggal_lahir || '';
+                        document.getElementById('sticker_jk').textContent = jenis_kelamin || '';
+                        document.getElementById('sticker_waktu').textContent = formatLocalDateTime(waktu_daftar);
+                        document.getElementById('sticker_no_rm').textContent = no_rm;
+                        JsBarcode("#barcode", no_rm, { format: "CODE128", width: 1, height: 20, displayValue: false });
+
+                        window.print();
+
+                        this.reset();
+                        await initForm();
+
+                        loadAvailableAntrian(unit, jenis_pasien);
+                        r_reloadToFirstPage();
+                        refreshStats();
+                    } catch (err) {
+                        saveErrorEl.textContent = 'Gagal menyimpan: ' + (err?.message || String(err));
+                        saveErrorEl.classList.remove('hidden');
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Simpan Data Pasien';
+                    }
+                });
+
+                // Subscribe realtime untuk update antrian
+                supabaseClient
+                    .channel('public:antrian')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => {
+                        refreshAntrianDropdown();
+                    })
+                    .subscribe();
+
+                const R_PAGE_SIZE = 25;
+                let r_currentPage = 1;
+                let r_lastCount = null;
+                let r_debounceTimer = null;
+
+                const rEls = {
+                    q: document.getElementById('r_q'),
+                    unit: document.getElementById('r_unit'),
+                    jenisPasien: document.getElementById('r_jenis_pasien'),
+                    poliTujuan: document.getElementById('r_poli_tujuan'),
+                    from: document.getElementById('r_from'),
+                    to: document.getElementById('r_to'),
+                    rows: document.getElementById('r_rows'),
+                    meta: document.getElementById('r_meta'),
+                    prev: document.getElementById('r_prev'),
+                    next: document.getElementById('r_next'),
+                    pageLabel: document.getElementById('r_pageLabel')
+                };
+
+                function r_toISOStart(dateStr) {
+                    if (!dateStr) return null;
+                    return dateStr + 'T00:00:00';
+                }
+
+                function r_toISOEnd(dateStr) {
+                    if (!dateStr) return null;
+                    return dateStr + 'T23:59:59.999';
+                }
+
+                function r_formatDateTimeLocal(iso) {
+                    if (!iso) return '-';
+                    const d = new Date(iso);
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const yyyy = d.getFullYear();
+                    const hh = String(d.getHours()).padStart(2, '0');
+                    const min = String(d.getMinutes()).padStart(2, '0');
+                    return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
+                }
+
+                function r_formatDateOnly(isoOrDate) {
+                    if (!isoOrDate) return '-';
+                    const d = new Date(isoOrDate);
+                    if (Number.isNaN(d.getTime())) return String(isoOrDate);
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const yyyy = d.getFullYear();
+                    return `${dd}-${mm}-${yyyy}`;
+                }
+
+                function r_unitLabel(unit) {
+                    if (!unit) return '-';
+                    if (unit === 'UGD') return 'UGD';
+                    if (unit === 'POLIKLINIK') return 'Poliklinik';
+                    return unit;
+                }
+
+                function r_jenisPasienLabel(jenisPasien) {
+                    if (!jenisPasien) return '-';
+                    if (jenisPasien === 'BPJS') return 'BPJS';
+                    if (jenisPasien === 'UMUM') return 'Umum';
+                    return jenisPasien;
+                }
+
+                function r_poliLabel(poli) {
+                    if (!poli) return '';
+                    if (poli === 'UGD') return '';
+                    if (poli === 'SPESIALIS_ANAK') return 'Spesialis Anak';
+                    if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Spesialis Penyakit Dalam';
+                    if (poli === 'DOKTER_UMUM') return 'Dokter Umum';
+                    return poli;
+                }
+
+                function r_setLoading(isLoading) {
+                    document.getElementById('r_refresh').disabled = isLoading;
+                    document.getElementById('r_refresh').textContent = isLoading ? 'Memuat...' : 'Refresh';
+                }
+
+                function r_applyFilters(query) {
+                    const unit = rEls.unit.value || '';
+                    const jenisPasien = rEls.jenisPasien.value || '';
+                    const poliTujuan = rEls.poliTujuan.value || '';
+                    const fromISO = r_toISOStart(rEls.from.value);
+                    const toISO = r_toISOEnd(rEls.to.value);
+                    const q = (rEls.q.value || '').trim();
+
+                    if (unit) query = query.eq('unit', unit);
+                    if (jenisPasien) query = query.eq('jenis_pasien', jenisPasien);
+                    if (poliTujuan) query = query.eq('poli_tujuan', poliTujuan);
+                    if (fromISO) query = query.gte('created_at', fromISO);
+                    if (toISO) query = query.lte('created_at', toISO);
+
+                    if (q) {
+                        const escaped = q.replace(/,/g, '').replace(/%/g, '');
+                        query = query.or(`nama_pasien.ilike.%${escaped}%,nik.ilike.%${escaped}%,no_bpjs.ilike.%${escaped}%,no_rm.ilike.%${escaped}%,no_antrian.ilike.%${escaped}%`);
+                    }
+
+                    return query;
+                }
+
+                function r_renderRows(items) {
+                    if (!items || items.length === 0) {
+                        rEls.rows.innerHTML = '<tr><td class="px-4 py-6 text-slate-500" colspan="12">Tidak ada data.</td></tr>';
+                        return;
+                    }
+                    rEls.rows.innerHTML = items.map((p) => {
+                        const waktu = r_formatDateTimeLocal(p.created_at);
+                        const unit = r_unitLabel(p.unit);
+                        const jenisPasien = r_jenisPasienLabel(p.jenis_pasien);
+                        const poli = r_poliLabel(p.poli_tujuan);
+                        const noAntrian = p.no_antrian ?? '-';
+                        const noRm = p.no_rm ?? '-';
+                        const nik = p.nik ?? '-';
+                        const noBpjs = p.no_bpjs ?? '-';
+                        const nama = p.nama_pasien ?? '-';
+                        const jk = p.jenis_kelamin ?? '-';
+                        const tglLahir = r_formatDateOnly(p.tanggal_lahir);
+                        const umur = (p.umur ?? p.umur === 0) ? String(p.umur) : '-';
+                        return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                            <td class="px-4 py-3 text-sm text-slate-800">${waktu}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${unit}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${jenisPasien}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${poli}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-emerald-700">${noAntrian}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-blue-700">${noRm}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${nik}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${noBpjs}</td>
+                            <td class="px-4 py-3 text-sm text-slate-900 font-semibold">${nama}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${jk}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${tglLahir}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800">${umur}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                async function r_loadPage(page) {
+                    const from = (page - 1) * R_PAGE_SIZE;
+                    const to = from + R_PAGE_SIZE - 1;
+
+                    r_setLoading(true);
+                    rEls.meta.textContent = 'Memuat data...';
+
+                    let query = r_applyFilters(
+                        supabaseClient
+                        .from('pasien')
+                        .select('*', { count: 'exact' })
+                        .order('created_at', { ascending: false })
+                        .range(from, to)
+                    );
+
+                    const { data, error, count } = await query;
+                    r_setLoading(false);
+
+                    if (error) {
+                        rEls.meta.textContent = 'Gagal memuat data: ' + error.message;
+                        r_renderRows([]);
+                        rEls.prev.disabled = true;
+                        rEls.next.disabled = true;
+                        return;
+                    }
+
+                    r_lastCount = typeof count === 'number' ? count : null;
+                    const totalText = r_lastCount === null ? '' : ` / total ${r_lastCount}`;
+                    rEls.meta.textContent = `Menampilkan ${data.length} data (halaman ${page})${totalText}`;
+                    rEls.pageLabel.textContent = `Halaman ${page}`;
+                    r_renderRows(data);
+
+                    rEls.prev.disabled = page <= 1;
+                    const hasNext = data.length === R_PAGE_SIZE && (r_lastCount === null || page * R_PAGE_SIZE < r_lastCount);
+                    rEls.next.disabled = !hasNext;
+                }
+
+                async function r_reloadToFirstPage() {
+                    r_currentPage = 1;
+                    await r_loadPage(r_currentPage);
+                }
+
+                function r_debouncedReload() {
+                    if (r_debounceTimer) window.clearTimeout(r_debounceTimer);
+                    r_debounceTimer = window.setTimeout(() => r_reloadToFirstPage(), 300);
+                }
+
+                async function r_exportExcel() {
+                    const exportBtn = document.getElementById('r_export');
+                    exportBtn.disabled = true;
+                    exportBtn.textContent = 'Menyiapkan...';
+
+                    try {
+                        const { data, error } = await r_applyFilters(
+                            supabaseClient
+                                .from('pasien')
+                                .select('*')
+                                .order('created_at', { ascending: false })
+                        );
+
+                        if (error) {
+                            throw new Error(error.message);
+                        }
+
+                        if (!data || data.length === 0) {
+                            throw new Error('Tidak ada data untuk diexport sesuai filter saat ini.');
+                        }
+
+                        if (typeof XLSX === 'undefined') {
+                            throw new Error('Library export Excel tidak tersedia.');
+                        }
+
+                        const rows = data.map((p) => ({
+                            'Waktu Daftar': r_formatDateTimeLocal(p.created_at),
+                            'Unit': r_unitLabel(p.unit),
+                            'Jenis Pasien': r_jenisPasienLabel(p.jenis_pasien),
+                            'Poli': r_poliLabel(p.poli_tujuan),
+                            'No Antrian': p.no_antrian ?? '',
+                            'No RM': p.no_rm ?? '',
+                            'NIK': p.nik ?? '',
+                            'No BPJS': p.no_bpjs ?? '',
+                            'Nama Pasien': p.nama_pasien ?? '',
+                            'Jenis Kelamin': p.jenis_kelamin ?? '',
+                            'Tanggal Lahir': r_formatDateOnly(p.tanggal_lahir),
+                            'Umur': p.umur ?? ''
+                        }));
+
+                        const worksheet = XLSX.utils.json_to_sheet(rows);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Pasien');
+
+                        const todayStamp = new Date();
+                        const yyyy = todayStamp.getFullYear();
+                        const mm = String(todayStamp.getMonth() + 1).padStart(2, '0');
+                        const dd = String(todayStamp.getDate()).padStart(2, '0');
+                        const hh = String(todayStamp.getHours()).padStart(2, '0');
+                        const min = String(todayStamp.getMinutes()).padStart(2, '0');
+                        const fileName = `rekap-pasien-${yyyy}${mm}${dd}-${hh}${min}.xlsx`;
+
+                        XLSX.writeFile(workbook, fileName);
+                    } catch (err) {
+                        alert('Gagal export Excel: ' + (err?.message || String(err)));
+                    } finally {
+                        exportBtn.disabled = false;
+                        exportBtn.textContent = 'Download Excel';
+                    }
+                }
+
+                document.getElementById('r_refresh').addEventListener('click', () => r_reloadToFirstPage());
+                document.getElementById('r_export').addEventListener('click', () => r_exportExcel());
+                rEls.prev.addEventListener('click', () => {
+                    if (r_currentPage > 1) {
+                        r_currentPage -= 1;
+                        r_loadPage(r_currentPage);
+                    }
+                });
+                rEls.next.addEventListener('click', () => {
+                    r_currentPage += 1;
+                    r_loadPage(r_currentPage);
+                });
+
+                rEls.unit.addEventListener('change', () => r_reloadToFirstPage());
+                rEls.jenisPasien.addEventListener('change', () => r_reloadToFirstPage());
+                rEls.poliTujuan.addEventListener('change', () => r_reloadToFirstPage());
+                rEls.from.addEventListener('change', () => r_reloadToFirstPage());
+                rEls.to.addEventListener('change', () => r_reloadToFirstPage());
+                rEls.q.addEventListener('input', () => r_debouncedReload());
+
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                rEls.from.value = `${yyyy}-${mm}-${dd}`;
+                rEls.to.value = `${yyyy}-${mm}-${dd}`;
+
+                async function refreshStats() {
+                    const { startISO: start, endISO: end } = getTodayRangeISO();
+
+                    const [{ count: pasienCount }, { data: antrianRows }] = await Promise.all([
+                        supabaseClient.from('pasien').select('id', { count: 'exact', head: true }).gte('created_at', start).lte('created_at', end),
+                        supabaseClient.from('antrian').select('status').gte('created_at', start).lte('created_at', end)
+                    ]);
+
+                    const counts = { menunggu: 0, terdaftar: 0 };
+                    (antrianRows || []).forEach((r) => {
+                        const s = String(r.status || '').toLowerCase();
+                        if (s === 'menunggu') counts.menunggu += 1;
+                        if (s === 'terdaftar') counts.terdaftar += 1;
+                    });
+
+                    document.getElementById('statMenunggu').textContent = String(counts.menunggu);
+                    document.getElementById('statTerdaftar').textContent = String(counts.terdaftar);
+                    document.getElementById('statPasien').textContent = String(typeof pasienCount === 'number' ? pasienCount : '-');
+                }
+
+                (async function bootstrap() {
+                    const session = await requireSession();
+                    if (!session) return;
+
+                    showView('pendaftaran');
+                    await initForm();
+                    await refreshStats();
+                    await r_reloadToFirstPage();
+                })();
+            }
+        });
+    </script>
+</body>
+</html>

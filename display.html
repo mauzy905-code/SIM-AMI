@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Display Antrian - RSUD AJI MUHAMMAD IDRIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
+    <div class="bg-gradient-to-r from-emerald-600 to-blue-700 px-4 py-4 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div class="text-center lg:text-left">
+                <h1 class="text-white text-2xl md:text-3xl font-extrabold tracking-tight">RSUD AJI MUHAMMAD IDRIS</h1>
+                <div class="text-emerald-100 font-semibold">Display Antrian</div>
+            </div>
+            <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
+                <a href="index.html" class="rounded-full bg-white/15 px-4 py-2 text-white font-semibold hover:bg-white/20 transition" target="_blank" rel="noreferrer">Admin</a>
+                <button class="display-unit-btn rounded-full bg-white text-emerald-900 font-extrabold px-4 py-2 active" data-unit="ALL">SEMUA</button>
+                <button class="display-unit-btn rounded-full bg-red-600/90 text-white font-bold px-4 py-2 hover:bg-red-700 transition" data-unit="UGD">UGD</button>
+                <button class="display-unit-btn rounded-full bg-blue-600/90 text-white font-bold px-4 py-2 hover:bg-blue-700 transition" data-unit="POLIKLINIK">POLIKLINIK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="displayContainer" class="flex flex-col lg:flex-row h-[calc(100vh-140px)]">
+        <!-- Bagian Kiri: Nomor Antrian Saat Ini -->
+        <div class="lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-blue-950/80">
+            <h3 class="text-emerald-300 text-2xl font-semibold mb-4 tracking-wide uppercase">Antrian Saat Ini</h3>
+            <div id="currentUnit" class="text-emerald-200 text-xl font-semibold mb-2">-</div>
+            <div id="currentJenisPasien" class="inline-flex items-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-base font-bold mb-4">-</div>
+            <div id="currentPoli" class="text-emerald-100/90 text-xl font-bold mb-6">-</div>
+            <div id="currentAntrian" class="text-[12rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 mb-4 drop-shadow-2xl">-</div>
+            <div id="currentNama" class="text-4xl text-emerald-100 font-semibold">-</div>
+        </div>
+        
+        <!-- Bagian Kanan: Daftar Antrian Berikutnya -->
+        <div class="lg:w-1/3 bg-slate-900/50 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto">
+            <h3 class="text-emerald-300 text-2xl font-bold mb-6 border-b border-emerald-700/50 pb-3">📋 Antrian Berikutnya</h3>
+            <div id="antrianList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
+            
+            if (typeof window.supabase !== 'undefined') {
+                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                let selectedUnit = 'ALL';
+
+                // Mapping nama unit
+                const unitNames = {
+                    'UGD': '🏥 UNIT GAWAT DARURAT',
+                    'POLIKLINIK': '🩺 POLIKLINIK'
+                };
+
+                function jenisPasienLabel(jenisPasien) {
+                    if (!jenisPasien) return '-';
+                    if (jenisPasien === 'BPJS') return 'BPJS';
+                    if (jenisPasien === 'UMUM') return 'UMUM';
+                    return jenisPasien;
+                }
+                
+                function poliLabel(poli) {
+                    if (!poli) return '-';
+                    if (poli === 'UGD') return 'UGD';
+                    if (poli === 'SPESIALIS_ANAK') return 'Spesialis Anak';
+                    if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Spesialis Penyakit Dalam';
+                    if (poli === 'DOKTER_UMUM') return 'Dokter Umum';
+                    return poli;
+                }
+
+                function getTodayRangeISO() {
+                    const start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    return { startISO: start.toISOString(), endISO: end.toISOString() };
+                }
+
+                async function loadAntrian() {
+                    const { startISO, endISO } = getTodayRangeISO();
+                    
+                    // Query dasar
+                    let query = supabaseClient
+                        .from('antrian')
+                        .select('*')
+                        .gte('created_at', startISO)
+                        .lte('created_at', endISO)
+                        .order('created_at', { ascending: true });
+                    
+                    // Filter unit jika tidak ALL
+                    if (selectedUnit !== 'ALL') {
+                        query = query.eq('unit', selectedUnit);
+                    }
+                    
+                    const { data: antrianData, error: antrianError } = await query;
+                    
+                    if (antrianError) {
+                        console.error('Error loading antrian:', antrianError);
+                        return;
+                    }
+                    
+                    const mergedData = (antrianData || []).map(a => ({
+                        ...a,
+                        status_norm: String(a.status || '').toLowerCase(),
+                        nama_pasien: a.nama_pasien || ''
+                    }));
+                    
+                    // Update UI
+                    if (mergedData.length > 0) {
+                        const waiting = mergedData.filter(a => a.status_norm === 'menunggu');
+                        const current = waiting.length > 0 ? waiting[0] : null;
+                        
+                        if (current) {
+                            document.getElementById('currentAntrian').textContent = current.no_antrian || '-';
+                            document.getElementById('currentNama').textContent = current.nama_pasien ? current.nama_pasien : 'Menunggu registrasi';
+                            document.getElementById('currentUnit').textContent = unitNames[current.unit] || current.unit || '-';
+                            document.getElementById('currentJenisPasien').textContent = jenisPasienLabel(current.jenis_pasien);
+                            document.getElementById('currentPoli').textContent = poliLabel(current.poli_tujuan);
+                        } else {
+                            document.getElementById('currentAntrian').textContent = '-';
+                            document.getElementById('currentNama').textContent = 'Tidak ada antrean menunggu';
+                            document.getElementById('currentUnit').textContent = selectedUnit === 'ALL' ? 'SEMUA UNIT' : (unitNames[selectedUnit] || selectedUnit);
+                            document.getElementById('currentJenisPasien').textContent = '-';
+                            document.getElementById('currentPoli').textContent = '-';
+                        }
+                        
+                        const nextList = waiting.slice(1);
+                        const listContainer = document.getElementById('antrianList');
+                        listContainer.innerHTML = '';
+                        
+                        nextList.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'bg-gradient-to-r from-emerald-900/50 to-blue-900/50 border border-emerald-700/50 rounded-xl p-4 flex justify-between items-center shadow-lg';
+                            div.innerHTML = `
+                                <div>
+                                    <div class="text-2xl font-extrabold text-emerald-300">${item.no_antrian}</div>
+                                    <div class="text-sm text-emerald-200">${unitNames[item.unit] || item.unit}</div>
+                                    <div class="text-xs text-emerald-100/80 mt-1">${jenisPasienLabel(item.jenis_pasien)}</div>
+                                    <div class="text-xs text-emerald-100/80 mt-1">${poliLabel(item.poli_tujuan)}</div>
+                                </div>
+                                <div class="text-lg text-emerald-100 text-right">${item.nama_pasien ? item.nama_pasien : '-'}</div>
+                            `;
+                            listContainer.appendChild(div);
+                        });
+                    } else {
+                        document.getElementById('currentAntrian').textContent = '-';
+                        document.getElementById('currentNama').textContent = 'Belum Ada Antrian';
+                        document.getElementById('currentUnit').textContent = '-';
+                        document.getElementById('currentJenisPasien').textContent = '-';
+                        document.getElementById('currentPoli').textContent = '-';
+                        document.getElementById('antrianList').innerHTML = '';
+                    }
+                }
+
+                function subscribeToRealtime() {
+                    supabaseClient
+                        .channel('public:antrian_display')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => loadAntrian())
+                        .subscribe();
+                }
+
+                // Event listener untuk memilih unit di display
+                document.querySelectorAll('.display-unit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.display-unit-btn').forEach(b => {
+                            b.classList.remove('active', 'bg-white', 'text-emerald-900', 'ring-4', 'ring-white/25');
+                        });
+                        
+                        this.classList.add('active');
+                        
+                        selectedUnit = this.dataset.unit;
+                        
+                        if (selectedUnit === 'ALL') {
+                            this.classList.add('bg-white', 'text-emerald-900');
+                        } else {
+                            this.classList.remove('bg-white', 'text-emerald-900');
+                        }
+
+                        this.classList.add('ring-4', 'ring-white/25');
+                        
+                        loadAntrian();
+                    });
+                });
+
+                loadAntrian();
+                subscribeToRealtime();
+                window.setInterval(() => loadAntrian(), 5000);
+            }
+        });
+    </script>
+</body>
+</html>
