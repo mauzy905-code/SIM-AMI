@@ -367,6 +367,15 @@
                 }
 
                 function openJenisModal(unit) {
+                    if (unit === 'FARMASI') {
+                        window.location.href = 'mesin-farmasi.html';
+                        return;
+                    }
+                    if (unit === 'POLIKLINIK') {
+                        window.location.href = 'mesin-poliklinik.html';
+                        return;
+                    }
+
                     selectedUnit = unit;
                     selectedJenis = '';
                     modalUnitTitle.textContent = unitNames[unit] || unit;
