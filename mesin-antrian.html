@@ -49,7 +49,7 @@
                                     <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white">1</div>
                                     <div>
                                         <div class="text-base font-extrabold text-slate-900">Pilih Unit Pelayanan</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">UNIT GAWAT DARURAT atau POLIKLINIK</div>
+                                        <div class="mt-1 text-sm font-semibold text-slate-500">FARMASI atau POLIKLINIK</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4 rounded-2xl bg-blue-50 px-4 py-4">
@@ -90,7 +90,7 @@
                                     <div class="mt-1.5 text-sm font-semibold text-slate-600">Gunakan hanya saat pelayanan berakhir atau antrean hari ini ingin dimulai kembali dari awal.</div>
                                     <div class="mt-3 flex flex-wrap gap-2">
                                         <button id="resetUgdBtn" type="button" class="rounded-xl border border-red-200 bg-white px-3.5 py-2 text-sm font-bold text-red-700 shadow-sm transition hover:bg-red-50">
-                                            Reset UGD
+                                            Reset Farmasi
                                         </button>
                                         <button id="resetPoliBtn" type="button" class="rounded-xl border border-blue-200 bg-white px-3.5 py-2 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50">
                                             Reset Poliklinik
@@ -122,15 +122,15 @@
                             </div>
 
                             <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                <button class="unit-btn group relative overflow-hidden rounded-[30px] border border-red-200 bg-[linear-gradient(145deg,_#ef4444_0%,_#dc2626_65%,_#b91c1c_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(239,68,68,0.55)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(239,68,68,0.62)] active:scale-[0.99]" data-unit="UGD">
+                                <button class="unit-btn group relative overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] active:scale-[0.99]" data-unit="FARMASI">
                                     <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
                                     <div class="relative">
                                         <div class="flex items-center justify-between gap-4">
                                             <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">🏥</div>
                                             <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
                                         </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">UNIT GAWAT DARURAT</div>
-                                        <div class="mt-3 text-base font-semibold text-red-50/95 leading-7">LAYANAN PENDAFTARAN CEPAT UNTUK KONDISI GAWAT DARURAT DENGAN ALUR CETAK NOMOR OTOMATIS.</div>
+                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">FARMASI</div>
+                                        <div class="mt-3 text-base font-semibold text-emerald-50/95 leading-7">LAYANAN PENGAMBILAN NOMOR UNTUK FARMASI DENGAN ALUR CETAK NOMOR OTOMATIS.</div>
                                     </div>
                                 </button>
 
@@ -342,17 +342,17 @@
                 let selectedJenis = '';
 
                 const unitNames = {
-                    'UGD': 'UNIT GAWAT DARURAT',
+                    'FARMASI': 'FARMASI',
                     'POLIKLINIK': 'POLIKLINIK'
                 };
 
                 const unitPrefix = {
-                    'UGD': 'A',
+                    'FARMASI': 'F',
                     'POLIKLINIK': 'P'
                 };
                 
                 const poliNames = {
-                    'UGD': 'UGD',
+                    'FARMASI': 'FARMASI',
                     'SPESIALIS_ANAK': 'SPESIALIS ANAK',
                     'SPESIALIS_PENYAKIT_DALAM': 'SPESIALIS PENYAKIT DALAM',
                     'DOKTER_UMUM': 'DOKTER UMUM'
@@ -589,7 +589,7 @@
                     resetPanel.classList.add('hidden');
                     resetToggleBtn.textContent = 'Buka Reset Antrean';
                 });
-                resetUgdBtn.addEventListener('click', () => resetAntrean('UGD', resetUgdBtn));
+                resetUgdBtn.addEventListener('click', () => resetAntrean('FARMASI', resetUgdBtn));
                 resetPoliBtn.addEventListener('click', () => resetAntrean('POLIKLINIK', resetPoliBtn));
                 resetAllBtn.addEventListener('click', () => resetAntrean('ALL', resetAllBtn));
 
@@ -607,7 +607,7 @@
                         this.innerHTML = '⏳ Memproses...';
 
                         try {
-                            await processTicket(unit, jenisPasien, 'UGD');
+                            await processTicket(unit, jenisPasien, 'FARMASI');
                         } catch (err) {
                             alert('Terjadi kesalahan: ' + err.message);
                         } finally {
