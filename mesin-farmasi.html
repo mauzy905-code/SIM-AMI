@@ -28,7 +28,7 @@
                                 RSUD AJI MUHAMMAD IDRIS
                             </div>
                             <div class="mt-3 text-emerald-50/95 text-lg md:text-xl font-semibold leading-relaxed">
-                                Mesin Antrian Farmasi • Silakan pilih jenis pasien untuk mencetak nomor.
+                                Mesin Antrian Farmasi • Tekan tombol untuk mencetak nomor antrean.
                             </div>
                         </div>
                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
@@ -47,8 +47,8 @@
                                 <div class="flex items-start gap-4 rounded-2xl bg-emerald-50 px-4 py-4">
                                     <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white">1</div>
                                     <div>
-                                        <div class="text-base font-extrabold text-slate-900">Pilih Jenis Pasien</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">BPJS atau UMUM</div>
+                                        <div class="text-base font-extrabold text-slate-900">Ambil Nomor Antrean</div>
+                                        <div class="mt-1 text-sm font-semibold text-slate-500">Tekan tombol sekali</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4 rounded-2xl bg-blue-50 px-4 py-4">
@@ -94,7 +94,7 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
                                     <div class="text-sm font-extrabold tracking-[0.28em] text-emerald-700 uppercase">Farmasi</div>
-                                    <div class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pilih Jenis Pasien</div>
+                                    <div class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Ambil Nomor Antrean</div>
                                 </div>
                                 <div class="rounded-2xl border border-emerald-100 bg-white px-5 py-4 shadow-sm">
                                     <div class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-400">Status Mesin</div>
@@ -105,28 +105,16 @@
                                 </div>
                             </div>
 
-                            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                <button id="btnBpjs" type="button" class="jenis-btn group relative overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] active:scale-[0.99]" data-jenis="BPJS">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
+                            <div class="mt-8">
+                                <button id="btnAmbilNomor" type="button" class="group relative w-full overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-10 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] active:scale-[0.99]">
+                                    <div class="absolute right-0 top-0 h-40 w-40 translate-x-12 -translate-y-12 rounded-full bg-white/10 blur-2xl"></div>
                                     <div class="relative">
                                         <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">🛡️</div>
+                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">💊</div>
                                             <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
                                         </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">PASIEN BPJS</div>
-                                        <div class="mt-3 text-base font-semibold text-emerald-50/95 leading-7">UNTUK PESERTA JKN / BPJS KESEHATAN.</div>
-                                    </div>
-                                </button>
-
-                                <button id="btnUmum" type="button" class="jenis-btn group relative overflow-hidden rounded-[30px] border border-blue-200 bg-[linear-gradient(145deg,_#60a5fa_0%,_#3b82f6_55%,_#2563eb_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(37,99,235,0.5)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(37,99,235,0.6)] active:scale-[0.99]" data-jenis="UMUM">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
-                                    <div class="relative">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">👤</div>
-                                            <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
-                                        </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">PASIEN UMUM</div>
-                                        <div class="mt-3 text-base font-semibold text-blue-50/95 leading-7">UNTUK PASIEN UMUM / NON BPJS.</div>
+                                        <div class="mt-8 text-4xl font-black leading-tight tracking-tight">AMBIL NOMOR FARMASI</div>
+                                        <div class="mt-3 text-base font-semibold text-emerald-50/95 leading-7">TEKAN UNTUK MENCETAK NOMOR ANTRIAN.</div>
                                     </div>
                                 </button>
                             </div>
@@ -354,7 +342,7 @@
                 return unitPrefix + '-' + (lastNumber + 1).toString().padStart(3, '0');
             }
 
-            async function processTicket(jenisPasien) {
+            async function processTicket() {
                 const noAntrian = await generateNoAntrian();
                 const now = new Date();
 
@@ -363,7 +351,7 @@
                     .insert([{
                         no_antrian: noAntrian,
                         unit: unit,
-                        jenis_pasien: jenisPasien,
+                        jenis_pasien: 'BELUM_DITENTUKAN',
                         poli_tujuan: unit,
                         status: 'menunggu',
                         created_at: now.toISOString()
@@ -372,8 +360,10 @@
                 if (error) throw new Error(error.message);
 
                 document.getElementById('strukUnit').textContent = unitLabel;
-                document.getElementById('strukJenisPasien').textContent = 'JENIS PASIEN: ' + jenisPasien;
-                document.getElementById('strukPoli').textContent = unitLabel;
+                document.getElementById('strukJenisPasien').textContent = '';
+                document.getElementById('strukJenisPasien').style.display = 'none';
+                document.getElementById('strukPoli').textContent = '';
+                document.getElementById('strukPoli').style.display = 'none';
                 document.getElementById('strukNoAntrian').textContent = noAntrian;
                 document.getElementById('strukTanggal').textContent =
                     now.getDate().toString().padStart(2, '0') + '-' +
@@ -384,24 +374,22 @@
                     now.getMinutes().toString().padStart(2, '0');
 
                 await printTicket();
-                alert('Nomor antrian ' + noAntrian + ' (' + jenisPasien + ') berhasil diambil.');
+                alert('Nomor antrian ' + noAntrian + ' berhasil diambil.');
             }
 
-            document.querySelectorAll('.jenis-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    const jenisPasien = this.dataset.jenis;
-                    const original = this.innerHTML;
-                    this.disabled = true;
-                    this.innerHTML = '⏳ Memproses...';
-                    try {
-                        await processTicket(jenisPasien);
-                    } catch (err) {
-                        alert('Terjadi kesalahan: ' + (err?.message || String(err)));
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = original;
-                    }
-                });
+            const btnAmbilNomor = document.getElementById('btnAmbilNomor');
+            btnAmbilNomor.addEventListener('click', async function() {
+                const original = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '⏳ Memproses...';
+                try {
+                    await processTicket();
+                } catch (err) {
+                    alert('Terjadi kesalahan: ' + (err?.message || String(err)));
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = original;
+                }
             });
 
             resetToggleBtn.addEventListener('click', () => {
@@ -429,4 +417,3 @@
     </script>
 </body>
 </html>
-
