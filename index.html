@@ -1185,13 +1185,40 @@
                     }
                 });
 
-                // Subscribe realtime untuk update antrian
+                let realtimeStatsTimer = null;
+
+                function scheduleRealtimeDashboardRefresh() {
+                    if (realtimeStatsTimer) {
+                        window.clearTimeout(realtimeStatsTimer);
+                    }
+
+                    realtimeStatsTimer = window.setTimeout(async () => {
+                        await refreshStats();
+                        if (!viewRekap.classList.contains('hidden')) {
+                            await r_loadPage(r_currentPage);
+                        }
+                    }, 250);
+                }
+
+                // Subscribe realtime untuk update antrian, status hari ini, dan rekap pasien
                 supabaseClient
                     .channel('public:antrian')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => {
                         refreshAntrianDropdown();
+                        scheduleRealtimeDashboardRefresh();
                     })
                     .subscribe();
+
+                supabaseClient
+                    .channel('public:pasien_admin')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'pasien' }, () => {
+                        scheduleRealtimeDashboardRefresh();
+                    })
+                    .subscribe();
+
+                window.setInterval(() => {
+                    refreshStats();
+                }, 5000);
 
                 const R_PAGE_SIZE = 25;
                 let r_currentPage = 1;
