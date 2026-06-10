@@ -144,6 +144,7 @@
                             <div class="p-5 md:p-6">
                                 <form id="registrationForm" class="space-y-4">
                                 <input type="hidden" id="no_rm">
+                                <input type="hidden" id="no_registrasi">
                                 <div>
                                     <label class="block text-slate-700 font-semibold mb-2">Jenis Pendaftaran</label>
                                     <div class="grid grid-cols-2 gap-3">
@@ -158,14 +159,28 @@
                                     </div>
                                 </div>
 
-                                <div id="pasienBaruPanel" class="rounded-[24px] border border-emerald-100 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#f0fdfa_100%)] p-4">
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div>
-                                            <div class="text-sm font-bold text-emerald-900">Nomor Rekam Medis Otomatis</div>
-                                            <div class="text-xs font-semibold text-slate-500 mt-1">Nomor RM akan dibuat otomatis dan tercetak di stiker setelah data disimpan.</div>
+                                <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                                    <div class="rounded-[22px] border border-blue-100 bg-[linear-gradient(135deg,_#eff6ff_0%,_#f8fbff_100%)] p-3.5">
+                                        <div class="flex flex-col gap-3">
+                                            <div>
+                                                <div class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-700">Nomor Registrasi</div>
+                                                <div class="mt-1 text-xs font-semibold text-slate-500">Urut otomatis setiap kunjungan.</div>
+                                            </div>
+                                            <div id="noRegistrasiPreview" class="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-center text-lg font-black tracking-[0.24em] text-blue-700 shadow-sm break-all">
+                                                -
+                                            </div>
                                         </div>
-                                        <div id="noRmPreview" class="rounded-2xl border border-emerald-100 bg-white px-4 py-2.5 text-sm font-extrabold tracking-[0.2em] text-blue-700 shadow-sm">
-                                            -
+                                    </div>
+
+                                    <div id="pasienBaruPanel" class="rounded-[22px] border border-emerald-100 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#f0fdfa_100%)] p-3.5">
+                                        <div class="flex flex-col gap-3">
+                                            <div>
+                                                <div class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-700">Nomor RM</div>
+                                                <div class="mt-1 text-xs font-semibold text-slate-500">Urut otomatis untuk pasien baru.</div>
+                                            </div>
+                                            <div id="noRmPreview" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center text-lg font-black tracking-[0.24em] text-blue-700 shadow-sm break-all">
+                                                -
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -299,6 +314,36 @@
                                 <div class="mt-4 rounded-[24px] border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 text-sm font-semibold text-slate-600">
                                     Gunakan menu di kiri atas untuk berpindah cepat antara formulir pendaftaran dan rekap data pasien.
                                 </div>
+                                <div class="mt-4 rounded-[24px] border border-blue-100 bg-[linear-gradient(135deg,_#eff6ff_0%,_#f8fbff_100%)] p-4 shadow-sm">
+                                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-700">Kontrol Slide Antrean</div>
+                                            <div class="mt-1.5 text-lg font-black tracking-tight text-slate-900">Geser ke nomor berikutnya secara manual</div>
+                                            <div class="mt-1 text-sm font-semibold text-slate-500">Setelah registrasi selesai, klik tombol Next agar display berpindah ke antrean terdaftar berikutnya.</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                                        <div class="rounded-[22px] border border-emerald-100 bg-white px-4 py-4 shadow-sm">
+                                            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-700">Farmasi</div>
+                                            <div id="queueCurrentFarmasi" class="mt-2 text-2xl font-black tracking-tight text-emerald-800">-</div>
+                                            <div id="queueCurrentFarmasiMeta" class="mt-1 text-sm font-semibold text-slate-500">Belum ada antrean terdaftar.</div>
+                                            <button id="nextFarmasiBtn" type="button" class="mt-4 w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_42%,_#047857_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(5,150,105,0.5)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+                                                Next Farmasi
+                                            </button>
+                                        </div>
+                                        <div class="rounded-[22px] border border-blue-100 bg-white px-4 py-4 shadow-sm">
+                                            <div class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-700">Poliklinik</div>
+                                            <div id="queueCurrentPoliklinik" class="mt-2 text-2xl font-black tracking-tight text-blue-800">-</div>
+                                            <div id="queueCurrentPoliklinikMeta" class="mt-1 text-sm font-semibold text-slate-500">Belum ada antrean terdaftar.</div>
+                                            <button id="nextPoliklinikBtn" type="button" class="mt-4 w-full rounded-2xl bg-[linear-gradient(135deg,_#2563eb_0%,_#1d4ed8_42%,_#1e40af_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(37,99,235,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+                                                Next Poliklinik
+                                            </button>
+                                            <button id="callPrioritasPoliklinikBtn" type="button" class="mt-3 w-full rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,_#fbbf24_0%,_#f59e0b_55%,_#d97706_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(245,158,11,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+                                                Panggil Prioritas
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -387,6 +432,7 @@
                                     <th class="px-4 py-3 text-sm font-bold">Jenis Pasien</th>
                                     <th class="px-4 py-3 text-sm font-bold">Poli</th>
                                     <th class="px-4 py-3 text-sm font-bold">No Antrian</th>
+                                    <th class="px-4 py-3 text-sm font-bold">No Registrasi</th>
                                     <th class="px-4 py-3 text-sm font-bold">No RM</th>
                                     <th class="px-4 py-3 text-sm font-bold">NIK</th>
                                     <th class="px-4 py-3 text-sm font-bold">No BPJS</th>
@@ -539,6 +585,7 @@
                 const pasienBaruPanel = document.getElementById('pasienBaruPanel');
                 const pasienLamaPanel = document.getElementById('pasienLamaPanel');
                 const noRmPreview = document.getElementById('noRmPreview');
+                const noRegistrasiPreview = document.getElementById('noRegistrasiPreview');
                 const noRmLookup = document.getElementById('no_rm_lookup');
                 const cariPasienBtn = document.getElementById('cariPasienBtn');
                 const pasienLookupInfo = document.getElementById('pasienLookupInfo');
@@ -553,12 +600,20 @@
                 const saveHistoryDriveBtn = document.getElementById('saveHistoryDriveBtn');
                 const openHistoryDriveBtn = document.getElementById('openHistoryDriveBtn');
                 const historyDriveMessage = document.getElementById('historyDriveMessage');
+                const nextFarmasiBtn = document.getElementById('nextFarmasiBtn');
+                const nextPoliklinikBtn = document.getElementById('nextPoliklinikBtn');
+                const callPrioritasPoliklinikBtn = document.getElementById('callPrioritasPoliklinikBtn');
+                const queueCurrentFarmasi = document.getElementById('queueCurrentFarmasi');
+                const queueCurrentFarmasiMeta = document.getElementById('queueCurrentFarmasiMeta');
+                const queueCurrentPoliklinik = document.getElementById('queueCurrentPoliklinik');
+                const queueCurrentPoliklinikMeta = document.getElementById('queueCurrentPoliklinikMeta');
 
                 let patientMode = 'baru';
                 let loadedOldPatient = null;
                 let currentHistoryNoRm = '';
                 let currentHistoryPatientName = '';
                 let riwayatLinkColumnAvailable = true;
+                let noRegistrasiColumnAvailable = true;
 
                 function openDrawer() {
                     drawer.classList.remove('-translate-x-full');
@@ -618,7 +673,10 @@
                     }
                     await requireSession();
                     await detectRiwayatLinkColumn();
+                    await detectNoRegistrasiColumn();
                     showView('pendaftaran');
+                    await initForm();
+                    await loadQueueControls();
                     await refreshStats();
                     await r_reloadToFirstPage();
                 }
@@ -651,9 +709,39 @@
                     if (e.key === 'Enter') login();
                 });
 
-                function generateNoRM() {
-                    const random = Math.floor(100000 + Math.random() * 900000);
-                    return random.toString();
+                function formatSequentialNumber(number) {
+                    const safeNumber = Number.isFinite(Number(number)) && Number(number) > 0 ? Number(number) : 1;
+                    return String(Math.trunc(safeNumber)).padStart(6, '0');
+                }
+
+                async function getNextSequentialNumber(columnName, prefix = '') {
+                    const { count, error } = await supabaseClient
+                        .from('pasien')
+                        .select('id', { count: 'exact', head: true })
+                        .not(columnName, 'is', null);
+
+                    if (error) throw new Error(error.message);
+
+                    let nextNumber = (typeof count === 'number' ? count : 0) + 1;
+                    let candidate = `${prefix}${formatSequentialNumber(nextNumber)}`;
+
+                    for (let guard = 0; guard < 2000; guard += 1) {
+                        const { data: existingRow, error: existsError } = await supabaseClient
+                            .from('pasien')
+                            .select(columnName)
+                            .eq(columnName, candidate)
+                            .limit(1);
+
+                        if (existsError) throw new Error(existsError.message);
+                        if (!existingRow || existingRow.length === 0) {
+                            return candidate;
+                        }
+
+                        nextNumber += 1;
+                        candidate = `${prefix}${formatSequentialNumber(nextNumber)}`;
+                    }
+
+                    throw new Error('Gagal membuat nomor urut otomatis. Silakan cek data pasien di database.');
                 }
 
                 function escapeHtml(value) {
@@ -721,6 +809,41 @@
                     }
                 }
 
+                async function detectNoRegistrasiColumn() {
+                    const { error } = await supabaseClient
+                        .from('pasien')
+                        .select('no_registrasi')
+                        .limit(1);
+
+                    if (error && /no_registrasi/i.test(error.message)) {
+                        noRegistrasiColumnAvailable = false;
+                        document.getElementById('no_registrasi').value = '';
+                        noRegistrasiPreview.textContent = 'TAMBAH KOLOM';
+                        noRegistrasiPreview.classList.remove('text-blue-700');
+                        noRegistrasiPreview.classList.add('text-red-600');
+                    }
+                }
+
+                async function refreshAutomaticNumbers() {
+                    if (noRegistrasiColumnAvailable) {
+                        noRegistrasiPreview.textContent = 'MEMUAT...';
+                        const nextRegistrasi = await getNextSequentialNumber('no_registrasi', 'REG-');
+                        document.getElementById('no_registrasi').value = nextRegistrasi;
+                        noRegistrasiPreview.textContent = nextRegistrasi;
+                    } else {
+                        document.getElementById('no_registrasi').value = '';
+                    }
+
+                    if (patientMode === 'baru') {
+                        noRmPreview.textContent = 'MEMUAT...';
+                        const nextNoRm = await getNextSequentialNumber('no_rm');
+                        document.getElementById('no_rm').value = nextNoRm;
+                        noRmPreview.textContent = nextNoRm;
+                    } else {
+                        noRmPreview.textContent = 'PASIEN LAMA';
+                    }
+                }
+
                 async function openPatientHistory(noRm, fallbackName) {
                     if (!noRm) return;
 
@@ -774,6 +897,7 @@
                                             <span class="rounded-full border border-blue-100 bg-blue-50 px-3 py-1">${escapeHtml(r_jenisPasienLabel(item.jenis_pasien))}</span>
                                             <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1">${escapeHtml(r_poliLabel(item.poli_tujuan) || 'Farmasi')}</span>
                                             <span class="rounded-full border border-slate-200 bg-white px-3 py-1">No Antrian: ${escapeHtml(item.no_antrian || '-')}</span>
+                                            <span class="rounded-full border border-slate-200 bg-white px-3 py-1">No Registrasi: ${escapeHtml(item.no_registrasi || '-')}</span>
                                         </div>
                                     </div>
                                     <div class="text-sm font-semibold text-slate-500 md:text-right">
@@ -871,7 +995,7 @@
                     riwayatPasienLinkInput.value = patient?.riwayat_pasien_link || '';
                 }
 
-                function setPatientMode(mode) {
+                async function setPatientMode(mode) {
                     patientMode = mode;
                     loadedOldPatient = null;
                     pasienLookupInfo.classList.add('hidden');
@@ -883,8 +1007,9 @@
                         modeBaruBtn.className = 'rounded-xl border border-emerald-100 bg-white px-4 py-3 text-left transition hover:bg-emerald-50';
                         modeLamaBtn.className = 'rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-left transition';
                         document.getElementById('no_rm').value = '';
-                        noRmPreview.textContent = '-';
+                        noRmPreview.textContent = 'PASIEN LAMA';
                         clearIdentityFields();
+                        await refreshAutomaticNumbers();
                         noRmLookup.focus();
                     } else {
                         pasienLamaPanel.classList.add('hidden');
@@ -892,8 +1017,7 @@
                         modeBaruBtn.className = 'rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left transition';
                         modeLamaBtn.className = 'rounded-xl border border-emerald-100 bg-white px-4 py-3 text-left transition hover:bg-emerald-50';
                         clearIdentityFields();
-                        document.getElementById('no_rm').value = generateNoRM();
-                        noRmPreview.textContent = document.getElementById('no_rm').value;
+                        await refreshAutomaticNumbers();
                     }
                 }
 
@@ -968,16 +1092,24 @@
                     }
                     
                     const { startISO, endISO } = getTodayRangeISO();
-                    const { data, error } = await supabaseClient
+                    let query = supabaseClient
                         .from('antrian')
                         .select('*')
                         .gte('created_at', startISO)
                         .lte('created_at', endISO)
                         .eq('unit', unit)
-                        .eq('jenis_pasien', jenisPasien)
-                        .eq('poli_tujuan', unit === 'POLIKLINIK' ? poliTujuan : 'FARMASI')
                         .in('status', ['menunggu', 'MENUNGGU', 'Menunggu'])
                         .order('created_at', { ascending: true });
+
+                    if (unit === 'POLIKLINIK') {
+                        query = query.eq('jenis_pasien', jenisPasien);
+                        query = query.in('poli_tujuan', ['POLIKLINIK', poliTujuan]);
+                    } else {
+                        query = query.in('jenis_pasien', [jenisPasien, 'BELUM_DITENTUKAN']);
+                        query = query.eq('poli_tujuan', 'FARMASI');
+                    }
+
+                    const { data, error } = await query;
                     
                     if (error) {
                         console.error('Error loading antrian:', error);
@@ -994,7 +1126,7 @@
                 }
 
                 async function initForm() {
-                    setPatientMode('baru');
+                    await setPatientMode('baru');
                     const wrap = document.getElementById('poliTujuanWrap');
                     const poliSelect = document.getElementById('poli_tujuan');
                     wrap.classList.add('hidden');
@@ -1019,6 +1151,206 @@
                     const hh = pad2(date.getHours());
                     const min = pad2(date.getMinutes());
                     return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
+                }
+
+                function queueControlPrefix(unit) {
+                    return unit === 'FARMASI' ? 'Farmasi' : 'Poliklinik';
+                }
+
+                function isPrioritasNoAntrian(noAntrian) {
+                    return /^B-/i.test(String(noAntrian || '').trim());
+                }
+
+                async function loadQueueControls() {
+                    const { startISO, endISO } = getTodayRangeISO();
+                    const { data, error } = await supabaseClient
+                        .from('antrian')
+                        .select('id,no_antrian,unit,status,nama_pasien,jenis_pasien,poli_tujuan,created_at')
+                        .gte('created_at', startISO)
+                        .lte('created_at', endISO)
+                        .order('created_at', { ascending: true });
+
+                    if (error) {
+                        queueCurrentFarmasi.textContent = '-';
+                        queueCurrentFarmasiMeta.textContent = 'Gagal memuat kontrol antrean.';
+                        queueCurrentPoliklinik.textContent = '-';
+                        queueCurrentPoliklinikMeta.textContent = 'Gagal memuat kontrol antrean.';
+                        nextFarmasiBtn.disabled = true;
+                        nextPoliklinikBtn.disabled = true;
+                        callPrioritasPoliklinikBtn.disabled = true;
+                        return;
+                    }
+
+                    const rows = data || [];
+                    ['FARMASI', 'POLIKLINIK'].forEach((unit) => {
+                        const called = rows.filter((item) => item.unit === unit && String(item.status || '').toLowerCase() === 'dipanggil');
+                        const queued = rows.filter((item) => item.unit === unit && String(item.status || '').toLowerCase() === 'terdaftar');
+                        const current = called[0] || queued[0] || null;
+                        const prefix = queueControlPrefix(unit);
+                        const labelEl = unit === 'FARMASI' ? queueCurrentFarmasi : queueCurrentPoliklinik;
+                        const metaEl = unit === 'FARMASI' ? queueCurrentFarmasiMeta : queueCurrentPoliklinikMeta;
+                        const btnEl = unit === 'FARMASI' ? nextFarmasiBtn : nextPoliklinikBtn;
+
+                        if (!current) {
+                            labelEl.textContent = '-';
+                            metaEl.textContent = 'Belum ada antrean terdaftar.';
+                            btnEl.disabled = true;
+                            if (unit === 'POLIKLINIK') {
+                                callPrioritasPoliklinikBtn.disabled = true;
+                                callPrioritasPoliklinikBtn.textContent = 'Panggil Prioritas';
+                            }
+                            return;
+                        }
+
+                        const currentNo = current.no_antrian || '-';
+                        const currentLabel = (unit === 'POLIKLINIK' && isPrioritasNoAntrian(currentNo)) ? `${currentNo} (PRIORITAS)` : currentNo;
+                        const waitingName = current.nama_pasien || 'Siap dipanggil';
+                        const totalReady = called.length + queued.length;
+                        labelEl.textContent = currentLabel;
+                        metaEl.textContent = `${waitingName} • Sisa antrean siap slide: ${totalReady}`;
+                        btnEl.disabled = false;
+                        btnEl.textContent = 'Next ' + prefix;
+
+                        if (unit === 'POLIKLINIK') {
+                            const priorityReady = queued.filter((item) => isPrioritasNoAntrian(item.no_antrian)).length;
+                            const hasCalled = called.length > 0;
+                            if (priorityReady > 0 && !hasCalled) {
+                                callPrioritasPoliklinikBtn.disabled = false;
+                                callPrioritasPoliklinikBtn.textContent = `Panggil Prioritas (${priorityReady})`;
+                            } else {
+                                callPrioritasPoliklinikBtn.disabled = true;
+                                callPrioritasPoliklinikBtn.textContent = hasCalled ? 'Prioritas Sedang Aktif' : 'Panggil Prioritas';
+                            }
+                        }
+                    });
+                }
+
+                async function callPrioritasPoliklinik(buttonEl) {
+                    const originalText = buttonEl.textContent;
+                    buttonEl.disabled = true;
+                    buttonEl.textContent = 'Memproses...';
+
+                    try {
+                        const { startISO, endISO } = getTodayRangeISO();
+
+                        const { data: activeCalled, error: calledError } = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .select('id,no_antrian')
+                                .gte('created_at', startISO)
+                                .lte('created_at', endISO)
+                                .eq('unit', 'POLIKLINIK')
+                                .eq('status', 'dipanggil')
+                                .order('created_at', { ascending: true })
+                                .limit(1),
+                            15000,
+                            'Cek antrean dipanggil'
+                        );
+
+                        if (calledError) throw new Error(calledError.message);
+                        if (activeCalled && activeCalled.length > 0) {
+                            throw new Error('Masih ada antrean yang sedang dipanggil. Selesaikan dulu dengan tombol Next.');
+                        }
+
+                        const { data, error } = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .select('id,no_antrian')
+                                .gte('created_at', startISO)
+                                .lte('created_at', endISO)
+                                .eq('unit', 'POLIKLINIK')
+                                .eq('status', 'terdaftar')
+                                .ilike('no_antrian', 'B-%')
+                                .order('created_at', { ascending: true })
+                                .limit(1),
+                            15000,
+                            'Muat antrean prioritas'
+                        );
+
+                        if (error) throw new Error(error.message);
+                        if (!data || data.length === 0) {
+                            throw new Error('Tidak ada antrean prioritas yang siap dipanggil.');
+                        }
+
+                        const target = data[0];
+                        const updateRes = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .update({ status: 'dipanggil' })
+                                .eq('id', target.id),
+                            15000,
+                            'Aktifkan prioritas'
+                        );
+
+                        if (updateRes?.error) throw new Error(updateRes.error.message);
+
+                        await loadQueueControls();
+                        await refreshStats();
+                        if (!viewRekap.classList.contains('hidden')) {
+                            await r_loadPage(r_currentPage);
+                        }
+                    } catch (err) {
+                        alert('Gagal memanggil antrean prioritas: ' + (err?.message || String(err)));
+                    } finally {
+                        buttonEl.disabled = false;
+                        buttonEl.textContent = originalText;
+                    }
+                }
+
+                async function slideNextQueue(unit, buttonEl) {
+                    const originalText = buttonEl.textContent;
+                    buttonEl.disabled = true;
+                    buttonEl.textContent = 'Memproses...';
+
+                    try {
+                        const { startISO, endISO } = getTodayRangeISO();
+                        const findActive = async (status) => {
+                            const { data, error } = await withTimeout(
+                                supabaseClient
+                                    .from('antrian')
+                                    .select('id,no_antrian')
+                                    .gte('created_at', startISO)
+                                    .lte('created_at', endISO)
+                                    .eq('unit', unit)
+                                    .eq('status', status)
+                                    .order('created_at', { ascending: true })
+                                    .limit(1),
+                                15000,
+                                'Muat antrean aktif'
+                            );
+                            if (error) throw new Error(error.message);
+                            return data || [];
+                        };
+
+                        const called = await findActive('dipanggil');
+                        const queued = called.length > 0 ? called : await findActive('terdaftar');
+                        if (queued.length === 0) {
+                            throw new Error(`Belum ada antrean ${queueControlPrefix(unit)} yang siap di-slide.`);
+                        }
+
+                        const current = queued[0];
+                        const updateRes = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .update({ status: 'selesai' })
+                                .eq('id', current.id),
+                            15000,
+                            'Geser antrean'
+                        );
+
+                        if (updateRes?.error) throw new Error(updateRes.error.message);
+
+                        await loadQueueControls();
+                        await refreshStats();
+                        if (!viewRekap.classList.contains('hidden')) {
+                            await r_loadPage(r_currentPage);
+                        }
+                    } catch (err) {
+                        alert('Gagal menjalankan next antrean: ' + (err?.message || String(err)));
+                    } finally {
+                        buttonEl.disabled = false;
+                        buttonEl.textContent = originalText;
+                    }
                 }
 
                 function refreshAntrianDropdown() {
@@ -1058,8 +1390,11 @@
                 document.getElementById('poli_tujuan').addEventListener('change', function() {
                     refreshAntrianDropdown();
                 });
-                modeBaruBtn.addEventListener('click', () => setPatientMode('baru'));
-                modeLamaBtn.addEventListener('click', () => setPatientMode('lama'));
+                modeBaruBtn.addEventListener('click', async () => setPatientMode('baru'));
+                modeLamaBtn.addEventListener('click', async () => setPatientMode('lama'));
+                nextFarmasiBtn.addEventListener('click', async () => slideNextQueue('FARMASI', nextFarmasiBtn));
+                nextPoliklinikBtn.addEventListener('click', async () => slideNextQueue('POLIKLINIK', nextPoliklinikBtn));
+                callPrioritasPoliklinikBtn.addEventListener('click', async () => callPrioritasPoliklinik(callPrioritasPoliklinikBtn));
                 cariPasienBtn.addEventListener('click', () => lookupPasienLama());
                 noRmLookup.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -1084,6 +1419,7 @@
                     saveBtn.disabled = true;
                     saveBtn.textContent = 'Menyimpan...';
 
+                    const no_registrasi = (document.getElementById('no_registrasi').value || '').trim();
                     const no_rm = (document.getElementById('no_rm').value || '').trim();
                     const no_antrian = document.getElementById('no_antrian').value;
                     const unit = document.getElementById('unitSelect').value;
@@ -1105,6 +1441,10 @@
 
                         if (!no_rm) {
                             throw new Error('Nomor rekam medis belum tersedia. Silakan cek mode pasien lalu coba lagi.');
+                        }
+
+                        if (noRegistrasiColumnAvailable && !no_registrasi) {
+                            throw new Error('Nomor registrasi belum tersedia. Silakan tunggu nomor otomatis muncul lalu coba lagi.');
                         }
 
                         if (!nik) {
@@ -1130,6 +1470,10 @@
                             created_at: waktu_daftar.toISOString()
                         };
 
+                        if (noRegistrasiColumnAvailable) {
+                            pasienPayload.no_registrasi = no_registrasi;
+                        }
+
                         if (riwayatLinkColumnAvailable) {
                             pasienPayload.riwayat_pasien_link = riwayat_pasien_link || null;
                         }
@@ -1146,17 +1490,26 @@
                             throw new Error(insertRes.error.message);
                         }
 
-                        const updateRes = await withTimeout(
-                            supabaseClient
-                                .from('antrian')
-                                .update({ status: 'terdaftar', nama_pasien })
-                                .eq('no_antrian', no_antrian)
-                                .eq('unit', unit)
-                                .eq('jenis_pasien', jenis_pasien)
-                                .eq('poli_tujuan', poli_tujuan),
-                            15000,
-                            'Update antrian'
-                        );
+                        const updatePayload = { status: 'terdaftar', nama_pasien };
+                        let updateQuery = supabaseClient
+                            .from('antrian')
+                            .update(updatePayload)
+                            .eq('no_antrian', no_antrian)
+                            .eq('unit', unit)
+                            .eq('jenis_pasien', jenis_pasien);
+
+                        if (unit === 'POLIKLINIK') {
+                            updatePayload.poli_tujuan = poli_tujuan;
+                            updateQuery = updateQuery.in('poli_tujuan', ['POLIKLINIK', poli_tujuan]);
+                        } else if (unit === 'FARMASI') {
+                            updatePayload.jenis_pasien = jenis_pasien;
+                            updateQuery = updateQuery.in('jenis_pasien', [jenis_pasien, 'BELUM_DITENTUKAN']);
+                            updateQuery = updateQuery.eq('poli_tujuan', poli_tujuan);
+                        } else {
+                            updateQuery = updateQuery.eq('poli_tujuan', poli_tujuan);
+                        }
+
+                        const updateRes = await withTimeout(updateQuery, 15000, 'Update antrian');
 
                         if (updateRes?.error) {
                             saveErrorEl.textContent = 'Data pasien tersimpan, tetapi gagal update antrean: ' + updateRes.error.message;
@@ -1176,6 +1529,7 @@
                         await initForm();
 
                         loadAvailableAntrian(unit, jenis_pasien);
+                        loadQueueControls();
                         r_reloadToFirstPage();
                         refreshStats();
                     } catch (err) {
@@ -1196,6 +1550,7 @@
 
                     realtimeStatsTimer = window.setTimeout(async () => {
                         await refreshStats();
+                        await loadQueueControls();
                         if (!viewRekap.classList.contains('hidden')) {
                             await r_loadPage(r_currentPage);
                         }
@@ -1281,6 +1636,7 @@
 
                 function r_jenisPasienLabel(jenisPasien) {
                     if (!jenisPasien) return '-';
+                    if (jenisPasien === 'BELUM_DITENTUKAN') return '-';
                     if (jenisPasien === 'BPJS') return 'BPJS';
                     if (jenisPasien === 'UMUM') return 'Umum';
                     return jenisPasien;
@@ -1316,7 +1672,17 @@
 
                     if (q) {
                         const escaped = q.replace(/,/g, '').replace(/%/g, '');
-                        query = query.or(`nama_pasien.ilike.%${escaped}%,nik.ilike.%${escaped}%,no_bpjs.ilike.%${escaped}%,no_rm.ilike.%${escaped}%,no_antrian.ilike.%${escaped}%`);
+                        const searchableFields = [
+                            `nama_pasien.ilike.%${escaped}%`,
+                            `nik.ilike.%${escaped}%`,
+                            `no_bpjs.ilike.%${escaped}%`,
+                            `no_rm.ilike.%${escaped}%`,
+                            `no_antrian.ilike.%${escaped}%`
+                        ];
+                        if (noRegistrasiColumnAvailable) {
+                            searchableFields.push(`no_registrasi.ilike.%${escaped}%`);
+                        }
+                        query = query.or(searchableFields.join(','));
                     }
 
                     return query;
@@ -1324,7 +1690,7 @@
 
                 function r_renderRows(items) {
                     if (!items || items.length === 0) {
-                        rEls.rows.innerHTML = '<tr><td class="px-4 py-6 text-slate-500" colspan="13">Tidak ada data.</td></tr>';
+                        rEls.rows.innerHTML = '<tr><td class="px-4 py-6 text-slate-500" colspan="14">Tidak ada data.</td></tr>';
                         return;
                     }
                     rEls.rows.innerHTML = items.map((p) => {
@@ -1333,6 +1699,7 @@
                         const jenisPasien = r_jenisPasienLabel(p.jenis_pasien);
                         const poli = r_poliLabel(p.poli_tujuan);
                         const noAntrian = p.no_antrian ?? '-';
+                        const noRegistrasi = p.no_registrasi ?? '-';
                         const noRm = p.no_rm ?? '-';
                         const nik = p.nik ?? '-';
                         const noBpjs = p.no_bpjs ?? '-';
@@ -1353,6 +1720,7 @@
                             <td class="px-4 py-3 text-sm text-slate-800">${jenisPasien}</td>
                             <td class="px-4 py-3 text-sm text-slate-800">${poli}</td>
                             <td class="px-4 py-3 text-sm font-semibold text-emerald-700">${noAntrian}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-slate-700">${noRegistrasi}</td>
                             <td class="px-4 py-3 text-sm font-semibold text-blue-700">${noRm}</td>
                             <td class="px-4 py-3 text-sm text-slate-800">${nik}</td>
                             <td class="px-4 py-3 text-sm text-slate-800">${noBpjs}</td>
@@ -1443,6 +1811,7 @@
                             'Jenis Pasien': r_jenisPasienLabel(p.jenis_pasien),
                             'Poli': r_poliLabel(p.poli_tujuan),
                             'No Antrian': p.no_antrian ?? '',
+                            'No Registrasi': p.no_registrasi ?? '',
                             'No RM': p.no_rm ?? '',
                             'NIK': p.nik ?? '',
                             'No BPJS': p.no_bpjs ?? '',
@@ -1542,8 +1911,10 @@
                     if (!session) return;
 
                     await detectRiwayatLinkColumn();
+                    await detectNoRegistrasiColumn();
                     showView('pendaftaran');
                     await initForm();
+                    await loadQueueControls();
                     await refreshStats();
                     await r_reloadToFirstPage();
                 })();
