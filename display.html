@@ -22,6 +22,7 @@
                 <button class="display-unit-btn rounded-full bg-white text-emerald-900 font-extrabold px-4 py-2 active" data-unit="ALL">SEMUA</button>
                 <button class="display-unit-btn rounded-full bg-red-600/90 text-white font-bold px-4 py-2 hover:bg-red-700 transition" data-unit="FARMASI">FARMASI</button>
                 <button class="display-unit-btn rounded-full bg-blue-600/90 text-white font-bold px-4 py-2 hover:bg-blue-700 transition" data-unit="POLIKLINIK">POLIKLINIK</button>
+                <button id="soundToggleBtn" type="button" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Suara: OFF</button>
                 <div id="syncStatus" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">Sinkron: -</div>
             </div>
         </div>
@@ -205,6 +206,200 @@
                         el.className = 'ml-1 rounded-full border border-red-200/30 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100';
                     } else {
                         el.className = 'ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80';
+                    }
+                }
+
+                const soundToggleBtn = document.getElementById('soundToggleBtn');
+                let soundEnabled = false;
+                let audioContext = null;
+                let speechBusy = false;
+                const speechQueue = [];
+                const lastAnnounced = (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('displayLastAnnounced') || '{}') || {};
+                    } catch (e) {
+                        return {};
+                    }
+                })();
+
+                function persistLastAnnounced() {
+                    try {
+                        localStorage.setItem('displayLastAnnounced', JSON.stringify(lastAnnounced));
+                    } catch (e) {}
+                }
+
+                function setSoundEnabled(nextValue) {
+                    soundEnabled = !!nextValue;
+                    if (soundToggleBtn) {
+                        soundToggleBtn.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+                        soundToggleBtn.className = soundEnabled
+                            ? 'ml-1 rounded-full border border-emerald-200/30 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/25 transition'
+                            : 'ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition';
+                    }
+                    try {
+                        localStorage.setItem('displaySoundEnabled', soundEnabled ? '1' : '0');
+                    } catch (e) {}
+                }
+
+                async function ensureAudioContext() {
+                    if (!soundEnabled) return null;
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return null;
+                    if (!audioContext) audioContext = new AudioCtx();
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    return audioContext;
+                }
+
+                function sleep(ms) {
+                    return new Promise((resolve) => setTimeout(resolve, ms));
+                }
+
+                async function playChimeTone(ctx, frequency, durationMs) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.08, durationMs / 1000));
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + durationMs / 1000);
+                    await sleep(durationMs);
+                }
+
+                async function playAirportChime() {
+                    if (!soundEnabled) return;
+                    const ctx = await ensureAudioContext();
+                    if (!ctx) return;
+                    await playChimeTone(ctx, 880, 140);
+                    await sleep(80);
+                    await playChimeTone(ctx, 660, 140);
+                    await sleep(80);
+                    await playChimeTone(ctx, 880, 180);
+                }
+
+                function speakText(text) {
+                    return new Promise((resolve) => {
+                        if (!soundEnabled) return resolve();
+                        if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return resolve();
+                        const utter = new SpeechSynthesisUtterance(String(text || ''));
+                        utter.lang = 'id-ID';
+                        utter.rate = 0.95;
+                        utter.pitch = 1;
+                        utter.onend = () => resolve();
+                        utter.onerror = () => resolve();
+                        window.speechSynthesis.speak(utter);
+                    });
+                }
+
+                function enqueueAnnouncement(text) {
+                    if (!soundEnabled) return;
+                    const safeText = String(text || '').trim();
+                    if (!safeText) return;
+                    speechQueue.push(safeText);
+                    drainSpeechQueue();
+                }
+
+                async function drainSpeechQueue() {
+                    if (!soundEnabled) return;
+                    if (speechBusy) return;
+                    if (speechQueue.length === 0) return;
+                    speechBusy = true;
+                    const text = speechQueue.shift();
+                    try {
+                        await playAirportChime();
+                        await sleep(150);
+                        await speakText(text);
+                    } finally {
+                        speechBusy = false;
+                        if (speechQueue.length > 0) drainSpeechQueue();
+                    }
+                }
+
+                const digitWords = {
+                    '0': 'nol',
+                    '1': 'satu',
+                    '2': 'dua',
+                    '3': 'tiga',
+                    '4': 'empat',
+                    '5': 'lima',
+                    '6': 'enam',
+                    '7': 'tujuh',
+                    '8': 'delapan',
+                    '9': 'sembilan'
+                };
+
+                function speakQueueCode(noAntrian) {
+                    const raw = String(noAntrian || '').trim().toUpperCase();
+                    if (!raw) return '';
+                    const parts = raw.split('-');
+                    if (parts.length === 2 && parts[0] && parts[1]) {
+                        const prefix = parts[0];
+                        const digits = String(parts[1]).replace(/\D/g, '');
+                        const digitSpeech = digits.split('').map((d) => digitWords[d] || d).join(' ');
+                        return `${prefix} ${digitSpeech}`.trim();
+                    }
+                    const digitOnly = raw.replace(/\D/g, '');
+                    if (digitOnly) {
+                        return digitOnly.split('').map((d) => digitWords[d] || d).join(' ');
+                    }
+                    return raw;
+                }
+
+                function buildAnnouncementText(unit, item) {
+                    const noAntrian = String(item?.no_antrian || '').trim();
+                    if (!noAntrian) return '';
+                    const spokenCode = speakQueueCode(noAntrian);
+                    const jalur = antreanJalurLabel(item, unit);
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan);
+                    if (unit === 'POLIKLINIK') {
+                        const loketText = loketLabel ? `. ${loketLabel}.` : '.';
+                        return `Perhatian. Nomor antrean ${spokenCode}. ${jalur}${loketText}`;
+                    }
+                    if (unit === 'FARMASI') {
+                        return `Perhatian. Nomor antrean Farmasi ${spokenCode}.`;
+                    }
+                    return `Perhatian. Nomor antrean ${spokenCode}.`;
+                }
+
+                function announceNewCalls(farmasiRows, poliklinikRows) {
+                    if (!soundEnabled) return;
+                    const calledFarmasi = (farmasiRows || []).filter((x) => x.status_norm === 'dipanggil');
+                    const farmasiCurrent = calledFarmasi[0] || null;
+                    if (farmasiCurrent?.no_antrian) {
+                        const key = 'FARMASI';
+                        const nextVal = String(farmasiCurrent.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('FARMASI', farmasiCurrent));
+                        }
+                    }
+
+                    const byLoket = poliklinikCalledByLoket(poliklinikRows || []);
+                    const loket1 = byLoket.loket1;
+                    const loket2 = byLoket.loket2;
+                    if (loket1?.no_antrian) {
+                        const key = 'POLIKLINIK:LOKET_1';
+                        const nextVal = String(loket1.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }));
+                        }
+                    }
+                    if (loket2?.no_antrian) {
+                        const key = 'POLIKLINIK:LOKET_2';
+                        const nextVal = String(loket2.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }));
+                        }
                     }
                 }
 
@@ -492,6 +687,8 @@
                         const farmasiRows = mergedData.filter(a => a.unit_norm === 'FARMASI');
                         const poliklinikRows = mergedData.filter(a => a.unit_norm === 'POLIKLINIK');
 
+                        announceNewCalls(farmasiRows, poliklinikRows);
+
                         renderUnitQueue('FARMASI', farmasiRows);
                         renderUnitQueue('POLIKLINIK', poliklinikRows);
                         if (selectedUnit === 'FARMASI') {
@@ -541,6 +738,25 @@
                         loadAntrian();
                     });
                 });
+
+                if (soundToggleBtn) {
+                    const storedSound = (() => {
+                        try {
+                            return localStorage.getItem('displaySoundEnabled');
+                        } catch (e) {
+                            return null;
+                        }
+                    })();
+                    setSoundEnabled(storedSound === '1');
+                    soundToggleBtn.addEventListener('click', async () => {
+                        setSoundEnabled(!soundEnabled);
+                        if (!soundEnabled) return;
+                        try {
+                            await ensureAudioContext();
+                        } catch (e) {}
+                        enqueueAnnouncement('Suara panggilan antrean aktif.');
+                    });
+                }
 
                 setSectionVisibility();
                 loadAntrian();
