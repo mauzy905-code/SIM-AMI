@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Pendaftaran - RSUD AJI MUHAMMAD IDRIS</title>
+    <title>SIM-AMI - Pendaftaran</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -19,8 +19,17 @@
             <div class="w-full max-w-md overflow-hidden rounded-[28px] border border-white/70 bg-white/95 shadow-[0_30px_80px_-28px_rgba(15,23,42,0.55)]">
                 <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-7 py-6">
                     <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-50">Akses Terbatas</div>
-                    <div class="mt-4 text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">RSUD AJI MUHAMMAD IDRIS</div>
-                    <div class="mt-2 text-white text-3xl font-black tracking-tight">Login Admin</div>
+                    <div class="mt-4 flex items-center gap-3">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 p-2 shadow-sm">
+                            <img src="assets/sound/LOGO.png" alt="Logo SIM-AMI" class="max-h-full max-w-full object-contain">
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">SIM-AMI</div>
+                            <div class="mt-1 text-white text-3xl font-black tracking-tight">SIM-AMI</div>
+                            <div class="mt-1 text-emerald-50/95 text-sm font-semibold">Sistem Informasi Manajemen Aji Muhammad Idris</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-white text-lg font-extrabold tracking-tight">Login Admin</div>
                     <div class="text-emerald-100 text-sm font-semibold mt-2">Masuk untuk mengakses pendaftaran, rekap pasien, dan backup data.</div>
                 </div>
                 <div class="p-7 space-y-5">
@@ -46,9 +55,16 @@
     </div>
     <aside id="drawer" class="fixed z-50 top-0 left-0 h-full w-[340px] -translate-x-full border-r border-white/70 bg-white/95 shadow-[0_30px_80px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl transition-transform duration-200">
         <div id="drawerHeader" class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-6 py-6">
-            <div id="drawerRoleEyebrow" class="text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">RSUD AJI MUHAMMAD IDRIS</div>
-            <div id="drawerTitle" class="text-white text-2xl font-black tracking-tight mt-2">Menu Admin Loket</div>
-            <div id="drawerDescription" class="text-emerald-50/90 text-sm font-semibold mt-2">Navigasi cepat untuk input pasien dan rekap data.</div>
+            <div class="flex items-start gap-3">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 p-2 shadow-sm">
+                    <img src="assets/sound/LOGO.png" alt="Logo SIM-AMI" class="max-h-full max-w-full object-contain">
+                </div>
+                <div class="min-w-0">
+                    <div id="drawerRoleEyebrow" class="text-emerald-100 text-xs font-semibold tracking-[0.3em] uppercase">SIM-AMI</div>
+                    <div id="drawerTitle" class="text-white text-2xl font-black tracking-tight mt-2">Menu Admin Loket</div>
+                    <div id="drawerDescription" class="text-emerald-50/90 text-sm font-semibold mt-2">Navigasi cepat untuk input pasien dan rekap data.</div>
+                </div>
+            </div>
         </div>
         <div class="p-5 space-y-3">
             <button id="menuPendaftaran" type="button" class="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 text-left font-bold text-emerald-900 transition hover:bg-emerald-100">
@@ -56,6 +72,9 @@
             </button>
             <button id="menuRekap" type="button" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
                 Rekap Pasien
+            </button>
+            <button id="menuRekapAll" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
+                Rekap Semua Pasien
             </button>
             <div id="supervisorMenuLinks" class="hidden space-y-3">
                 <div class="my-4 h-px bg-gradient-to-r from-transparent via-violet-100 to-transparent"></div>
@@ -85,8 +104,12 @@
                         <div class="h-0.5 w-5 bg-slate-700"></div>
                     </div>
                 </button>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-100 bg-white p-2 shadow-sm">
+                    <img src="assets/sound/LOGO.png" alt="Logo SIM-AMI" class="max-h-full max-w-full object-contain">
+                </div>
                 <div class="min-w-0">
-                    <div class="truncate text-slate-900 font-black tracking-tight text-base md:text-xl">Manajemen Pendaftaran Pasien</div>
+                    <div class="truncate text-slate-900 font-black tracking-tight text-base md:text-xl">SIM-AMI</div>
+                    <div class="truncate text-[11px] font-semibold tracking-[0.16em] text-slate-500 uppercase">Sistem Informasi Manajemen Aji Muhammad Idris</div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -94,7 +117,7 @@
                     Profil Admin
                 </div>
                 <div class="hidden 2xl:flex items-center rounded-full border border-emerald-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
-                    RSUD AJI MUHAMMAD IDRIS
+                    SIM-AMI
                 </div>
                 <button id="logoutBtnTop" type="button" class="hidden md:inline-flex items-center justify-center rounded-xl border border-emerald-100 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-emerald-50">
                     Logout
@@ -379,8 +402,8 @@
                     <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
                         <div>
                             <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-700">Rekap Pasien</div>
-                            <div class="mt-1.5 text-xl md:text-2xl font-black tracking-tight text-slate-900">Rekap Pendaftaran Pasien</div>
-                            <div class="mt-1.5 text-sm font-semibold text-slate-500">Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.</div>
+                            <div id="rekapTitle" class="mt-1.5 text-xl md:text-2xl font-black tracking-tight text-slate-900">Rekap Pendaftaran Pasien</div>
+                            <div id="rekapDescription" class="mt-1.5 text-sm font-semibold text-slate-500">Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.</div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <span id="r_meta" class="inline-flex items-center rounded-full border border-emerald-100 bg-white px-3 py-1 text-xs md:text-sm font-semibold text-slate-600 shadow-sm">Memuat...</span>
@@ -397,17 +420,17 @@
                     <div class="rounded-[28px] border border-emerald-100 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fbff_100%)] p-4 md:p-5 shadow-sm">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
                         <div class="lg:col-span-4">
-                            <label class="block text-slate-700 font-semibold mb-2">Cari (Nama / NIK / No BPJS / No RM / No Antrian)</label>
+                            <label id="r_q_label" class="block text-slate-700 font-semibold mb-2">Cari (Nama / NIK / No BPJS / No RM / No Antrian)</label>
                             <input id="r_q" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari...">
                         </div>
-                        <div class="lg:col-span-2">
+                        <div id="r_filter_unit_wrap" class="lg:col-span-2">
                             <label class="block text-slate-700 font-semibold mb-2">Unit</label>
                             <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                 <option value="">Semua Unit</option>
                                 <option value="POLIKLINIK">Poliklinik</option>
                             </select>
                         </div>
-                        <div class="lg:col-span-2">
+                        <div id="r_filter_jenis_wrap" class="lg:col-span-2">
                             <label class="block text-slate-700 font-semibold mb-2">Jenis Pasien</label>
                             <select id="r_jenis_pasien" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                 <option value="">Semua Jenis</option>
@@ -415,7 +438,7 @@
                                 <option value="UMUM">Umum</option>
                             </select>
                         </div>
-                        <div class="lg:col-span-2">
+                        <div id="r_filter_poli_wrap" class="lg:col-span-2">
                             <label class="block text-slate-700 font-semibold mb-2">Poli</label>
                             <select id="r_poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                 <option value="">Semua Poli</option>
@@ -444,26 +467,26 @@
                     </div>
 
                     <div class="mt-4 overflow-auto rounded-[28px] border border-emerald-100 bg-white shadow-sm max-h-[70vh]">
-                        <table class="min-w-full text-left">
-                            <thead class="sticky top-0 z-10 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#eff6ff_100%)]">
+                        <table class="min-w-max w-full table-auto text-left text-[13px]">
+                            <thead id="r_head" class="sticky top-0 z-10 bg-[linear-gradient(135deg,_#ecfdf5_0%,_#eff6ff_100%)] backdrop-blur">
                                 <tr class="text-emerald-900">
-                                    <th class="px-4 py-3 text-sm font-bold">Waktu Daftar</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Unit</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Jenis Pasien</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Poli</th>
-                                    <th class="px-4 py-3 text-sm font-bold">No Antrian</th>
-                                    <th class="px-4 py-3 text-sm font-bold">No Registrasi</th>
-                                    <th class="px-4 py-3 text-sm font-bold">No RM</th>
-                                    <th class="px-4 py-3 text-sm font-bold">NIK</th>
-                                    <th class="px-4 py-3 text-sm font-bold">No BPJS</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Nama</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Riwayat Pasien</th>
-                                    <th class="px-4 py-3 text-sm font-bold">JK</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Tgl Lahir</th>
-                                    <th class="px-4 py-3 text-sm font-bold">Umur</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Unit</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Jenis Pasien</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Poli</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Antrian</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No BPJS</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Riwayat</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
                                 </tr>
                             </thead>
-                            <tbody id="r_rows" class="divide-y divide-emerald-50"></tbody>
+                            <tbody id="r_rows" class="divide-y divide-emerald-50 align-middle"></tbody>
                         </table>
                     </div>
                 </div>
@@ -520,10 +543,48 @@
             </div>
         </div>
     </div>
+
+    <div id="poliExamModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"></div>
+        <div class="relative min-h-full flex items-center justify-center p-4">
+            <div class="w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-[0_30px_90px_-30px_rgba(15,23,42,0.55)]">
+                <div class="bg-[linear-gradient(135deg,_#064e3b_0%,_#0f766e_42%,_#0ea5e9_100%)] px-6 py-5 md:px-8">
+                    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <div class="text-emerald-100 text-xs font-extrabold tracking-[0.3em] uppercase">Pemeriksaan Poli</div>
+                            <div id="poliExamPatientTitle" class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-white">-</div>
+                            <div id="poliExamPatientMeta" class="mt-2 text-sm font-semibold text-emerald-50/95">-</div>
+                        </div>
+                        <button id="closePoliExamModal" type="button" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+                <div class="p-5 md:p-6">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="block text-slate-700 font-semibold mb-2">Dokter Yang Memeriksa</label>
+                            <input id="poliExamDoctorInput" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Nama dokter">
+                        </div>
+                        <div>
+                            <label class="block text-slate-700 font-semibold mb-2">Diagnosa</label>
+                            <textarea id="poliExamDiagnosisInput" rows="3" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Isi diagnosa"></textarea>
+                        </div>
+                    </div>
+                    <div id="poliExamMessage" class="hidden mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                    <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <button id="savePoliExamBtn" type="button" class="rounded-xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] px-4 py-2.5 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(5,150,105,0.5)] transition hover:brightness-105">
+                            Simpan Pemeriksaan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div id="stickerContainer" class="hidden">
         <div id="sticker" style="width: 50mm; height: 30mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 7pt; line-height: 1.15;">
-            <div style="text-align: center; font-weight: bold; font-size: 7pt;">RSUD AJI MUHAMMAD IDRIS</div>
+            <div style="text-align: center; font-weight: bold; font-size: 7pt;">SIM-AMI • RSUD AJI MUHAMMAD IDRIS</div>
             <div style="margin-top: 1mm;">
                 <div>
                     <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b>Nama</b>: <span id="sticker_nama"></span></div>
@@ -582,7 +643,14 @@
             const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
             if (typeof window.supabase !== 'undefined') {
-                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    global: {
+                        headers: {
+                            'Cache-Control': 'no-cache'
+                        }
+                    },
+                    fetch: (url, options = {}) => fetch(url, { ...options, cache: 'no-store' })
+                });
 
                 const viewPendaftaran = document.getElementById('viewPendaftaran');
                 const viewRekap = document.getElementById('viewRekap');
@@ -598,6 +666,7 @@
                 const drawerOverlay = document.getElementById('drawerOverlay');
                 const menuPendaftaran = document.getElementById('menuPendaftaran');
                 const menuRekap = document.getElementById('menuRekap');
+                const menuRekapAll = document.getElementById('menuRekapAll');
                 const logoutBtnTop = document.getElementById('logoutBtnTop');
                 const logoutBtnDrawer = document.getElementById('logoutBtnDrawer');
                 const adminIdentityBadge = document.getElementById('adminIdentityBadge');
@@ -642,6 +711,14 @@
                 const saveHistoryDriveBtn = document.getElementById('saveHistoryDriveBtn');
                 const openHistoryDriveBtn = document.getElementById('openHistoryDriveBtn');
                 const historyDriveMessage = document.getElementById('historyDriveMessage');
+                const poliExamModal = document.getElementById('poliExamModal');
+                const closePoliExamModal = document.getElementById('closePoliExamModal');
+                const poliExamPatientTitle = document.getElementById('poliExamPatientTitle');
+                const poliExamPatientMeta = document.getElementById('poliExamPatientMeta');
+                const poliExamDoctorInput = document.getElementById('poliExamDoctorInput');
+                const poliExamDiagnosisInput = document.getElementById('poliExamDiagnosisInput');
+                const poliExamMessage = document.getElementById('poliExamMessage');
+                const savePoliExamBtn = document.getElementById('savePoliExamBtn');
                 const nextFarmasiBtn = document.getElementById('nextFarmasiBtn');
                 const skipFarmasiBtn = document.getElementById('skipFarmasiBtn');
                 const nextPoliklinikBtn = document.getElementById('nextPoliklinikBtn');
@@ -661,6 +738,13 @@
                 let noRegistrasiColumnAvailable = true;
                 let queueRoutingColumnsAvailable = true;
                 let queueProcessingColumnsAvailable = true;
+                let poliExamColumnsAvailable = true;
+                let currentPoliExamVisitId = '';
+                let currentPoliExamNoRm = '';
+                let currentPoliExamPatientName = '';
+                let petugasPoliRekapMode = 'poli';
+                let registrationLocked = false;
+                let registrationLockedNoAntrian = '';
                 let currentAdminProfile = null;
                 let currentAdminRole = '';
                 let currentLoket = '';
@@ -677,14 +761,25 @@
 
                 function syncRoleMenuVisibility() {
                     menuPendaftaran.classList.toggle('hidden', !canAccessPendaftaranView());
+                    if (menuRekapAll) {
+                        menuRekapAll.classList.toggle('hidden', !isPetugasPoliRole());
+                    }
                 }
 
                 function setActiveMenu(view) {
                     if (view === 'pendaftaran') {
                         menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
                         menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                        if (menuRekapAll) {
+                            menuRekapAll.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                        }
                     } else {
-                        menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
+                        const isAll = view === 'rekap_all';
+                        menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                        if (menuRekapAll) {
+                            menuRekapAll.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                        }
+                        (isAll ? (menuRekapAll || menuRekap) : menuRekap).className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
                         menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
                     }
                     syncRoleMenuVisibility();
@@ -695,6 +790,7 @@
                     if (value === 'supervisor') return 'Supervisor';
                     if (value === 'admin_rme') return 'Admin RME';
                     if (value === 'admin_pendaftaran') return 'Admin Pendaftaran';
+                    if (value === 'petugas_poli' || value === 'petugas poli') return 'Petugas Poli';
                     return value ? value.replace(/_/g, ' ') : 'Belum Diatur';
                 }
 
@@ -730,25 +826,32 @@
                 function applyRolePresentation() {
                     const isSupervisor = isSupervisorRole();
                     const isRme = isRmeRole();
+                    const isPetugasPoli = isPetugasPoliRole();
 
                     drawerHeader.className = isSupervisor
                         ? 'bg-[linear-gradient(135deg,_#581c87_0%,_#6d28d9_42%,_#1d4ed8_100%)] px-6 py-6'
                         : (isRme
                             ? 'bg-[linear-gradient(135deg,_#0f172a_0%,_#0f766e_42%,_#0ea5e9_100%)] px-6 py-6'
-                            : 'bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-6 py-6');
+                            : (isPetugasPoli
+                                ? 'bg-[linear-gradient(135deg,_#0b3b2e_0%,_#047857_42%,_#0ea5e9_100%)] px-6 py-6'
+                                : 'bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-6 py-6'));
                     dashboardHero.className = isSupervisor
                         ? 'bg-[linear-gradient(135deg,_#4c1d95_0%,_#6d28d9_38%,_#1d4ed8_100%)] px-5 py-5 md:px-6'
                         : (isRme
                             ? 'bg-[linear-gradient(135deg,_#0f172a_0%,_#0f766e_38%,_#0284c7_100%)] px-5 py-5 md:px-6'
-                            : 'bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-5 py-5 md:px-6');
+                            : (isPetugasPoli
+                                ? 'bg-[linear-gradient(135deg,_#064e3b_0%,_#0f766e_38%,_#0ea5e9_100%)] px-5 py-5 md:px-6'
+                                : 'bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-5 py-5 md:px-6'));
                     adminIdentityBadge.className = isSupervisor
                         ? 'hidden rounded-full border border-violet-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700 shadow-sm md:inline-flex'
                         : (isRme
                             ? 'hidden rounded-full border border-cyan-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-700 shadow-sm md:inline-flex'
-                            : 'hidden rounded-full border border-blue-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm md:inline-flex');
+                            : (isPetugasPoli
+                                ? 'hidden rounded-full border border-emerald-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 shadow-sm md:inline-flex'
+                                : 'hidden rounded-full border border-blue-100 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm md:inline-flex'));
 
                     syncRoleMenuVisibility();
-                    menuRekap.textContent = isRme ? 'Rekap & Riwayat Pasien' : 'Rekap Pasien';
+                    menuRekap.textContent = isRme ? 'Rekap & Riwayat Pasien' : (isPetugasPoli ? 'Daftar Pasien Poli' : 'Rekap Pasien');
                     updateHistoryDriveAccess();
 
                     if (isSupervisor) {
@@ -783,9 +886,25 @@
                         summaryBox3Label.textContent = 'Dokumen';
                         summaryBox3Value.textContent = 'GDrive Ready';
                         dashboardQuickHint.textContent = 'Gunakan rekap untuk mencari pasien, klik nama pasien untuk membuka riwayat, lalu simpan atau perbarui link Google Drive dari modal riwayat.';
+                    } else if (isPetugasPoli) {
+                        supervisorMenuLinks.classList.add('hidden');
+                        drawerRoleEyebrow.textContent = 'Akses Poliklinik';
+                        drawerTitle.textContent = 'Menu Petugas Poli';
+                        drawerDescription.textContent = 'Fokus pada daftar pasien hari ini sesuai poli, serta cek riwayat kunjungan.';
+                        drawerRoleNote.textContent = 'Petugas poli hanya mengakses daftar pasien poli hari ini dan riwayat kunjungan. Menu loket pendaftaran dan operasional antrean disembunyikan.';
+                        dashboardRolePill.textContent = 'Panel Petugas Poli';
+                        dashboardTitle.textContent = 'Daftar Pasien Poli Hari Ini';
+                        dashboardDescription.textContent = 'Cari pasien poli hari ini sesuai unit, lalu buka riwayat kunjungan bila diperlukan.';
+                        summaryBox1Label.textContent = 'Fokus';
+                        summaryBox1Value.textContent = 'Poliklinik';
+                        summaryBox2Label.textContent = 'Akses';
+                        summaryBox2Value.textContent = 'Petugas Poli';
+                        summaryBox3Label.textContent = 'Riwayat';
+                        summaryBox3Value.textContent = 'Siap Dibuka';
+                        dashboardQuickHint.textContent = 'Gunakan rekap untuk melihat daftar pasien poli hari ini sesuai poli akun yang sedang login.';
                     } else {
                         supervisorMenuLinks.classList.add('hidden');
-                        drawerRoleEyebrow.textContent = 'RSUD AJI MUHAMMAD IDRIS';
+                        drawerRoleEyebrow.textContent = 'SIM-AMI';
                         drawerTitle.textContent = 'Menu Admin Loket';
                         drawerDescription.textContent = 'Navigasi cepat untuk input pasien dan rekap data.';
                         drawerRoleNote.textContent = 'Menu admin hanya difokuskan untuk input pasien dan rekap. Halaman display antrean serta mesin antrean dibuka dari perangkat khusus.';
@@ -799,6 +918,107 @@
                         summaryBox3Label.textContent = 'Backup';
                         summaryBox3Value.textContent = 'Excel Ready';
                         dashboardQuickHint.textContent = 'Gunakan menu di kiri atas untuk berpindah cepat antara formulir pendaftaran Poliklinik dan rekap data pasien.';
+                    }
+                    applyRekapRolePresentation();
+                }
+
+                function applyRekapRolePresentation() {
+                    const isRme = isRmeRole();
+                    const isPetugasPoli = isPetugasPoliRole();
+                    const scopedPetugasPoli = isPetugasPoliScopedRekap();
+                    const titleEl = document.getElementById('rekapTitle');
+                    const descEl = document.getElementById('rekapDescription');
+                    const qLabelEl = document.getElementById('r_q_label');
+                    const exportBtn = document.getElementById('r_export');
+                    const unitWrap = document.getElementById('r_filter_unit_wrap');
+                    const jenisWrap = document.getElementById('r_filter_jenis_wrap');
+                    const poliWrap = document.getElementById('r_filter_poli_wrap');
+                    const headEl = document.getElementById('r_head');
+                    const fromInput = document.getElementById('r_from');
+                    const toInput = document.getElementById('r_to');
+
+                    if (titleEl) {
+                        titleEl.textContent = isRme
+                            ? 'Rekap & Riwayat Pasien'
+                            : (isPetugasPoli
+                                ? (scopedPetugasPoli ? 'Daftar Pasien Poli Hari Ini' : 'Rekap Semua Pasien')
+                                : 'Rekap Pendaftaran Pasien');
+                    }
+                    if (descEl) {
+                        descEl.textContent = isRme
+                            ? 'Cari pasien, klik nama untuk lihat riwayat, lalu isi atau perbarui link Google Drive.'
+                            : (isPetugasPoli
+                                ? (scopedPetugasPoli
+                                    ? 'Daftar pasien poliklinik hari ini sesuai poli akun yang sedang login.'
+                                    : 'Cari dan filter semua pasien poliklinik.')
+                                : 'Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.');
+                    }
+                    if (qLabelEl) {
+                        qLabelEl.textContent = isRme
+                            ? 'Cari Pasien (Nama / NIK / No RM)'
+                            : (isPetugasPoli
+                                ? (scopedPetugasPoli
+                                    ? 'Cari Pasien Poli (Nama / NIK / No RM / No Antrian)'
+                                    : 'Cari (Nama / NIK / No BPJS / No RM / No Antrian)')
+                                : 'Cari (Nama / NIK / No BPJS / No RM / No Antrian)');
+                    }
+                    if (exportBtn) {
+                        exportBtn.classList.toggle('hidden', isPetugasPoli);
+                    }
+                    if (unitWrap) unitWrap.classList.toggle('hidden', isRme || scopedPetugasPoli);
+                    if (jenisWrap) jenisWrap.classList.toggle('hidden', isRme);
+                    if (poliWrap) poliWrap.classList.toggle('hidden', isRme || scopedPetugasPoli);
+                    if (fromInput?.parentElement) fromInput.parentElement.classList.toggle('hidden', scopedPetugasPoli);
+                    if (toInput?.parentElement) toInput.parentElement.classList.toggle('hidden', scopedPetugasPoli);
+
+                    if (scopedPetugasPoli) {
+                        const unitSel = document.getElementById('r_unit');
+                        const poliSel = document.getElementById('r_poli_tujuan');
+                        if (unitSel) unitSel.value = 'POLIKLINIK';
+                        if (poliSel) poliSel.value = getPetugasPoliDefaultPoli() || poliSel.value || '';
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        const todayStr = `${yyyy}-${mm}-${dd}`;
+                        if (fromInput) fromInput.value = todayStr;
+                        if (toInput) toInput.value = todayStr;
+                    }
+
+                    if (headEl) {
+                        headEl.innerHTML = isRme
+                            ? `<tr class="text-emerald-900">
+                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
+                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
+                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
+                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Riwayat & Hardfile</th>
+                               </tr>`
+                            : (scopedPetugasPoli
+                                ? `<tr class="text-emerald-900">
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Antrian</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Riwayat</th>
+                                   </tr>`
+                                : `<tr class="text-emerald-900">
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Unit</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Jenis Pasien</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Poli</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Antrian</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No BPJS</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Riwayat</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
+                                    <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
+                                   </tr>`);
                     }
                 }
 
@@ -849,12 +1069,33 @@
                     return String(currentAdminRole || '').trim().toLowerCase() === 'admin_pendaftaran';
                 }
 
+                function isPetugasPoliRole() {
+                    const value = String(currentAdminRole || '').trim().toLowerCase();
+                    return value === 'petugas_poli' || value === 'petugas poli';
+                }
+
+                function getPetugasPoliDefaultPoli() {
+                    const email = String(currentAdminProfile?.email || '').trim().toLowerCase();
+                    if (email.startsWith('poli.anak@')) return 'SPESIALIS_ANAK';
+                    if (email.startsWith('poli.pd@')) return 'SPESIALIS_PENYAKIT_DALAM';
+                    if (email.startsWith('poli.umum@')) return 'DOKTER_UMUM';
+                    return '';
+                }
+
+                function isPetugasPoliScopedRekap() {
+                    return isPetugasPoliRole() && petugasPoliRekapMode !== 'all';
+                }
+
                 function canAccessPendaftaranView() {
                     return isPendaftaranRole();
                 }
 
                 function canManagePatientDriveLink() {
                     return isRmeRole();
+                }
+
+                function canManagePoliExam() {
+                    return isPetugasPoliRole();
                 }
 
                 function updateHistoryDriveAccess() {
@@ -867,6 +1108,57 @@
                         historyDriveHelp.textContent = canManage
                             ? 'Khusus Admin RME: isi link folder atau file hardcopy pasien di Google Drive agar mudah dibuka dari rekap.'
                             : 'Link Google Drive hanya dapat diinput atau diubah oleh Admin RME.';
+                    }
+                }
+
+                function showPoliExamMessage(message, tone) {
+                    poliExamMessage.textContent = message;
+                    poliExamMessage.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700', 'border-blue-200', 'bg-blue-50', 'text-blue-700');
+
+                    if (tone === 'error') {
+                        poliExamMessage.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+                    } else if (tone === 'success') {
+                        poliExamMessage.classList.add('border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
+                    } else {
+                        poliExamMessage.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
+                    }
+                    poliExamMessage.classList.remove('hidden');
+                }
+
+                function closePoliExamModalPanel() {
+                    poliExamModal.classList.add('hidden');
+                    currentPoliExamVisitId = '';
+                    currentPoliExamNoRm = '';
+                    currentPoliExamPatientName = '';
+                    poliExamPatientTitle.textContent = '-';
+                    poliExamPatientMeta.textContent = '-';
+                    poliExamDoctorInput.value = '';
+                    poliExamDiagnosisInput.value = '';
+                    poliExamMessage.classList.add('hidden');
+                    savePoliExamBtn.disabled = false;
+                    savePoliExamBtn.textContent = 'Simpan Pemeriksaan';
+                }
+
+                function openPoliExamModalPanel(payload) {
+                    currentPoliExamVisitId = String(payload?.id || '');
+                    currentPoliExamNoRm = String(payload?.noRm || '');
+                    currentPoliExamPatientName = String(payload?.nama || '');
+
+                    poliExamPatientTitle.textContent = currentPoliExamPatientName || 'Pasien';
+                    poliExamPatientMeta.textContent = `No RM: ${currentPoliExamNoRm || '-'}`;
+                    poliExamDoctorInput.value = String(payload?.dokter || '');
+                    poliExamDiagnosisInput.value = String(payload?.diagnosa || '');
+                    poliExamMessage.classList.add('hidden');
+                    poliExamModal.classList.remove('hidden');
+
+                    if (!canManagePoliExam()) {
+                        savePoliExamBtn.disabled = true;
+                        showPoliExamMessage('Hanya Petugas Poli yang dapat mengisi dokter dan diagnosa.', 'error');
+                    } else if (!poliExamColumnsAvailable) {
+                        savePoliExamBtn.disabled = true;
+                        showPoliExamMessage('Kolom dokter/diagnosa belum ada di database Supabase. Tambahkan kolom nama_dokter dan diagnosa pada tabel pasien.', 'error');
+                    } else {
+                        savePoliExamBtn.disabled = false;
                     }
                 }
 
@@ -1010,11 +1302,30 @@
                     }
 
                     try {
-                        const { data, error } = await supabaseClient
+                        let data = null;
+                        let error = null;
+
+                        const byIdRes = await supabaseClient
                             .from('admin_profiles')
                             .select('id,email,nama_admin,role,loket_default,aktif')
                             .eq('id', user.id)
                             .maybeSingle();
+
+                        data = byIdRes.data || null;
+                        error = byIdRes.error || null;
+
+                        if ((!data || error) && user?.email) {
+                            const byEmailRes = await supabaseClient
+                                .from('admin_profiles')
+                                .select('id,email,nama_admin,role,loket_default,aktif')
+                                .eq('email', user.email)
+                                .limit(1);
+
+                            if (!byEmailRes.error && Array.isArray(byEmailRes.data) && byEmailRes.data.length > 0) {
+                                data = byEmailRes.data[0];
+                                error = null;
+                            }
+                        }
 
                         if (error) {
                             console.warn('Gagal memuat admin_profiles:', error.message);
@@ -1042,10 +1353,10 @@
                     if (view === 'pendaftaran' && !canAccessPendaftaranView()) {
                         view = 'rekap';
                     }
-                    if (view === 'rekap') {
+                    if (view === 'rekap' || view === 'rekap_all') {
                         viewPendaftaran.classList.add('hidden');
                         viewRekap.classList.remove('hidden');
-                        setActiveMenu('rekap');
+                        setActiveMenu(view);
                     } else {
                         viewRekap.classList.add('hidden');
                         viewPendaftaran.classList.remove('hidden');
@@ -1084,6 +1395,7 @@
                     await loadAdminProfile(session);
                     await detectQueueRoutingColumns();
                     await detectQueueProcessingColumns();
+                    await detectPoliExamColumns();
                     await detectRiwayatLinkColumn();
                     await detectNoRegistrasiColumn();
                     showView(canAccessPendaftaranView() ? 'pendaftaran' : 'rekap');
@@ -1112,9 +1424,25 @@
                 });
                 menuRekap.addEventListener('click', async () => {
                     closeDrawer();
-                    showView('rekap');
+                    if (isPetugasPoliRole()) {
+                        petugasPoliRekapMode = 'poli';
+                        showView('rekap');
+                        applyRekapRolePresentation();
+                    } else {
+                        showView('rekap');
+                    }
                     await r_reloadToFirstPage();
                 });
+                if (menuRekapAll) {
+                    menuRekapAll.addEventListener('click', async () => {
+                        closeDrawer();
+                        petugasPoliRekapMode = 'all';
+                        showView('rekap_all');
+                        if (rEls?.poliTujuan) rEls.poliTujuan.value = '';
+                        applyRekapRolePresentation();
+                        await r_reloadToFirstPage();
+                    });
+                }
                 logoutBtnTop.addEventListener('click', () => logout());
                 logoutBtnDrawer.addEventListener('click', () => logout());
                 loginBtn.addEventListener('click', () => login());
@@ -1214,6 +1542,23 @@
                     openHistoryDriveBtn.classList.add('hidden');
                 }
 
+                async function detectPoliExamColumns() {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('pasien')
+                            .select('nama_dokter,diagnosa')
+                            .limit(1);
+
+                        if (error && /(nama_dokter|diagnosa)/i.test(error.message || '')) {
+                            poliExamColumnsAvailable = false;
+                        } else {
+                            poliExamColumnsAvailable = true;
+                        }
+                    } catch (err) {
+                        poliExamColumnsAvailable = false;
+                    }
+                }
+
                 async function detectRiwayatLinkColumn() {
                     const { error } = await supabaseClient
                         .from('pasien')
@@ -1305,6 +1650,8 @@
 
                         historyVisitList.innerHTML = rows.map((item, index) => {
                             const rowLink = normalizeExternalUrl(item.riwayat_pasien_link);
+                            const dokter = item.nama_dokter || '';
+                            const diagnosa = item.diagnosa || '';
                             return `<div class="px-4 py-4">
                                 <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                     <div>
@@ -1317,11 +1664,35 @@
                                             <span class="rounded-full border border-slate-200 bg-white px-3 py-1">No Antrian: ${escapeHtml(item.no_antrian || '-')}</span>
                                             <span class="rounded-full border border-slate-200 bg-white px-3 py-1">No Registrasi: ${escapeHtml(item.no_registrasi || '-')}</span>
                                         </div>
+                                        ${(dokter || diagnosa) ? `<div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                            <div class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Dokter & Diagnosa</div>
+                                            <div class="mt-2 grid grid-cols-1 gap-2 text-sm font-semibold text-slate-600">
+                                                <div class="flex items-start gap-2">
+                                                    <span class="shrink-0 text-slate-500">Dokter</span>
+                                                    <span class="text-slate-900 font-bold break-words">${escapeHtml(dokter || '-')}</span>
+                                                </div>
+                                                <div class="flex items-start gap-2">
+                                                    <span class="shrink-0 text-slate-500">Diagnosa</span>
+                                                    <span class="text-slate-900 font-bold break-words">${escapeHtml(diagnosa || '-')}</span>
+                                                </div>
+                                            </div>
+                                        </div>` : ''}
                                     </div>
                                     <div class="text-sm font-semibold text-slate-500 md:text-right">
-                                        <div>Nama: ${escapeHtml(item.nama_pasien || '-')}</div>
-                                        <div>JK: ${escapeHtml(item.jenis_kelamin || '-')}</div>
-                                        <div>Umur: ${escapeHtml(item.umur ?? '-')}</div>
+                                        <div class="space-y-1">
+                                            <div class="flex items-start justify-between gap-3 md:justify-end md:gap-2">
+                                                <span class="shrink-0 text-slate-400">Nama</span>
+                                                <span class="font-bold text-slate-700">${escapeHtml(item.nama_pasien || '-')}</span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3 md:justify-end md:gap-2">
+                                                <span class="shrink-0 text-slate-400">JK</span>
+                                                <span class="font-bold text-slate-700">${escapeHtml(item.jenis_kelamin || '-')}</span>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-3 md:justify-end md:gap-2">
+                                                <span class="shrink-0 text-slate-400">Umur</span>
+                                                <span class="font-bold text-slate-700">${escapeHtml(item.umur ?? '-')}</span>
+                                            </div>
+                                        </div>
                                         ${rowLink ? `<div class="mt-2"><a href="${escapeHtml(rowLink)}" target="_blank" rel="noreferrer" class="font-bold text-emerald-700 hover:text-emerald-900">Buka Hardfile</a></div>` : ''}
                                     </div>
                                 </div>
@@ -1379,6 +1750,51 @@
                     }
                 }
 
+                async function savePoliExam() {
+                    if (!currentPoliExamVisitId) return;
+                    if (!canManagePoliExam()) {
+                        showPoliExamMessage('Hanya Petugas Poli yang dapat mengisi dokter dan diagnosa.', 'error');
+                        return;
+                    }
+                    if (!poliExamColumnsAvailable) {
+                        showPoliExamMessage('Kolom dokter/diagnosa belum ada di database Supabase. Tambahkan kolom nama_dokter dan diagnosa pada tabel pasien.', 'error');
+                        return;
+                    }
+
+                    const dokter = (poliExamDoctorInput.value || '').trim();
+                    const diagnosa = (poliExamDiagnosisInput.value || '').trim();
+
+                    savePoliExamBtn.disabled = true;
+                    savePoliExamBtn.textContent = 'Menyimpan...';
+
+                    try {
+                        const { error } = await withTimeout(
+                            supabaseClient
+                                .from('pasien')
+                                .update({
+                                    nama_dokter: dokter || null,
+                                    diagnosa: diagnosa || null
+                                })
+                                .eq('id', currentPoliExamVisitId),
+                            15000,
+                            'Simpan pemeriksaan poli'
+                        );
+
+                        if (error) throw new Error(error.message);
+
+                        showPoliExamMessage('Dokter dan diagnosa berhasil disimpan.', 'success');
+                        await r_loadPage(r_currentPage);
+                        if (!historyModal.classList.contains('hidden') && currentHistoryNoRm) {
+                            await openPatientHistory(currentHistoryNoRm, currentHistoryPatientName);
+                        }
+                    } catch (err) {
+                        showPoliExamMessage('Gagal menyimpan: ' + (err?.message || String(err)), 'error');
+                    } finally {
+                        savePoliExamBtn.disabled = false;
+                        savePoliExamBtn.textContent = 'Simpan Pemeriksaan';
+                    }
+                }
+
                 function showLookupInfo(message, tone) {
                     pasienLookupInfo.textContent = message;
                     pasienLookupInfo.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
@@ -1390,6 +1806,58 @@
                     } else {
                         pasienLookupInfo.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
                     }
+                }
+
+                function setSaveMessage(message, tone) {
+                    const saveErrorEl = document.getElementById('saveError');
+                    if (!saveErrorEl) return;
+                    saveErrorEl.textContent = message;
+                    saveErrorEl.classList.remove('hidden', 'text-red-600', 'text-emerald-700', 'text-blue-700');
+                    if (tone === 'success') {
+                        saveErrorEl.classList.add('text-emerald-700');
+                    } else if (tone === 'info') {
+                        saveErrorEl.classList.add('text-blue-700');
+                    } else {
+                        saveErrorEl.classList.add('text-red-600');
+                    }
+                    saveErrorEl.classList.remove('hidden');
+                }
+
+                function setRegistrationFormEnabled(enabled) {
+                    const form = document.getElementById('registrationForm');
+                    if (!form) return;
+                    const elements = form.querySelectorAll('input,select,textarea,button');
+                    elements.forEach((el) => {
+                        if (el.id === 'saveBtn') return;
+                        el.disabled = !enabled;
+                    });
+                }
+
+                function applyRegistrationLockUI() {
+                    const saveBtn = document.getElementById('saveBtn');
+                    if (saveBtn) {
+                        saveBtn.disabled = registrationLocked;
+                        saveBtn.textContent = registrationLocked ? 'Tunggu Antrean Berikutnya' : 'Simpan Data Pasien';
+                    }
+                    setRegistrationFormEnabled(!registrationLocked);
+                }
+
+                function lockRegistrationAfterSave(noAntrian) {
+                    registrationLocked = true;
+                    registrationLockedNoAntrian = String(noAntrian || '').trim();
+                    applyRegistrationLockUI();
+                    setSaveMessage(`Pendaftaran ${registrationLockedNoAntrian || ''} sudah selesai. Klik Next untuk memanggil antrean berikutnya.`, 'info');
+                }
+
+                function unlockRegistrationIfQueueChanged(nextNoAntrian) {
+                    if (!registrationLocked) return;
+                    const next = String(nextNoAntrian || '').trim();
+                    if (!next || next === registrationLockedNoAntrian) return;
+                    registrationLocked = false;
+                    registrationLockedNoAntrian = '';
+                    applyRegistrationLockUI();
+                    const saveErrorEl = document.getElementById('saveError');
+                    if (saveErrorEl) saveErrorEl.classList.add('hidden');
                 }
 
 
@@ -1725,9 +2193,11 @@
                             if (!pick) {
                                 autoNoEl.textContent = 'Belum ada antrean';
                                 hiddenNoAntrian.value = '';
+                                unlockRegistrationIfQueueChanged('');
                             } else {
                                 autoNoEl.textContent = String(pick.no_antrian || '-');
                                 hiddenNoAntrian.value = String(pick.no_antrian || '');
+                                unlockRegistrationIfQueueChanged(hiddenNoAntrian.value);
                             }
                         }
                     }
@@ -2329,6 +2799,12 @@
                         showView('rekap');
                         return;
                     }
+
+                    if (registrationLocked) {
+                        applyRegistrationLockUI();
+                        setSaveMessage(`Pendaftaran ${registrationLockedNoAntrian || ''} sudah selesai. Klik Next untuk memanggil antrean berikutnya.`, 'info');
+                        return;
+                    }
                     
                     const saveErrorEl = document.getElementById('saveError');
                     saveErrorEl.classList.add('hidden');
@@ -2483,12 +2959,16 @@
                         loadQueueControls();
                         r_reloadToFirstPage();
                         refreshStats();
+                        lockRegistrationAfterSave(no_antrian);
                     } catch (err) {
                         saveErrorEl.textContent = 'Gagal menyimpan: ' + (err?.message || String(err));
                         saveErrorEl.classList.remove('hidden');
                     } finally {
-                        saveBtn.disabled = false;
-                        saveBtn.textContent = 'Simpan Data Pasien';
+                        applyRegistrationLockUI();
+                        if (!registrationLocked) {
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = 'Simpan Data Pasien';
+                        }
                     }
                 });
 
@@ -2500,10 +2980,16 @@
                     }
 
                     realtimeStatsTimer = window.setTimeout(async () => {
-                        await refreshStats();
-                        await loadQueueControls();
-                        if (!viewRekap.classList.contains('hidden')) {
-                            await r_loadPage(r_currentPage);
+                        try {
+                            await refreshStats();
+                            await loadQueueControls();
+                            if (!viewRekap.classList.contains('hidden')) {
+                                await r_loadPage(r_currentPage);
+                            }
+                        } catch (err) {
+                            if (!viewRekap.classList.contains('hidden') && rEls?.meta) {
+                                rEls.meta.textContent = 'Gagal memuat data realtime: ' + (err?.message || String(err));
+                            }
                         }
                     }, 250);
                 }
@@ -2649,46 +3135,81 @@
                 }
 
                 function r_renderRows(items) {
+                    const isRme = isRmeRole();
+                    const isPetugasPoli = isPetugasPoliScopedRekap();
                     if (!items || items.length === 0) {
-                        rEls.rows.innerHTML = '<tr><td class="px-4 py-6 text-slate-500" colspan="14">Tidak ada data.</td></tr>';
+                        rEls.rows.innerHTML = `<tr><td class="px-4 py-6 text-slate-500" colspan="${isRme ? 5 : (isPetugasPoli ? 6 : 14)}">Tidak ada data.</td></tr>`;
                         return;
                     }
                     rEls.rows.innerHTML = items.map((p) => {
                         const waktu = r_formatDateTimeLocal(p.created_at);
+                        const noRegistrasi = p.no_registrasi ?? '-';
+                        const noRm = p.no_rm ?? '-';
+                        const nik = p.nik ?? '-';
+                        const nama = p.nama_pasien ?? '-';
+                        const normalizedLink = normalizeExternalUrl(p.riwayat_pasien_link || '');
+                        const namaButton = noRm !== '-'
+                            ? `<button type="button" title="${escapeHtml(nama)}" class="history-btn block max-w-[240px] truncate text-left font-semibold text-slate-900 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-700" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${escapeHtml(nama)}</button>`
+                            : `<span title="${escapeHtml(nama)}" class="block max-w-[240px] truncate font-semibold text-slate-900">${escapeHtml(nama)}</span>`;
+                        const riwayatOnlyCell = noRm !== '-'
+                            ? `<button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>`
+                            : `<span class="text-xs font-semibold text-slate-500">No RM belum ada</span>`;
+                        const riwayatLinkCell = normalizedLink
+                            ? `<div class="flex items-center gap-2 whitespace-nowrap">
+                                <a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100">Buka GDrive</a>
+                                <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>
+                               </div>`
+                            : `<button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Input Link</button>`;
+                        if (isRme) {
+                            const actionCell = noRm !== '-'
+                                ? riwayatLinkCell
+                                : `<span class="text-xs font-semibold text-slate-500">No RM belum ada</span>`;
+                            return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
+                                <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${nik}</td>
+                                <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${actionCell}</td>
+                            </tr>`;
+                        }
+                        if (isPetugasPoli) {
+                            const noAntrian = p.no_antrian ?? '-';
+                            const dokter = String(p.nama_dokter || '');
+                            const diagnosa = String(p.diagnosa || '');
+                            const examBtn = `<button type="button" class="poli-exam-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}" data-dokter="${escapeHtml(dokter)}" data-diagnosa="${escapeHtml(diagnosa)}">Input Dokter/Diagnosa</button>`;
+                            const actionCell = `<div class="flex items-center gap-2 whitespace-nowrap">${examBtn}${riwayatOnlyCell}</div>`;
+                            return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
+                                <td class="px-4 py-2 font-semibold text-emerald-700 whitespace-nowrap">${noAntrian}</td>
+                                <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${nik}</td>
+                                <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
+                                <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${actionCell}</td>
+                            </tr>`;
+                        }
                         const unit = r_unitLabel(p.unit);
                         const jenisPasien = r_jenisPasienLabel(p.jenis_pasien);
                         const poli = r_poliLabel(p.poli_tujuan);
                         const noAntrian = p.no_antrian ?? '-';
-                        const noRegistrasi = p.no_registrasi ?? '-';
-                        const noRm = p.no_rm ?? '-';
-                        const nik = p.nik ?? '-';
                         const noBpjs = p.no_bpjs ?? '-';
-                        const nama = p.nama_pasien ?? '-';
                         const jk = p.jenis_kelamin ?? '-';
                         const tglLahir = r_formatDateOnly(p.tanggal_lahir);
                         const umur = (p.umur ?? p.umur === 0) ? String(p.umur) : '-';
-                        const normalizedLink = normalizeExternalUrl(p.riwayat_pasien_link || '');
-                        const namaButton = noRm !== '-'
-                            ? `<button type="button" class="history-btn text-left font-semibold text-slate-900 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-700" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${escapeHtml(nama)}</button>`
-                            : `<span class="font-semibold text-slate-900">${escapeHtml(nama)}</span>`;
-                        const riwayatLinkCell = normalizedLink
-                            ? `<div class="flex flex-col gap-2"><a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100">Buka GDrive</a><button type="button" class="history-btn inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button></div>`
-                            : `<button type="button" class="history-btn inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Input Link</button>`;
                         return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
-                            <td class="px-4 py-3 text-sm text-slate-800">${waktu}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${unit}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${jenisPasien}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${poli}</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-emerald-700">${noAntrian}</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-slate-700">${noRegistrasi}</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-blue-700">${noRm}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${nik}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${noBpjs}</td>
-                            <td class="px-4 py-3 text-sm text-slate-900">${namaButton}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${riwayatLinkCell}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${jk}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${tglLahir}</td>
-                            <td class="px-4 py-3 text-sm text-slate-800">${umur}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${unit}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jenisPasien}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap max-w-[180px] truncate" title="${escapeHtml(poli)}">${poli || '-'}</td>
+                            <td class="px-4 py-2 font-semibold text-emerald-700 whitespace-nowrap">${noAntrian}</td>
+                            <td class="px-4 py-2 font-semibold text-slate-700 whitespace-nowrap">${noRegistrasi}</td>
+                            <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${nik}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${noBpjs}</td>
+                            <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${riwayatLinkCell}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jk}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${tglLahir}</td>
+                            <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${umur}</td>
                         </tr>`;
                     }).join('');
                 }
@@ -2823,6 +3344,17 @@
                 rEls.to.addEventListener('change', () => r_reloadToFirstPage());
                 rEls.q.addEventListener('input', () => r_debouncedReload());
                 rEls.rows.addEventListener('click', (event) => {
+                    const poliExamBtn = event.target.closest('.poli-exam-btn');
+                    if (poliExamBtn) {
+                        openPoliExamModalPanel({
+                            id: poliExamBtn.dataset.id,
+                            noRm: poliExamBtn.dataset.noRm,
+                            nama: poliExamBtn.dataset.nama,
+                            dokter: poliExamBtn.dataset.dokter,
+                            diagnosa: poliExamBtn.dataset.diagnosa
+                        });
+                        return;
+                    }
                     const target = event.target.closest('.history-btn');
                     if (!target) return;
                     openPatientHistory(target.dataset.noRm, target.dataset.nama);
@@ -2838,6 +3370,13 @@
                     setHistoryDriveLink(historyDriveLinkInput.value);
                     historyDriveMessage.classList.add('hidden');
                 });
+                closePoliExamModal.addEventListener('click', () => closePoliExamModalPanel());
+                poliExamModal.addEventListener('click', (event) => {
+                    if (event.target === poliExamModal || event.target === poliExamModal.firstElementChild) {
+                        closePoliExamModalPanel();
+                    }
+                });
+                savePoliExamBtn.addEventListener('click', () => savePoliExam());
 
                 const today = new Date();
                 const yyyy = today.getFullYear();
@@ -2873,6 +3412,7 @@
                     await loadAdminProfile(session);
                     await detectQueueRoutingColumns();
                     await detectQueueProcessingColumns();
+                    await detectPoliExamColumns();
                     await detectRiwayatLinkColumn();
                     await detectNoRegistrasiColumn();
                     showView('pendaftaran');
