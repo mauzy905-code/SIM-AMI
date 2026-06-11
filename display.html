@@ -23,6 +23,7 @@
                 <button class="display-unit-btn rounded-full bg-red-600/90 text-white font-bold px-4 py-2 hover:bg-red-700 transition" data-unit="FARMASI">FARMASI</button>
                 <button class="display-unit-btn rounded-full bg-blue-600/90 text-white font-bold px-4 py-2 hover:bg-blue-700 transition" data-unit="POLIKLINIK">POLIKLINIK</button>
                 <button id="soundToggleBtn" type="button" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Suara: OFF</button>
+                <button id="soundConfigBtn" type="button" class="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Set Nada</button>
                 <div id="syncStatus" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">Sinkron: -</div>
             </div>
         </div>
@@ -210,6 +211,7 @@
                 }
 
                 const soundToggleBtn = document.getElementById('soundToggleBtn');
+                const soundConfigBtn = document.getElementById('soundConfigBtn');
                 let soundEnabled = false;
                 let audioContext = null;
                 let speechBusy = false;
@@ -241,6 +243,35 @@
                     } catch (e) {}
                 }
 
+                function getChimeUrl() {
+                    const fromQuery = (() => {
+                        try {
+                            const url = new URL(window.location.href);
+                            const value = url.searchParams.get('chime');
+                            return value ? String(value).trim() : '';
+                        } catch (e) {
+                            return '';
+                        }
+                    })();
+                    if (fromQuery) return fromQuery;
+                    try {
+                        return String(localStorage.getItem('displayChimeUrl') || '').trim();
+                    } catch (e) {
+                        return '';
+                    }
+                }
+
+                function setChimeUrl(nextUrl) {
+                    const safe = String(nextUrl || '').trim();
+                    try {
+                        if (safe) {
+                            localStorage.setItem('displayChimeUrl', safe);
+                        } else {
+                            localStorage.removeItem('displayChimeUrl');
+                        }
+                    } catch (e) {}
+                }
+
                 async function ensureAudioContext() {
                     if (!soundEnabled) return null;
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -254,6 +285,24 @@
 
                 function sleep(ms) {
                     return new Promise((resolve) => setTimeout(resolve, ms));
+                }
+
+                async function playChimeFile(url) {
+                    if (!soundEnabled) return;
+                    const src = String(url || '').trim();
+                    if (!src) return;
+                    await ensureAudioContext();
+                    await new Promise((resolve) => {
+                        const audio = new Audio(src);
+                        audio.preload = 'auto';
+                        audio.volume = 1;
+                        audio.onended = () => resolve();
+                        audio.onerror = () => resolve();
+                        const playPromise = audio.play();
+                        if (playPromise && typeof playPromise.then === 'function') {
+                            playPromise.then(() => {}).catch(() => resolve());
+                        }
+                    });
                 }
 
                 async function playChimeTone(ctx, frequency, durationMs) {
@@ -273,6 +322,11 @@
 
                 async function playAirportChime() {
                     if (!soundEnabled) return;
+                    const configuredChimeUrl = getChimeUrl();
+                    if (configuredChimeUrl) {
+                        await playChimeFile(configuredChimeUrl);
+                        return;
+                    }
                     const ctx = await ensureAudioContext();
                     if (!ctx) return;
                     await playChimeTone(ctx, 880, 140);
@@ -755,6 +809,16 @@
                             await ensureAudioContext();
                         } catch (e) {}
                         enqueueAnnouncement('Suara panggilan antrean aktif.');
+                    });
+                }
+
+                if (soundConfigBtn) {
+                    soundConfigBtn.addEventListener('click', () => {
+                        const current = getChimeUrl();
+                        const next = window.prompt('Masukkan URL file nada pengumuman (mp3/wav). Kosongkan untuk pakai nada bawaan.', current || '');
+                        if (next === null) return;
+                        setChimeUrl(next);
+                        enqueueAnnouncement(next && String(next).trim() ? 'Nada pengumuman berhasil diatur.' : 'Nada pengumuman kembali ke bawaan.');
                     });
                 }
 
