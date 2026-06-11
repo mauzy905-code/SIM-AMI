@@ -77,33 +77,7 @@
                                 <div>PASTIKAN MENYENTUH TOMBOL HANYA SEKALI AGAR NOMOR TIDAK GANDA.</div>
                                 <div>APABILA MEMILIH POLIKLINIK, LANJUTKAN DENGAN MEMILIH JENIS PELAYANAN.</div>
                                 <div>SIMPAN STRUK DAN TUNGGU NOMOR MUNCUL DI DISPLAY.</div>
-                            </div>
-                            <div class="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/90 px-4 py-4">
-                                <div class="flex flex-col gap-3">
-                                    <div>
-                                        <div class="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-500">Pengaturan Security</div>
-                                        <div class="mt-1.5 text-sm font-semibold text-slate-600">Gunakan untuk reset antrean setelah pelayanan selesai. Akses dibuka dengan PIN.</div>
-                                    </div>
-                                    <button id="resetToggleBtn" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100">
-                                        Buka Reset Antrean
-                                    </button>
-                                </div>
-                                <div id="resetPanel" class="hidden mt-4 rounded-2xl border border-amber-100 bg-amber-50/80 px-4 py-4">
-                                    <div class="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">Reset Antrean</div>
-                                    <div class="mt-1.5 text-sm font-semibold text-slate-600">Gunakan hanya saat pelayanan berakhir atau antrean hari ini ingin dimulai kembali dari awal.</div>
-                                    <div class="mt-3 flex flex-wrap gap-2">
-                                        <button id="resetUgdBtn" type="button" class="rounded-xl border border-red-200 bg-white px-3.5 py-2 text-sm font-bold text-red-700 shadow-sm transition hover:bg-red-50">
-                                            Reset Farmasi
-                                        </button>
-                                        <button id="resetPoliBtn" type="button" class="rounded-xl border border-blue-200 bg-white px-3.5 py-2 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50">
-                                            Reset Poliklinik
-                                        </button>
-                                        <button id="resetAllBtn" type="button" class="rounded-xl border border-slate-300 bg-slate-900 px-3.5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
-                                            Reset Semua
-                                        </button>
-                                    </div>
-                                    <div id="resetInfo" class="hidden mt-3 rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
-                                </div>
+                                <div>NOMOR ANTREAN AKAN OTOMATIS MULAI DARI 1 LAGI SETIAP HARI BERGANTI.</div>
                             </div>
                         </div>
                     </section>
@@ -325,8 +299,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
-            const RESET_SETTINGS_PIN = '1234';
-            
             if (typeof window.supabase !== 'undefined') {
                 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 const jenisModal = document.getElementById('jenisModal');
@@ -335,12 +307,6 @@
                 const poliModal = document.getElementById('poliModal');
                 const modalJenisTitle = document.getElementById('modalJenisTitle');
                 const backToJenisModal = document.getElementById('backToJenisModal');
-                const resetToggleBtn = document.getElementById('resetToggleBtn');
-                const resetPanel = document.getElementById('resetPanel');
-                const resetUgdBtn = document.getElementById('resetUgdBtn');
-                const resetPoliBtn = document.getElementById('resetPoliBtn');
-                const resetAllBtn = document.getElementById('resetAllBtn');
-                const resetInfo = document.getElementById('resetInfo');
                 let selectedUnit = '';
                 let selectedJenis = '';
 
@@ -397,18 +363,6 @@
                     modalJenisTitle.textContent = 'Jenis Pasien: ' + jenisPasien;
                     jenisModal.classList.add('hidden');
                     poliModal.classList.remove('hidden');
-                }
-
-                function showResetInfo(message, tone) {
-                    resetInfo.textContent = message;
-                    resetInfo.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
-                    if (tone === 'error') {
-                        resetInfo.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
-                    } else if (tone === 'success') {
-                        resetInfo.classList.add('border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
-                    } else {
-                        resetInfo.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
-                    }
                 }
 
                 async function printTicket() {
@@ -484,40 +438,6 @@
                     setTimeout(() => ticketWindow.close(), 500);
                 }
 
-                async function resetAntrean(targetUnit, buttonEl) {
-                    const label = targetUnit === 'ALL' ? 'SEMUA ANTREAN HARI INI' : `ANTREAN ${targetUnit} HARI INI`;
-                    const confirmed = window.confirm(`Yakin ingin mereset ${label}? Data pasien tidak akan dihapus, hanya antrean hari ini yang dikosongkan.`);
-                    if (!confirmed) return;
-
-                    const originalText = buttonEl.textContent;
-                    buttonEl.disabled = true;
-                    buttonEl.textContent = 'Memproses...';
-                    resetInfo.classList.add('hidden');
-
-                    try {
-                        const { startISO, endISO } = getTodayRangeISO();
-                        let query = supabaseClient
-                            .from('antrian')
-                            .delete()
-                            .gte('created_at', startISO)
-                            .lte('created_at', endISO);
-
-                        if (targetUnit !== 'ALL') {
-                            query = query.eq('unit', targetUnit);
-                        }
-
-                        const { error } = await query;
-                        if (error) throw new Error(error.message);
-
-                        showResetInfo(`Berhasil mereset ${label.toLowerCase()}. Nomor antrean berikutnya akan mulai lagi dari awal.`, 'success');
-                    } catch (err) {
-                        showResetInfo('Gagal mereset antrean: ' + (err?.message || String(err)), 'error');
-                    } finally {
-                        buttonEl.disabled = false;
-                        buttonEl.textContent = originalText;
-                    }
-                }
-
                 async function processTicket(unit, jenisPasien, poliTujuan) {
                     const noAntrian = await generateNoAntrian(unit);
                     const now = new Date();
@@ -582,28 +502,6 @@
                         openJenisModal(this.dataset.unit);
                     });
                 });
-
-                resetToggleBtn.addEventListener('click', () => {
-                    const isHidden = resetPanel.classList.contains('hidden');
-                    if (isHidden) {
-                        const enteredPin = window.prompt('Masukkan PIN untuk membuka reset antrean:', '');
-                        if (enteredPin === null) return;
-                        if ((enteredPin || '').trim() !== RESET_SETTINGS_PIN) {
-                            showResetInfo('PIN salah. Pengaturan reset antrean tetap tersembunyi.', 'error');
-                            return;
-                        }
-                        showResetInfo('PIN benar. Pengaturan reset antrean berhasil dibuka.', 'success');
-                        resetPanel.classList.remove('hidden');
-                        resetToggleBtn.textContent = 'Sembunyikan Reset Antrean';
-                        return;
-                    }
-
-                    resetPanel.classList.add('hidden');
-                    resetToggleBtn.textContent = 'Buka Reset Antrean';
-                });
-                resetUgdBtn.addEventListener('click', () => resetAntrean('FARMASI', resetUgdBtn));
-                resetPoliBtn.addEventListener('click', () => resetAntrean('POLIKLINIK', resetPoliBtn));
-                resetAllBtn.addEventListener('click', () => resetAntrean('ALL', resetAllBtn));
 
                 document.querySelectorAll('.jenis-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
