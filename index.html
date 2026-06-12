@@ -295,6 +295,11 @@
                                     <input type="number" id="umur" class="w-full cursor-not-allowed rounded-2xl border border-emerald-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Otomatis dari tanggal lahir" required readonly>
                                 </div>
 
+                                <div>
+                                    <label class="block text-slate-700 font-semibold mb-2">Alamat</label>
+                                    <textarea id="alamat" rows="3" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan alamat pasien"></textarea>
+                                </div>
+
                                 <button id="saveBtn" type="submit" class="w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] px-6 py-3.5 text-white font-bold shadow-[0_16px_30px_-14px_rgba(5,150,105,0.55)] transition hover:brightness-105">
                                     Simpan Data Pasien
                                 </button>
@@ -715,6 +720,7 @@
                 let loadedOldPatient = null;
                 let currentHistoryNoRm = '';
                 let currentHistoryPatientName = '';
+                let alamatColumnAvailable = true;
                 let riwayatLinkColumnAvailable = true;
                 let noRegistrasiColumnAvailable = true;
                 let queueRoutingColumnsAvailable = true;
@@ -1540,6 +1546,21 @@
                     }
                 }
 
+                async function detectAlamatColumn() {
+                    const { error } = await supabaseClient
+                        .from('pasien')
+                        .select('alamat')
+                        .limit(1);
+
+                    if (error && /alamat/i.test(error.message)) {
+                        alamatColumnAvailable = false;
+                        const alamatInput = document.getElementById('alamat');
+                        if (alamatInput) {
+                            alamatInput.placeholder = 'Kolom alamat belum ada di database Supabase';
+                        }
+                    }
+                }
+
                 async function detectRiwayatLinkColumn() {
                     const { error } = await supabaseClient
                         .from('pasien')
@@ -1849,6 +1870,7 @@
                     document.getElementById('jenis_kelamin').value = '';
                     tanggalLahirInput.value = '';
                     umurInput.value = '';
+                    document.getElementById('alamat').value = '';
                 }
 
                 function fillPatientFields(patient) {
@@ -1859,6 +1881,7 @@
                     tanggalLahirInput.value = patient?.tanggal_lahir || '';
                     const computedAge = computeAgeYears(tanggalLahirInput.value);
                     umurInput.value = computedAge ? computedAge : (patient?.umur ?? '');
+                    document.getElementById('alamat').value = patient?.alamat || '';
                 }
 
                 async function setPatientMode(mode) {
@@ -1904,7 +1927,7 @@
                         const { data, error } = await withTimeout(
                             supabaseClient
                                 .from('pasien')
-                                .select(riwayatLinkColumnAvailable ? 'no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur,riwayat_pasien_link' : 'no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur')
+                                .select(`${alamatColumnAvailable ? 'alamat,' : ''}no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur${riwayatLinkColumnAvailable ? ',riwayat_pasien_link' : ''}`)
                                 .eq('nik', nikLookup)
                                 .order('created_at', { ascending: false })
                                 .limit(1),
@@ -2804,6 +2827,7 @@
                     const jenis_kelamin = document.getElementById('jenis_kelamin').value;
                     const tanggal_lahir = document.getElementById('tanggal_lahir').value;
                     const umur = document.getElementById('umur').value;
+                    const alamat = document.getElementById('alamat').value.trim();
                     const waktu_daftar = new Date();
 
                     try {
@@ -2889,6 +2913,10 @@
                             poli_tujuan,
                             created_at: waktu_daftar.toISOString()
                         };
+
+                        if (alamatColumnAvailable) {
+                            pasienPayload.alamat = alamat || null;
+                        }
 
                         if (noRegistrasiColumnAvailable) {
                             pasienPayload.no_registrasi = no_registrasi;
@@ -3394,6 +3422,7 @@
                     await detectQueueRoutingColumns();
                     await detectQueueProcessingColumns();
                     await detectPoliExamColumns();
+                    await detectAlamatColumn();
                     await detectRiwayatLinkColumn();
                     await detectNoRegistrasiColumn();
                     showView('pendaftaran');
