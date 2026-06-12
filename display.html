@@ -6,425 +6,933 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>SIM-AMI - Mesin Antrian Poliklinik</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>SIM-AMI - Display Antrian</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="min-h-screen antialiased text-slate-900 font-['Inter'] bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(37,99,235,0.18),_transparent_30%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
-    <div class="min-h-screen px-4 py-5 md:px-8 md:py-8">
-        <div class="mx-auto max-w-7xl">
-            <div class="overflow-hidden rounded-[32px] border border-white/70 bg-white/80 shadow-[0_25px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-                <div class="relative overflow-hidden bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-6 py-7 md:px-10 md:py-9">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.18),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_24%)]"></div>
-                    <div class="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-                        <div class="max-w-3xl">
-                            <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-[0.3em] text-emerald-50 uppercase">
-                                Layanan Antrean Digital
-                            </div>
-                            <div class="mt-4 text-white text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                                SIM-AMI
-                            </div>
-                            <div class="mt-2 text-emerald-50/95 text-sm md:text-base font-semibold tracking-[0.18em] uppercase">
-                                Sistem Informasi Manajemen Aji Muhammad Idris
-                            </div>
-                            <div class="mt-3 text-emerald-50/95 text-lg md:text-xl font-semibold leading-relaxed">
-                                Mesin Antrian Poliklinik • Pilih jalur, lalu pilih BPJS/UMUM, kemudian nomor langsung dicetak.
-                            </div>
+<body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
+    <div class="bg-gradient-to-r from-emerald-600 to-blue-700 px-4 py-4 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div class="text-center lg:text-left">
+                <h1 class="text-white text-2xl md:text-3xl font-extrabold tracking-tight">SIM-AMI</h1>
+                <div class="text-emerald-100 font-semibold">Sistem Informasi Manajemen Aji Muhammad Idris</div>
+                <div class="text-emerald-100/90 font-semibold">Display Antrian</div>
+            </div>
+            <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
+                <a href="index.html" class="rounded-full bg-white/15 px-4 py-2 text-white font-semibold hover:bg-white/20 transition" target="_blank" rel="noreferrer">Admin</a>
+                <button class="display-unit-btn rounded-full bg-white text-emerald-900 font-extrabold px-4 py-2 active" data-unit="ALL">SEMUA</button>
+                <button class="display-unit-btn rounded-full bg-red-600/90 text-white font-bold px-4 py-2 hover:bg-red-700 transition" data-unit="FARMASI">FARMASI</button>
+                <button class="display-unit-btn rounded-full bg-blue-600/90 text-white font-bold px-4 py-2 hover:bg-blue-700 transition" data-unit="POLIKLINIK">POLIKLINIK</button>
+                <button id="soundToggleBtn" type="button" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Suara: OFF</button>
+                <div id="syncStatus" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">Sinkron: -</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="displayContainer" class="max-w-7xl mx-auto grid grid-cols-1 gap-6 p-4 md:p-6 lg:grid-cols-2 transition-all duration-200">
+        <section class="display-section rounded-[28px] border border-emerald-700/40 bg-gradient-to-br from-emerald-950/85 to-emerald-900/70 shadow-2xl overflow-hidden" data-section-unit="FARMASI">
+            <div class="border-b border-emerald-700/40 px-6 py-5">
+                <div class="text-emerald-200 text-sm font-extrabold tracking-[0.28em] uppercase">Farmasi</div>
+                <div class="mt-2 text-white text-3xl font-black tracking-tight">Urutan Antrean Farmasi</div>
+            </div>
+            <div class="p-6">
+                <div class="rounded-[24px] border border-emerald-700/40 bg-white/5 p-5 text-center">
+                    <div class="text-emerald-300 text-lg font-bold uppercase tracking-[0.22em]">Antrian Saat Ini</div>
+                    <div id="farmasiCurrentJenisPasien" class="mt-4 inline-flex items-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-sm font-bold">-</div>
+                    <div id="farmasiCurrentPoli" class="mt-3 text-emerald-100/80 text-lg font-bold">-</div>
+                    <div id="farmasiCurrentAntrian" class="mt-4 text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200 drop-shadow-2xl">-</div>
+                    <div id="farmasiCurrentNama" class="mt-4 text-2xl md:text-3xl text-emerald-50 font-semibold">Belum ada antrean</div>
+                </div>
+                <div class="mt-5">
+                    <div class="mb-3 text-emerald-200 text-sm font-extrabold tracking-[0.24em] uppercase">Antrean Berikutnya</div>
+                    <div id="farmasiAntrianList" class="space-y-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="display-section rounded-[28px] border border-blue-700/40 bg-gradient-to-br from-blue-950/85 to-slate-900/80 shadow-2xl overflow-hidden" data-section-unit="POLIKLINIK">
+            <div class="border-b border-blue-700/40 px-6 py-5">
+                <div class="text-blue-200 text-sm font-extrabold tracking-[0.28em] uppercase">Poliklinik</div>
+                <div class="mt-2 text-white text-3xl font-black tracking-tight">Urutan Antrean Poliklinik</div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <div class="min-h-[320px] rounded-[26px] border border-blue-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-5 py-6 text-center shadow-2xl flex flex-col justify-center">
+                        <div class="text-blue-300 text-xl font-black uppercase tracking-[0.24em]">Loket 1</div>
+                        <div id="poliklinikLoket1JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-blue-700/60 bg-white/10 px-4 py-1.5 text-blue-100 text-sm font-bold">-</div>
+                        <div id="poliklinikLoket1Poli" class="mt-3 min-h-[3.5rem] text-blue-100/85 text-lg font-bold flex items-center justify-center">-</div>
+                        <div id="poliklinikLoket1Antrian" class="mt-3 text-7xl md:text-8xl font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200 drop-shadow-2xl">-</div>
+                        <div id="poliklinikLoket1Nama" class="mt-4 min-h-[4rem] text-xl md:text-2xl text-blue-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                    </div>
+                    <div class="min-h-[320px] rounded-[26px] border border-blue-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-5 py-6 text-center shadow-2xl flex flex-col justify-center">
+                        <div class="text-blue-300 text-xl font-black uppercase tracking-[0.24em]">Loket 2</div>
+                        <div id="poliklinikLoket2JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-blue-700/60 bg-white/10 px-4 py-1.5 text-blue-100 text-sm font-bold">-</div>
+                        <div id="poliklinikLoket2Poli" class="mt-3 min-h-[3.5rem] text-blue-100/85 text-lg font-bold flex items-center justify-center">-</div>
+                        <div id="poliklinikLoket2Antrian" class="mt-3 text-7xl md:text-8xl font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200 drop-shadow-2xl">-</div>
+                        <div id="poliklinikLoket2Nama" class="mt-4 min-h-[4rem] text-xl md:text-2xl text-blue-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <div class="mb-3 text-blue-200 text-sm font-extrabold tracking-[0.24em] uppercase">Antrean Menunggu Bersama</div>
+                    <div id="poliklinikAntrianList" class="space-y-3"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="focusedDisplay" class="hidden h-[calc(100vh-96px)]">
+        <div class="flex h-full flex-col lg:flex-row">
+            <div id="focusedCurrentPanel" class="lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-blue-950/80">
+                <div id="focusedSingleCurrent" class="flex flex-col items-center justify-center">
+                    <h3 class="text-emerald-300 text-2xl font-semibold mb-4 tracking-wide uppercase">Antrian Saat Ini</h3>
+                    <div id="focusedUnit" class="text-emerald-200 text-xl font-semibold mb-2">-</div>
+                    <div id="focusedJenisPasien" class="inline-flex items-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-base font-bold mb-4">-</div>
+                    <div id="focusedPoli" class="text-emerald-100/90 text-xl font-bold mb-6">-</div>
+                    <div id="focusedAntrian" class="text-[7rem] md:text-[10rem] xl:text-[12rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 mb-4 drop-shadow-2xl">-</div>
+                    <div id="focusedNama" class="text-3xl md:text-4xl text-emerald-100 font-semibold text-center">Belum ada antrean</div>
+                </div>
+                <div id="focusedPoliklinikDual" class="hidden w-full">
+                    <h3 class="text-blue-300 text-2xl md:text-3xl font-semibold mb-7 tracking-wide uppercase text-center">Poliklinik Aktif</h3>
+                    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                        <div class="min-h-[430px] rounded-[30px] border border-blue-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-6 py-7 text-center shadow-2xl flex flex-col justify-center">
+                            <div class="text-blue-200 text-2xl font-black uppercase tracking-[0.24em]">Loket 1</div>
+                            <div id="focusedLoket1JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-blue-700/60 bg-white/10 px-5 py-2 text-blue-100 text-lg font-bold">-</div>
+                            <div id="focusedLoket1Poli" class="mt-4 min-h-[4.5rem] text-blue-100/90 text-xl font-bold flex items-center justify-center">-</div>
+                            <div id="focusedLoket1Antrian" class="mt-4 text-[5.5rem] md:text-[7rem] xl:text-[8rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200 drop-shadow-2xl">-</div>
+                            <div id="focusedLoket1Nama" class="mt-5 min-h-[5rem] text-2xl md:text-3xl text-blue-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
                         </div>
-                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                            <a href="mesin-antrian.html" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-black text-white transition hover:bg-white/15">
-                                Kembali
-                            </a>
+                        <div class="min-h-[430px] rounded-[30px] border border-blue-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-6 py-7 text-center shadow-2xl flex flex-col justify-center">
+                            <div class="text-blue-200 text-2xl font-black uppercase tracking-[0.24em]">Loket 2</div>
+                            <div id="focusedLoket2JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-blue-700/60 bg-white/10 px-5 py-2 text-blue-100 text-lg font-bold">-</div>
+                            <div id="focusedLoket2Poli" class="mt-4 min-h-[4.5rem] text-blue-100/90 text-xl font-bold flex items-center justify-center">-</div>
+                            <div id="focusedLoket2Antrian" class="mt-4 text-[5.5rem] md:text-[7rem] xl:text-[8rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200 drop-shadow-2xl">-</div>
+                            <div id="focusedLoket2Nama" class="mt-5 min-h-[5rem] text-2xl md:text-3xl text-blue-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 gap-6 p-6 md:p-8 xl:grid-cols-12 xl:gap-8 xl:p-10">
-                    <section class="xl:col-span-4 space-y-5">
-                        <div class="rounded-[28px] border border-emerald-100 bg-white p-6 shadow-sm">
-                            <div class="text-sm font-extrabold tracking-[0.28em] text-emerald-700 uppercase">Alur Pengambilan</div>
-                            <div class="mt-5 space-y-4">
-                                <div class="flex items-start gap-4 rounded-2xl bg-emerald-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white">1</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Pilih Jalur</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">UMUM atau PRIORITAS</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4 rounded-2xl bg-blue-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white">2</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Pilih BPJS / UMUM</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">Setelah memilih jalur</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4 rounded-2xl bg-slate-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-lg font-black text-white">3</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Cetak Nomor</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">Simpan struk dan tunggu dipanggil</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,_#f8fafc_0%,_#ffffff_100%)] p-6 shadow-sm">
-                            <div class="text-sm font-extrabold tracking-[0.28em] text-slate-500 uppercase">Informasi</div>
-                            <div class="mt-4 space-y-3 text-sm font-semibold text-slate-600 leading-6">
-                                <div>PASTIKAN MENYENTUH TOMBOL HANYA SEKALI AGAR NOMOR TIDAK GANDA.</div>
-                                <div>SIMPAN STRUK DAN TUNGGU NOMOR MUNCUL DI DISPLAY POLIKLINIK.</div>
-                                <div>NOMOR ANTREAN AKAN OTOMATIS MULAI DARI 1 LAGI SETIAP HARI BERGANTI.</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="xl:col-span-8">
-                        <div class="rounded-[32px] border border-emerald-100 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(240,249,255,0.96))] p-6 shadow-inner md:p-8">
-                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                                <div>
-                                    <div class="text-sm font-extrabold tracking-[0.28em] text-blue-700 uppercase">Poliklinik</div>
-                                    <div class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pilih Jalur</div>
-                                </div>
-                                <div class="rounded-2xl border border-emerald-100 bg-white px-5 py-4 shadow-sm">
-                                    <div class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-400">Status Mesin</div>
-                                    <div class="mt-2 flex items-center gap-3">
-                                        <span class="inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,0.16)]"></span>
-                                        <span class="text-base font-black text-emerald-700">SIAP DIGUNAKAN</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                <button type="button" class="jalur-btn group relative overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] active:scale-[0.99]" data-jalur="UMUM">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
-                                    <div class="relative">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">👤</div>
-                                            <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
-                                        </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">POLIKLINIK</div>
-                                        <div class="mt-3 text-base font-semibold text-emerald-50/95 leading-7">JALUR REGULER. LANJUTKAN PILIH BPJS/UMUM.</div>
-                                    </div>
-                                </button>
-
-                                <button type="button" class="jalur-btn group relative overflow-hidden rounded-[30px] border border-amber-200 bg-[linear-gradient(145deg,_#fbbf24_0%,_#f59e0b_55%,_#d97706_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(245,158,11,0.5)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(245,158,11,0.6)] active:scale-[0.99]" data-jalur="PRIORITAS">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
-                                    <div class="relative">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">⚡</div>
-                                            <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
-                                        </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">PRIORITAS</div>
-                                        <div class="mt-3 text-base font-semibold text-amber-50/95 leading-7">JALUR PRIORITAS. LANJUTKAN PILIH BPJS/UMUM.</div>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+            <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-900/55 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto">
+                <h3 id="focusedNextTitle" class="text-emerald-300 text-2xl font-bold mb-6 border-b border-emerald-700/50 pb-3">Antrean Berikutnya</h3>
+                <div id="focusedAntrianList" class="space-y-4"></div>
             </div>
         </div>
     </div>
-
-    <div id="payerModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"></div>
-        <div class="relative min-h-full flex items-center justify-center p-4">
-            <div class="w-full max-w-2xl rounded-[32px] border border-white/70 bg-white shadow-[0_30px_90px_-30px_rgba(15,23,42,0.55)] overflow-hidden">
-                <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-8 py-7">
-                    <div class="text-emerald-100 text-xs font-extrabold tracking-[0.32em] uppercase">Langkah 2 • Jenis Pasien</div>
-                    <div class="text-white text-3xl font-black tracking-tight mt-2">POLIKLINIK</div>
-                    <div id="modalJalurTitle" class="text-emerald-100 text-base font-semibold mt-2">-</div>
-                </div>
-                <div class="p-8 space-y-4 bg-[linear-gradient(180deg,_#ffffff_0%,_#f8fafc_100%)]">
-                    <button type="button" class="payer-btn w-full rounded-[26px] border border-emerald-200 bg-[linear-gradient(180deg,_#ecfdf5_0%,_#d1fae5_100%)] px-6 py-6 text-left hover:-translate-y-0.5 hover:shadow-lg transition" data-jenis="BPJS">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <div class="text-2xl font-black text-emerald-900 tracking-tight">PASIEN BPJS</div>
-                                <div class="text-base font-semibold text-emerald-700/80 mt-2">PESERTA JKN / BPJS KESEHATAN</div>
-                            </div>
-                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-3xl">🛡️</div>
-                        </div>
-                    </button>
-                    <button type="button" class="payer-btn w-full rounded-[26px] border border-blue-200 bg-[linear-gradient(180deg,_#eff6ff_0%,_#dbeafe_100%)] px-6 py-6 text-left hover:-translate-y-0.5 hover:shadow-lg transition" data-jenis="UMUM">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <div class="text-2xl font-black text-blue-900 tracking-tight">PASIEN UMUM</div>
-                                <div class="text-base font-semibold text-blue-700/80 mt-2">PASIEN UMUM / NON BPJS</div>
-                            </div>
-                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-3xl">👤</div>
-                        </div>
-                    </button>
-                    <button id="closePayerModal" type="button" class="w-full min-h-[64px] rounded-2xl border border-slate-200 bg-white px-6 text-slate-700 text-lg font-black hover:bg-slate-50 transition">
-                        BATAL
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="strukContainer" class="hidden">
-        <div id="struk" style="width: var(--ticket-width); padding: 4mm 3mm 5mm; box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; font-size: 9pt; line-height: 1.3; text-transform: uppercase; background: #ffffff;">
-            <div style="text-align: center; font-weight: 800; font-size: 8.5pt; margin-bottom: 1.5mm; white-space: nowrap;">RSUD AJI MUHAMMAD IDRIS</div>
-            <div id="strukUnit" style="text-align: center; font-weight: 800; margin-bottom: 3mm;"></div>
-            <div id="strukJenisPasien" style="text-align: center; font-weight: 800; margin-bottom: 2mm;"></div>
-            <div id="strukPoli" style="text-align: center; font-weight: 800; margin-bottom: 2mm;"></div>
-            <hr style="border-top: 1px dashed #000; margin: 3mm 0;">
-            <div style="text-align: center; font-size: 12pt; font-weight: 800; margin: 4mm 0 3mm;">
-                NOMOR ANTRIAN
-            </div>
-            <div id="strukNoAntrian" style="text-align: center; font-size: 26pt; font-weight: 800; color: #059669; margin: 3mm 0 4mm;"></div>
-            <hr style="border-top: 1px dashed #000; margin: 3mm 0;">
-            <div style="text-align: center; margin-top: 3mm;">
-                <p>TANGGAL: <span id="strukTanggal"></span></p>
-                <p>WAKTU: <span id="strukWaktu"></span></p>
-            </div>
-            <div style="text-align: center; margin-top: 3mm; font-size: 6.5pt; line-height: 1.25; font-family: 'Poppins', Arial, sans-serif; font-style: italic; letter-spacing: 0.2px;">
-                TERIMA KASIH TELAH DATANG<br>SILAKAN TUNGGU NOMOR ANDA DIPANGGIL
-            </div>
-        </div>
-    </div>
-
-    <style>
-        :root {
-            --ticket-width: 58mm;
-        }
-
-        @media print {
-            @page {
-                size: var(--ticket-width) auto;
-                margin: 0;
-            }
-
-            html,
-            body {
-                width: var(--ticket-width) !important;
-                min-width: var(--ticket-width) !important;
-                max-width: var(--ticket-width) !important;
-                height: auto !important;
-                min-height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden !important;
-                background: #ffffff !important;
-            }
-
-            body > *:not(#strukContainer) {
-                display: none !important;
-            }
-
-            #strukContainer {
-                display: block !important;
-                width: var(--ticket-width) !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                position: fixed !important;
-                left: 0 !important;
-                top: 0 !important;
-                overflow: hidden !important;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                page-break-after: avoid;
-            }
-
-            #struk {
-                width: var(--ticket-width) !important;
-                margin: 0 !important;
-                padding: 4mm 3mm 5mm !important;
-                box-sizing: border-box !important;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                page-break-after: avoid;
-                background: #ffffff !important;
-            }
-
-            p,
-            hr {
-                margin-block-start: 0;
-                margin-block-end: 0;
-            }
-        }
-    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
-            if (typeof window.supabase === 'undefined') {
-                return;
-            }
+            
+            if (typeof window.supabase !== 'undefined') {
+                const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                let selectedUnit = 'ALL';
+                const displayContainer = document.getElementById('displayContainer');
+                const focusedDisplay = document.getElementById('focusedDisplay');
 
-            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            const payerModal = document.getElementById('payerModal');
-            const modalJalurTitle = document.getElementById('modalJalurTitle');
-            const closePayerModal = document.getElementById('closePayerModal');
-            const unit = 'POLIKLINIK';
-            const unitLabel = 'POLIKLINIK';
-            let selectedJalur = '';
-            let selectedJenis = '';
+                // Mapping nama unit
+                const unitNames = {
+                    'FARMASI': '💊 FARMASI',
+                    'POLIKLINIK': '🩺 POLIKLINIK'
+                };
 
-            function getTodayRangeISO() {
-                const start = new Date();
-                start.setHours(0, 0, 0, 0);
-                const end = new Date();
-                end.setHours(23, 59, 59, 999);
-                return { startISO: start.toISOString(), endISO: end.toISOString() };
-            }
-
-            function openPayerModal(jalur) {
-                selectedJalur = jalur;
-                selectedJenis = '';
-                modalJalurTitle.textContent = 'Jalur: ' + jalur;
-                payerModal.classList.remove('hidden');
-            }
-
-            function closePayer() {
-                payerModal.classList.add('hidden');
-                selectedJalur = '';
-                selectedJenis = '';
-            }
-
-            function getPrefixForJalur() {
-                if (selectedJalur === 'PRIORITAS') return 'B';
-                return 'A';
-            }
-
-            async function printTicket() {
-                const ticketWindow = window.open('', '_blank', 'width=320,height=640');
-                if (!ticketWindow) {
-                    window.print();
-                    return;
+                function jenisPasienLabel(jenisPasien) {
+                    if (!jenisPasien) return '-';
+                    if (jenisPasien === 'BELUM_DITENTUKAN') return '-';
+                    if (jenisPasien === 'BPJS') return 'BPJS';
+                    if (jenisPasien === 'UMUM') return 'UMUM';
+                    return jenisPasien;
+                }
+                
+                function poliLabel(poli) {
+                    if (!poli) return '-';
+                    if (poli === 'FARMASI') return 'FARMASI';
+                    if (poli === 'POLIKLINIK') return '-';
+                    if (poli === 'SPESIALIS_ANAK') return 'Spesialis Anak';
+                    if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Spesialis Penyakit Dalam';
+                    if (poli === 'DOKTER_UMUM') return 'Dokter Umum';
+                    return poli;
                 }
 
-                const ticketMarkup = document.getElementById('struk').outerHTML;
-                const printDocument = `<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Cetak Nomor Antrean</title>
-    <style>
-        :root { --ticket-width: 58mm; }
-        @page { size: var(--ticket-width) auto; margin: 0; }
-        html, body { width: var(--ticket-width); min-width: var(--ticket-width); max-width: var(--ticket-width); margin: 0; padding: 0; background: #ffffff; overflow: hidden; }
-        body { font-family: Inter, Arial, sans-serif; }
-        #struk { width: var(--ticket-width) !important; margin: 0 !important; padding: 4mm 3mm 5mm !important; box-sizing: border-box !important; background: #ffffff !important; break-inside: avoid; page-break-inside: avoid; page-break-after: avoid; }
-        p, hr { margin-block-start: 0; margin-block-end: 0; }
-    </style>
-</head>
-<body>${ticketMarkup}</body>
-</html>`;
-
-                ticketWindow.document.open();
-                ticketWindow.document.write(printDocument);
-                ticketWindow.document.close();
-
-                await new Promise(resolve => {
-                    ticketWindow.onload = resolve;
-                    setTimeout(resolve, 500);
-                });
-
-                ticketWindow.focus();
-                ticketWindow.print();
-                setTimeout(() => ticketWindow.close(), 500);
-            }
-
-            async function generateNoAntrian() {
-                const prefix = getPrefixForJalur();
-                const { startISO, endISO } = getTodayRangeISO();
-                const { data, error } = await supabaseClient
-                    .from('antrian')
-                    .select('no_antrian')
-                    .gte('created_at', startISO)
-                    .lte('created_at', endISO)
-                    .eq('unit', unit)
-                    .ilike('no_antrian', prefix + '-%')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-
-                if (error) {
-                    console.error('Error fetching last antrian:', error);
-                    return prefix + '-001';
-                }
-
-                if (!data || data.length === 0) return prefix + '-001';
-                const lastNumber = parseInt(String(data[0].no_antrian || '').split('-')[1] || '0', 10);
-                return prefix + '-' + (lastNumber + 1).toString().padStart(3, '0');
-            }
-
-            async function processTicket() {
-                const noAntrian = await generateNoAntrian();
-                const now = new Date();
-
-                const { error } = await supabaseClient
-                    .from('antrian')
-                    .insert([{
-                        no_antrian: noAntrian,
-                        unit: unit,
-                        jenis_pasien: selectedJenis,
-                        poli_tujuan: unit,
-                        status: 'menunggu',
-                        created_at: now.toISOString()
-                    }]);
-
-                if (error) throw new Error(error.message);
-
-                document.getElementById('strukUnit').textContent = unitLabel;
-                if (selectedJalur === 'PRIORITAS') {
-                    document.getElementById('strukJenisPasien').textContent = 'PRIORITAS • ' + (selectedJenis || '-');
-                } else {
-                    document.getElementById('strukJenisPasien').textContent = 'JENIS PASIEN: ' + (selectedJenis || '-');
-                }
-                document.getElementById('strukPoli').textContent = '';
-                document.getElementById('strukPoli').style.display = 'none';
-                document.getElementById('strukNoAntrian').textContent = noAntrian;
-                document.getElementById('strukTanggal').textContent =
-                    now.getDate().toString().padStart(2, '0') + '-' +
-                    (now.getMonth() + 1).toString().padStart(2, '0') + '-' +
-                    now.getFullYear();
-                document.getElementById('strukWaktu').textContent =
-                    now.getHours().toString().padStart(2, '0') + ':' +
-                    now.getMinutes().toString().padStart(2, '0');
-
-                await printTicket();
-                alert('Nomor antrian ' + noAntrian + ' (' + (selectedJalur || '-') + ' / ' + (selectedJenis || '-') + ') berhasil diambil.');
-            }
-
-            document.querySelectorAll('.jalur-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    openPayerModal(this.dataset.jalur);
-                });
-            });
-
-            document.querySelectorAll('.payer-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    const original = this.innerHTML;
-                    this.disabled = true;
-                    this.innerHTML = '⏳ Memproses...';
-
-                    try {
-                        selectedJenis = this.dataset.jenis;
-                        payerModal.classList.add('hidden');
-                        await processTicket();
-                    } catch (err) {
-                        alert('Terjadi kesalahan: ' + (err?.message || String(err)));
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = original;
-                        selectedJalur = '';
-                        selectedJenis = '';
+                function antreanJalurLabel(item, unit) {
+                    const noAntrian = String(item?.no_antrian || '').trim().toUpperCase();
+                    if (unit === 'POLIKLINIK') {
+                        if (noAntrian.startsWith('B-')) return 'PRIORITAS';
+                        if (noAntrian.startsWith('A-')) return 'UMUM';
                     }
-                });
-            });
-
-            closePayerModal.addEventListener('click', closePayer);
-            payerModal.addEventListener('click', function(e) {
-                if (e.target === payerModal || e.target === this.firstElementChild) {
-                    closePayer();
+                    return jenisPasienLabel(item?.jenis_pasien);
                 }
-            });
 
+                function loketTujuanLabel(loketTujuan) {
+                    const value = String(loketTujuan || '').trim().toUpperCase();
+                    if (!value) return '';
+                    if (value === 'LOKET_1') return 'Menuju Loket 1';
+                    if (value === 'LOKET_2') return 'Menuju Loket 2';
+                    return 'Menuju ' + value.replace(/_/g, ' ');
+                }
+
+                function currentMetaLabel(item, unit) {
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan);
+                    const poliText = poliLabel(item?.poli_tujuan);
+                    if (loketLabel && poliText && poliText !== '-') {
+                        return `${poliText} • ${loketLabel}`;
+                    }
+                    return loketLabel || poliText || '-';
+                }
+
+                function getTodayRangeISO() {
+                    const start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    return { startISO: start.toISOString(), endISO: end.toISOString() };
+                }
+
+                function isTodayLocal(isoString) {
+                    if (!isoString) return false;
+                    const d = new Date(isoString);
+                    if (Number.isNaN(d.getTime())) return false;
+                    const now = new Date();
+                    return d.getFullYear() === now.getFullYear() &&
+                        d.getMonth() === now.getMonth() &&
+                        d.getDate() === now.getDate();
+                }
+
+                function setSyncStatus(text, variant) {
+                    const el = document.getElementById('syncStatus');
+                    if (!el) return;
+                    el.textContent = text;
+                    if (variant === 'error') {
+                        el.className = 'ml-1 rounded-full border border-red-200/30 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100';
+                    } else {
+                        el.className = 'ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80';
+                    }
+                }
+
+                const soundToggleBtn = document.getElementById('soundToggleBtn');
+                let soundEnabled = false;
+                let audioContext = null;
+                let speechBusy = false;
+                const speechQueue = [];
+                const DEFAULT_CHIME_URL = new URL('assets/sound/nada.mp3', window.location.href).toString();
+                const lastAnnounced = (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('displayLastAnnounced') || '{}') || {};
+                    } catch (e) {
+                        return {};
+                    }
+                })();
+
+                function persistLastAnnounced() {
+                    try {
+                        localStorage.setItem('displayLastAnnounced', JSON.stringify(lastAnnounced));
+                    } catch (e) {}
+                }
+
+                function setSoundEnabled(nextValue) {
+                    soundEnabled = !!nextValue;
+                    if (soundToggleBtn) {
+                        soundToggleBtn.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+                        soundToggleBtn.className = soundEnabled
+                            ? 'ml-1 rounded-full border border-emerald-200/30 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/25 transition'
+                            : 'ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition';
+                    }
+                    try {
+                        localStorage.setItem('displaySoundEnabled', soundEnabled ? '1' : '0');
+                    } catch (e) {}
+                }
+
+                function getChimeUrl() {
+                    return DEFAULT_CHIME_URL;
+                }
+
+                async function ensureAudioContext() {
+                    if (!soundEnabled) return null;
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return null;
+                    if (!audioContext) audioContext = new AudioCtx();
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+                    return audioContext;
+                }
+
+                function sleep(ms) {
+                    return new Promise((resolve) => setTimeout(resolve, ms));
+                }
+
+                async function playChimeFile(url) {
+                    if (!soundEnabled) return;
+                    const src = String(url || '').trim();
+                    if (!src) return;
+                    await ensureAudioContext();
+                    await new Promise((resolve) => {
+                        const audio = new Audio(src);
+                        audio.preload = 'auto';
+                        audio.volume = 1;
+                        audio.onended = () => resolve();
+                        audio.onerror = () => resolve();
+                        const playPromise = audio.play();
+                        if (playPromise && typeof playPromise.then === 'function') {
+                            playPromise.then(() => {}).catch(() => resolve());
+                        }
+                    });
+                }
+
+                async function playChimeTone(ctx, frequency, durationMs) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + Math.max(0.08, durationMs / 1000));
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + durationMs / 1000);
+                    await sleep(durationMs);
+                }
+
+                async function playAirportChime() {
+                    if (!soundEnabled) return;
+                    const configuredChimeUrl = getChimeUrl();
+                    if (configuredChimeUrl) {
+                        await playChimeFile(configuredChimeUrl);
+                        return;
+                    }
+                    const ctx = await ensureAudioContext();
+                    if (!ctx) return;
+                    await playChimeTone(ctx, 880, 140);
+                    await sleep(80);
+                    await playChimeTone(ctx, 660, 140);
+                    await sleep(80);
+                    await playChimeTone(ctx, 880, 180);
+                }
+
+                function splitTtsText(text, maxLen) {
+                    const raw = String(text || '').trim();
+                    if (!raw) return [];
+                    const max = Math.max(60, Number(maxLen) || 180);
+                    const tokens = raw.split(/(\.|\!|\?|\;|\,|\:)\s+/).filter(Boolean);
+                    const chunks = [];
+                    let buffer = '';
+                    for (let i = 0; i < tokens.length; i++) {
+                        const token = tokens[i];
+                        const next = buffer ? (buffer + ' ' + token).trim() : String(token).trim();
+                        if (next.length <= max) {
+                            buffer = next;
+                            continue;
+                        }
+                        if (buffer) chunks.push(buffer);
+                        buffer = String(token).trim();
+                        if (buffer.length > max) {
+                            for (let j = 0; j < buffer.length; j += max) {
+                                chunks.push(buffer.slice(j, j + max));
+                            }
+                            buffer = '';
+                        }
+                    }
+                    if (buffer) chunks.push(buffer);
+                    return chunks.filter(Boolean);
+                }
+
+                function waitForSpeechVoices(timeoutMs) {
+                    return new Promise((resolve) => {
+                        const synth = window.speechSynthesis;
+                        if (!synth || typeof synth.getVoices !== 'function') return resolve([]);
+                        const timeout = Math.max(300, Number(timeoutMs) || 1200);
+
+                        const done = (voices) => {
+                            try {
+                                synth.onvoiceschanged = null;
+                            } catch (e) {}
+                            resolve(voices || []);
+                        };
+
+                        const existing = synth.getVoices();
+                        if (existing && existing.length) return done(existing);
+
+                        let settled = false;
+                        const timer = setTimeout(() => {
+                            if (settled) return;
+                            settled = true;
+                            done(synth.getVoices());
+                        }, timeout);
+
+                        try {
+                            synth.onvoiceschanged = () => {
+                                if (settled) return;
+                                settled = true;
+                                clearTimeout(timer);
+                                done(synth.getVoices());
+                            };
+                        } catch (e) {
+                            clearTimeout(timer);
+                            done(synth.getVoices());
+                        }
+                    });
+                }
+
+                async function speakTextLocal(text) {
+                    if (!soundEnabled) return false;
+                    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return false;
+
+                    const safeText = String(text || '').trim();
+                    if (!safeText) return false;
+
+                    await ensureAudioContext();
+                    await waitForSpeechVoices(1400);
+
+                    const synth = window.speechSynthesis;
+                    try {
+                        synth.cancel();
+                    } catch (e) {}
+
+                    return await new Promise((resolve) => {
+                        let started = false;
+                        let finished = false;
+
+                        const utter = new SpeechSynthesisUtterance(safeText);
+                        utter.lang = 'id-ID';
+                        utter.rate = 0.95;
+                        utter.pitch = 1;
+                        utter.onstart = () => {
+                            started = true;
+                        };
+                        utter.onend = () => {
+                            finished = true;
+                            resolve(true);
+                        };
+                        utter.onerror = () => {
+                            finished = true;
+                            resolve(false);
+                        };
+
+                        const startTimer = setTimeout(() => {
+                            if (finished) return;
+                            if (!started) {
+                                try {
+                                    synth.cancel();
+                                } catch (e) {}
+                                resolve(false);
+                            }
+                        }, 1200);
+
+                        const hardTimer = setTimeout(() => {
+                            if (finished) return;
+                            try {
+                                synth.cancel();
+                            } catch (e) {}
+                            resolve(false);
+                        }, Math.min(20000, Math.max(3500, safeText.length * 90)));
+
+                        try {
+                            synth.speak(utter);
+                        } catch (e) {
+                            clearTimeout(startTimer);
+                            clearTimeout(hardTimer);
+                            resolve(false);
+                        }
+                    });
+                }
+
+                async function speakTextRemote(text) {
+                    if (!soundEnabled) return;
+                    const safeText = String(text || '').trim();
+                    if (!safeText) return;
+
+                    const parts = splitTtsText(safeText, 180);
+                    if (parts.length === 0) return;
+
+                    for (let i = 0; i < parts.length; i++) {
+                        const q = encodeURIComponent(parts[i]);
+                        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=id&q=${q}&t=${Date.now()}_${i}`;
+                        await playChimeFile(url);
+                        await sleep(80);
+                    }
+                }
+
+                async function speakText(text) {
+                    const safeText = String(text || '').trim();
+                    if (!safeText) return;
+                    const ok = await speakTextLocal(safeText);
+                    if (ok) return;
+                    await speakTextRemote(safeText);
+                }
+
+                function enqueueAnnouncement(text) {
+                    if (!soundEnabled) return;
+                    const safeText = String(text || '').trim();
+                    if (!safeText) return;
+                    speechQueue.push(safeText);
+                    drainSpeechQueue();
+                }
+
+                async function drainSpeechQueue() {
+                    if (!soundEnabled) return;
+                    if (speechBusy) return;
+                    if (speechQueue.length === 0) return;
+                    speechBusy = true;
+                    const text = speechQueue.shift();
+                    try {
+                        await playAirportChime();
+                        await sleep(150);
+                        await speakText(text);
+                    } finally {
+                        speechBusy = false;
+                        if (speechQueue.length > 0) drainSpeechQueue();
+                    }
+                }
+
+                const digitWords = {
+                    '0': 'nol',
+                    '1': 'satu',
+                    '2': 'dua',
+                    '3': 'tiga',
+                    '4': 'empat',
+                    '5': 'lima',
+                    '6': 'enam',
+                    '7': 'tujuh',
+                    '8': 'delapan',
+                    '9': 'sembilan'
+                };
+
+                function speakQueueCode(noAntrian) {
+                    const raw = String(noAntrian || '').trim().toUpperCase();
+                    if (!raw) return '';
+                    const parts = raw.split('-');
+                    if (parts.length === 2 && parts[0] && parts[1]) {
+                        const prefix = parts[0];
+                        const digits = String(parts[1]).replace(/\D/g, '');
+                        const digitSpeech = digits.split('').map((d) => digitWords[d] || d).join(' ');
+                        return `${prefix} ${digitSpeech}`.trim();
+                    }
+                    const digitOnly = raw.replace(/\D/g, '');
+                    if (digitOnly) {
+                        return digitOnly.split('').map((d) => digitWords[d] || d).join(' ');
+                    }
+                    return raw;
+                }
+
+                function buildAnnouncementText(unit, item) {
+                    const noAntrian = String(item?.no_antrian || '').trim();
+                    if (!noAntrian) return '';
+                    const spokenCode = speakQueueCode(noAntrian);
+                    const jalur = antreanJalurLabel(item, unit);
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan);
+                    if (unit === 'POLIKLINIK') {
+                        const loketText = loketLabel ? `. ${loketLabel}.` : '.';
+                        return `Perhatian. Nomor antrean ${spokenCode}. ${jalur}${loketText}`;
+                    }
+                    if (unit === 'FARMASI') {
+                        return `Perhatian. Nomor antrean Farmasi ${spokenCode}.`;
+                    }
+                    return `Perhatian. Nomor antrean ${spokenCode}.`;
+                }
+
+                function announceNewCalls(farmasiRows, poliklinikRows) {
+                    if (!soundEnabled) return;
+                    const calledFarmasi = (farmasiRows || []).filter((x) => x.status_norm === 'dipanggil');
+                    const farmasiCurrent = calledFarmasi[0] || null;
+                    if (farmasiCurrent?.no_antrian) {
+                        const key = 'FARMASI';
+                        const nextVal = String(farmasiCurrent.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('FARMASI', farmasiCurrent));
+                        }
+                    }
+
+                    const byLoket = poliklinikCalledByLoket(poliklinikRows || []);
+                    const loket1 = byLoket.loket1;
+                    const loket2 = byLoket.loket2;
+                    if (loket1?.no_antrian) {
+                        const key = 'POLIKLINIK:LOKET_1';
+                        const nextVal = String(loket1.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }));
+                        }
+                    }
+                    if (loket2?.no_antrian) {
+                        const key = 'POLIKLINIK:LOKET_2';
+                        const nextVal = String(loket2.no_antrian || '');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }));
+                        }
+                    }
+                }
+
+                function sectionPrefix(unit) {
+                    return unit === 'FARMASI' ? 'farmasi' : 'poliklinik';
+                }
+
+                function poliklinikCalledByLoket(rows) {
+                    const calledRows = (rows || []).filter((item) => item.status_norm === 'dipanggil');
+                    const loket1 = calledRows.find((item) => String(item.loket_tujuan || '').toUpperCase() === 'LOKET_1') || null;
+                    const loket2 = calledRows.find((item) => String(item.loket_tujuan || '').toUpperCase() === 'LOKET_2') || null;
+                    const fallbackRows = calledRows.filter((item) => !String(item.loket_tujuan || '').trim());
+                    let fallbackIndex = 0;
+                    return {
+                        loket1: loket1 || fallbackRows[fallbackIndex++] || null,
+                        loket2: loket2 || fallbackRows[fallbackIndex++] || null
+                    };
+                }
+
+                function renderLoketCard(baseId, item, unit, emptyText) {
+                    document.getElementById(baseId + 'Antrian').textContent = item?.no_antrian || '-';
+                    document.getElementById(baseId + 'JenisPasien').textContent = item ? antreanJalurLabel(item, unit) : '-';
+                    document.getElementById(baseId + 'Poli').textContent = item ? currentMetaLabel(item, unit) : '-';
+                    document.getElementById(baseId + 'Nama').textContent = item
+                        ? (item.nama_pasien ? item.nama_pasien : 'Sedang dipanggil')
+                        : emptyText;
+                }
+
+                function renderPoliklinikDualSection(rows) {
+                    const waiting = (rows || []).filter((item) => item.status_norm === 'menunggu');
+                    const currentByLoket = poliklinikCalledByLoket(rows);
+
+                    renderLoketCard('poliklinikLoket1', currentByLoket.loket1, 'POLIKLINIK', 'Belum ada antrean');
+                    renderLoketCard('poliklinikLoket2', currentByLoket.loket2, 'POLIKLINIK', 'Belum ada antrean');
+
+                    const listContainer = document.getElementById('poliklinikAntrianList');
+                    if (waiting.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                        <div class="bg-gradient-to-r from-blue-900/50 to-slate-800/60 border border-blue-700/50 rounded-2xl p-4 flex justify-between items-center gap-4 shadow-lg text-blue-100">
+                            <div>
+                                <div class="text-2xl font-extrabold">${item.no_antrian || '-'}</div>
+                                <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'POLIKLINIK')}</div>
+                                <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-right text-base font-semibold">Menunggu</div>
+                        </div>
+                    `).join('');
+                }
+
+                function renderFocusedPoliklinikDual(rows) {
+                    const waiting = (rows || []).filter((item) => item.status_norm === 'menunggu');
+                    const currentByLoket = poliklinikCalledByLoket(rows);
+                    const singleCurrent = document.getElementById('focusedSingleCurrent');
+                    const dualCurrent = document.getElementById('focusedPoliklinikDual');
+
+                    singleCurrent.classList.add('hidden');
+                    dualCurrent.classList.remove('hidden');
+                    document.getElementById('focusedUnit').textContent = unitNames.POLIKLINIK;
+                    document.getElementById('focusedNextTitle').textContent = 'Antrean Menunggu Poliklinik';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-950/85 to-slate-950/85';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-1/3 bg-blue-950/35 backdrop-blur-sm p-6 border-l border-blue-800/50 overflow-y-auto';
+
+                    renderLoketCard('focusedLoket1', currentByLoket.loket1, 'POLIKLINIK', 'Belum ada antrean');
+                    renderLoketCard('focusedLoket2', currentByLoket.loket2, 'POLIKLINIK', 'Belum ada antrean');
+
+                    const listContainer = document.getElementById('focusedAntrianList');
+                    if (waiting.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                        <div class="bg-gradient-to-r from-blue-900/55 to-slate-800/55 border border-blue-700/50 rounded-xl p-4 flex justify-between items-center gap-4 shadow-lg text-blue-100">
+                            <div>
+                                <div class="text-3xl font-extrabold">${item.no_antrian || '-'}</div>
+                                <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'POLIKLINIK')}</div>
+                                <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-lg text-right font-semibold">Menunggu</div>
+                        </div>
+                    `).join('');
+                }
+
+                function setSectionVisibility() {
+                    const showAll = selectedUnit === 'ALL';
+                    displayContainer.classList.toggle('hidden', !showAll);
+                    focusedDisplay.classList.toggle('hidden', showAll);
+
+                    if (!showAll) {
+                        return;
+                    }
+
+                    document.querySelectorAll('.display-section').forEach(section => {
+                        const unit = section.dataset.sectionUnit;
+                        const shouldShow = true;
+                        section.classList.toggle('hidden', !shouldShow);
+                        section.classList.remove('lg:col-span-2', 'min-h-[calc(100vh-130px)]');
+                    });
+                }
+
+                function setEmptyState(unit) {
+                    const prefix = sectionPrefix(unit);
+                    document.getElementById(prefix + 'CurrentAntrian').textContent = '-';
+                    document.getElementById(prefix + 'CurrentNama').textContent = 'Belum ada antrean';
+                    document.getElementById(prefix + 'CurrentJenisPasien').textContent = '-';
+                    document.getElementById(prefix + 'CurrentPoli').textContent = '-';
+                    document.getElementById(prefix + 'AntrianList').innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean hari ini.</div>';
+                }
+
+                function renderFocusedQueue(unit, rows) {
+                    if (unit === 'POLIKLINIK') {
+                        renderFocusedPoliklinikDual(rows);
+                        return;
+                    }
+
+                    document.getElementById('focusedSingleCurrent').classList.remove('hidden');
+                    document.getElementById('focusedPoliklinikDual').classList.add('hidden');
+                    const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
+                    const waiting = (rows || []).filter(a => a.status_norm === 'menunggu');
+                    const current = called[0] || null;
+                    const isFarmasi = unit === 'FARMASI';
+
+                    document.getElementById('focusedUnit').textContent = unitNames[unit] || unit;
+                    document.getElementById('focusedNextTitle').textContent = 'Antrean Menunggu ' + (unit === 'FARMASI' ? 'Farmasi' : 'Poliklinik');
+                    document.getElementById('focusedCurrentPanel').className = isFarmasi
+                        ? 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-teal-950/85'
+                        : 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-950/85 to-slate-950/85';
+                    document.getElementById('focusedNextPanel').className = isFarmasi
+                        ? 'lg:w-1/3 bg-emerald-950/45 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto'
+                        : 'lg:w-1/3 bg-blue-950/35 backdrop-blur-sm p-6 border-l border-blue-800/50 overflow-y-auto';
+
+                    if (!current) {
+                        document.getElementById('focusedAntrian').textContent = '';
+                        document.getElementById('focusedNama').textContent = '';
+                        document.getElementById('focusedJenisPasien').textContent = '';
+                        document.getElementById('focusedPoli').textContent = '';
+                        if (waiting.length > 0) {
+                            const listContainer = document.getElementById('focusedAntrianList');
+                            const accentClass = isFarmasi
+                                ? 'from-emerald-900/55 to-emerald-800/35 border-emerald-700/50 text-emerald-100'
+                                : 'from-blue-900/55 to-slate-800/55 border-blue-700/50 text-blue-100';
+                            listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                                <div class="bg-gradient-to-r ${accentClass} border rounded-xl p-4 flex justify-between items-center gap-4 shadow-lg">
+                                    <div>
+                                        <div class="text-3xl font-extrabold">${item.no_antrian || '-'}</div>
+                                        <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
+                                        <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                                    </div>
+                                    <div class="text-lg text-right font-semibold">Menunggu</div>
+                                </div>
+                            `).join('');
+                        } else {
+                            document.getElementById('focusedAntrianList').innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        }
+                        return;
+                    }
+
+                    document.getElementById('focusedAntrian').textContent = current.no_antrian || '';
+                    document.getElementById('focusedNama').textContent = current.nama_pasien ? current.nama_pasien : 'Sedang dipanggil';
+                    document.getElementById('focusedJenisPasien').textContent = antreanJalurLabel(current, unit);
+                    document.getElementById('focusedPoli').textContent = currentMetaLabel(current, unit);
+
+                    const nextList = waiting.slice(0, 5);
+                    const listContainer = document.getElementById('focusedAntrianList');
+                    if (nextList.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = '';
+                    nextList.forEach(item => {
+                        const div = document.createElement('div');
+                        const accentClass = isFarmasi
+                            ? 'from-emerald-900/55 to-emerald-800/35 border-emerald-700/50 text-emerald-100'
+                            : 'from-blue-900/55 to-slate-800/55 border-blue-700/50 text-blue-100';
+                        div.className = `bg-gradient-to-r ${accentClass} border rounded-xl p-4 flex justify-between items-center gap-4 shadow-lg`;
+                        div.innerHTML = `
+                            <div>
+                                <div class="text-3xl font-extrabold">${item.no_antrian}</div>
+                                <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
+                                <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-lg text-right font-semibold">Menunggu</div>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+                }
+
+                function renderUnitQueue(unit, rows) {
+                    if (unit === 'POLIKLINIK') {
+                        renderPoliklinikDualSection(rows);
+                        return;
+                    }
+
+                    const prefix = sectionPrefix(unit);
+                    const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
+                    const waiting = (rows || []).filter(a => a.status_norm === 'menunggu');
+                    const current = called[0] || null;
+
+                    if (!current) {
+                        document.getElementById(prefix + 'CurrentAntrian').textContent = '';
+                        document.getElementById(prefix + 'CurrentNama').textContent = '';
+                        document.getElementById(prefix + 'CurrentJenisPasien').textContent = '';
+                        document.getElementById(prefix + 'CurrentPoli').textContent = '';
+                        const listContainer = document.getElementById(prefix + 'AntrianList');
+                        if (waiting.length > 0) {
+                            const accentClass = unit === 'FARMASI'
+                                ? 'from-emerald-900/50 to-emerald-800/40 border-emerald-700/50 text-emerald-100'
+                                : 'from-blue-900/50 to-slate-800/60 border-blue-700/50 text-blue-100';
+                            listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                                <div class="bg-gradient-to-r ${accentClass} border rounded-2xl p-4 flex justify-between items-center gap-4 shadow-lg">
+                                    <div>
+                                        <div class="text-2xl font-extrabold">${item.no_antrian || '-'}</div>
+                                        <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
+                                        <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                                    </div>
+                                    <div class="text-right text-base font-semibold">Menunggu</div>
+                                </div>
+                            `).join('');
+                        } else {
+                            listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        }
+                        return;
+                    }
+
+                    document.getElementById(prefix + 'CurrentAntrian').textContent = current.no_antrian || '';
+                    document.getElementById(prefix + 'CurrentNama').textContent = current.nama_pasien ? current.nama_pasien : 'Sedang dipanggil';
+                    document.getElementById(prefix + 'CurrentJenisPasien').textContent = antreanJalurLabel(current, unit);
+                    document.getElementById(prefix + 'CurrentPoli').textContent = currentMetaLabel(current, unit);
+
+                    const nextList = waiting.slice(0, 5);
+                    const listContainer = document.getElementById(prefix + 'AntrianList');
+                    if (nextList.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = '';
+                    nextList.forEach(item => {
+                        const div = document.createElement('div');
+                        const accentClass = unit === 'FARMASI'
+                            ? 'from-emerald-900/50 to-emerald-800/40 border-emerald-700/50 text-emerald-100'
+                            : 'from-blue-900/50 to-slate-800/60 border-blue-700/50 text-blue-100';
+                        div.className = `bg-gradient-to-r ${accentClass} border rounded-2xl p-4 flex justify-between items-center gap-4 shadow-lg`;
+                        div.innerHTML = `
+                            <div>
+                                <div class="text-2xl font-extrabold">${item.no_antrian}</div>
+                                <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
+                                <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-right text-base font-semibold">Menunggu</div>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+                }
+
+                async function loadAntrian() {
+                    try {
+                        const { data: antrianData, error: antrianError } = await supabaseClient
+                            .from('antrian')
+                            .select('*')
+                            .order('created_at', { ascending: false })
+                            .limit(250);
+
+                        if (antrianError) {
+                            console.error('Error loading antrian:', antrianError);
+                            setSyncStatus('Sinkron gagal', 'error');
+                            return;
+                        }
+
+                        const todayData = (antrianData || []).filter((row) => isTodayLocal(row.created_at));
+                        todayData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+                        const mergedData = todayData.map(a => ({
+                            ...a,
+                            unit_norm: String(a.unit || '').toUpperCase(),
+                            status_norm: String(a.status || '').toLowerCase(),
+                            nama_pasien: a.nama_pasien || ''
+                        }));
+
+                        const farmasiRows = mergedData.filter(a => a.unit_norm === 'FARMASI');
+                        const poliklinikRows = mergedData.filter(a => a.unit_norm === 'POLIKLINIK');
+
+                        announceNewCalls(farmasiRows, poliklinikRows);
+
+                        renderUnitQueue('FARMASI', farmasiRows);
+                        renderUnitQueue('POLIKLINIK', poliklinikRows);
+                        if (selectedUnit === 'FARMASI') {
+                            renderFocusedQueue('FARMASI', farmasiRows);
+                        } else if (selectedUnit === 'POLIKLINIK') {
+                            renderFocusedQueue('POLIKLINIK', poliklinikRows);
+                        }
+                        setSectionVisibility();
+
+                        const now = new Date();
+                        const hh = now.getHours().toString().padStart(2, '0');
+                        const mm = now.getMinutes().toString().padStart(2, '0');
+                        const ss = now.getSeconds().toString().padStart(2, '0');
+                        setSyncStatus(`Sinkron: ${hh}:${mm}:${ss} • ${todayData.length} data`, 'ok');
+                    } catch (err) {
+                        console.error('Display loadAntrian exception:', err);
+                        setSyncStatus('Sinkron error', 'error');
+                    }
+                }
+
+                function subscribeToRealtime() {
+                    supabaseClient
+                        .channel('public:antrian_display')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => loadAntrian())
+                        .subscribe();
+                }
+
+                // Event listener untuk memilih unit di display
+                document.querySelectorAll('.display-unit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.display-unit-btn').forEach(b => {
+                            b.classList.remove('active', 'bg-white', 'text-emerald-900', 'ring-4', 'ring-white/25');
+                        });
+                        
+                        this.classList.add('active');
+                        
+                        selectedUnit = this.dataset.unit;
+                        
+                        if (selectedUnit === 'ALL') {
+                            this.classList.add('bg-white', 'text-emerald-900');
+                        } else {
+                            this.classList.remove('bg-white', 'text-emerald-900');
+                        }
+
+                        this.classList.add('ring-4', 'ring-white/25');
+                        
+                        loadAntrian();
+                    });
+                });
+
+                if (soundToggleBtn) {
+                    const storedSound = (() => {
+                        try {
+                            return localStorage.getItem('displaySoundEnabled');
+                        } catch (e) {
+                            return null;
+                        }
+                    })();
+                    setSoundEnabled(storedSound === '1');
+                    soundToggleBtn.addEventListener('click', async () => {
+                        setSoundEnabled(!soundEnabled);
+                        if (!soundEnabled) return;
+                        try {
+                            await ensureAudioContext();
+                        } catch (e) {}
+                        enqueueAnnouncement('Suara panggilan antrean aktif.');
+                    });
+                }
+
+                setSectionVisibility();
+                loadAntrian();
+                subscribeToRealtime();
+                window.setInterval(() => loadAntrian(), 3000);
+                window.addEventListener('focus', () => loadAntrian());
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) loadAntrian();
+                });
+            }
         });
     </script>
 </body>
