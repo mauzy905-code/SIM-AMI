@@ -810,8 +810,8 @@
 
                 function formatLoketLabel(loket) {
                     const value = String(loket || '').trim().toUpperCase();
-                    if (value === 'LOKET_1') return 'Loket 1';
-                    if (value === 'LOKET_2') return 'Loket 2';
+                    if (value === 'LOKET_1') return 'Loket A';
+                    if (value === 'LOKET_2') return 'Loket B';
                     if (value === 'SUPERVISOR') return 'Supervisor';
                     return value ? value.replace(/_/g, ' ') : '-';
                 }
@@ -1310,6 +1310,7 @@
                     };
 
                     if (!user?.id) {
+                        console.warn('Tidak ada user ID yang valid, menggunakan fallback profile');
                         currentAdminProfile = fallbackProfile;
                         currentAdminRole = fallbackProfile.role;
                         currentLoket = fallbackProfile.loket_default;
@@ -1321,6 +1322,7 @@
                         let data = null;
                         let error = null;
 
+                        console.log('Mencari admin profile by ID:', user.id);
                         const byIdRes = await supabaseClient
                             .from('admin_profiles')
                             .select('id,email,nama_admin,role,loket_default,aktif')
@@ -1330,7 +1332,10 @@
                         data = byIdRes.data || null;
                         error = byIdRes.error || null;
 
+                        console.log('Hasil by ID:', { data, error });
+
                         if ((!data || error) && user?.email) {
+                            console.log('Mencoba mencari admin profile by email:', user.email);
                             const byEmailRes = await supabaseClient
                                 .from('admin_profiles')
                                 .select('id,email,nama_admin,role,loket_default,aktif')
@@ -1340,27 +1345,33 @@
                             if (!byEmailRes.error && Array.isArray(byEmailRes.data) && byEmailRes.data.length > 0) {
                                 data = byEmailRes.data[0];
                                 error = null;
+                                console.log('Berhasil menemukan profile by email:', data);
+                            } else {
+                                console.log('Tidak menemukan profile by email, error:', byEmailRes.error);
                             }
                         }
 
                         if (error) {
-                            console.warn('Gagal memuat admin_profiles:', error.message);
+                            console.warn('Gagal memuat admin_profiles (error):', error.message);
                             currentAdminProfile = fallbackProfile;
                         } else if (!data) {
+                            console.warn('Tidak menemukan admin profile untuk user ini, menggunakan fallback');
                             currentAdminProfile = fallbackProfile;
                         } else {
+                            console.log('Berhasil memuat admin profile:', data);
                             currentAdminProfile = {
                                 ...fallbackProfile,
                                 ...data
                             };
                         }
                     } catch (err) {
-                        console.warn('Gagal memuat profil admin:', err);
+                        console.error('Error fatal saat memuat profil admin:', err);
                         currentAdminProfile = fallbackProfile;
                     }
 
                     currentAdminRole = String(currentAdminProfile?.role || 'admin_pendaftaran');
                     currentLoket = String(currentAdminProfile?.loket_default || '');
+                    console.log('Final currentAdminRole:', currentAdminRole, 'currentLoket:', currentLoket);
                     renderAdminIdentity();
                     return currentAdminProfile;
                 }
