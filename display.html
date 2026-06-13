@@ -9,6 +9,8 @@
     <title>SIM-AMI - Display Antrian</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Sistem Suara Antrian -->
+    <script src="js/queue-sound.js"></script>
 </head>
 <body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
     <div class="bg-gradient-to-r from-emerald-600 to-blue-700 px-4 py-4 shadow-xl">
@@ -215,7 +217,94 @@
                 let audioContext = null;
                 let speechBusy = false;
                 const speechQueue = [];
-                const DEFAULT_CHIME_URL = new URL('assets/sound/nada.mp3', window.location.href).toString();
+                const DEFAULT_CHIME_URL = new URL('assets/sound/00-opening/nada.mp3', window.location.href).toString();
+                
+                // Konfigurasi path suara
+                const SOUND_BASE_PATH = 'assets/sound/';
+                
+                // Mapping teks ke file suara dengan struktur direktori baru
+                const SOUND_MAP = {
+                    // Kata-kata dasar di 01-words
+                    'perhatian': '01-words/perhatian.mp3',
+                    'nomor': '01-words/nomor.mp3',
+                    'antrian': '01-words/antrian.mp3',
+                    'umum': '01-words/umum.mp3',
+                    'prioritas': '01-words/prioritas.mp3',
+                    'menuju': '01-words/menuju.mp3',
+                    'loket': '01-words/loket.mp3',
+                    'farmasi': '01-words/farmasi.mp3',
+                    'poliklinik': '01-words/poliklinik.mp3',
+                    
+                    // Huruf di 02-letters
+                    'a': '02-letters/a.mp3',
+                    'b': '02-letters/b.mp3',
+                    'c': '02-letters/c.mp3',
+                    'd': '02-letters/d.mp3',
+                    'e': '02-letters/e.mp3',
+                    'f': '02-letters/f.mp3',
+                    'g': '02-letters/g.mp3',
+                    'h': '02-letters/h.mp3',
+                    'i': '02-letters/i.mp3',
+                    'j': '02-letters/j.mp3',
+                    'k': '02-letters/k.mp3',
+                    'l': '02-letters/l.mp3',
+                    'm': '02-letters/m.mp3',
+                    'n': '02-letters/n.mp3',
+                    'o': '02-letters/o.mp3',
+                    'p': '02-letters/p.mp3',
+                    'q': '02-letters/q.mp3',
+                    'r': '02-letters/r.mp3',
+                    's': '02-letters/s.mp3',
+                    't': '02-letters/t.mp3',
+                    'u': '02-letters/u.mp3',
+                    'v': '02-letters/v.mp3',
+                    'w': '02-letters/w.mp3',
+                    'x': '02-letters/x.mp3',
+                    'y': '02-letters/y.mp3',
+                    'z': '02-letters/z.mp3',
+                    
+                    // Angka di 03-numbers
+                    '0': '03-numbers/0.mp3',
+                    '1': '03-numbers/1.mp3',
+                    '2': '03-numbers/2.mp3',
+                    '3': '03-numbers/3.mp3',
+                    '4': '03-numbers/4.mp3',
+                    '5': '03-numbers/5.mp3',
+                    '6': '03-numbers/6.mp3',
+                    '7': '03-numbers/7.mp3',
+                    '8': '03-numbers/8.mp3',
+                    '9': '03-numbers/9.mp3',
+                    '10': '03-numbers/10.mp3',
+                    '11': '03-numbers/11.mp3',
+                    '12': '03-numbers/12.mp3',
+                    '13': '03-numbers/13.mp3',
+                    '14': '03-numbers/14.mp3',
+                    '15': '03-numbers/15.mp3',
+                    '16': '03-numbers/16.mp3',
+                    '17': '03-numbers/17.mp3',
+                    '18': '03-numbers/18.mp3',
+                    '19': '03-numbers/19.mp3',
+                    '20': '03-numbers/20.mp3',
+                    '30': '03-numbers/30.mp3',
+                    '40': '03-numbers/40.mp3',
+                    '50': '03-numbers/50.mp3',
+                    '60': '03-numbers/60.mp3',
+                    '70': '03-numbers/70.mp3',
+                    '80': '03-numbers/80.mp3',
+                    '90': '03-numbers/90.mp3',
+                    '100': '03-numbers/100.mp3',
+                    '200': '03-numbers/200.mp3',
+                    '300': '03-numbers/300.mp3',
+                    '400': '03-numbers/400.mp3',
+                    '500': '03-numbers/500.mp3',
+                    '600': '03-numbers/600.mp3',
+                    '700': '03-numbers/700.mp3',
+                    '800': '03-numbers/800.mp3',
+                    '900': '03-numbers/900.mp3',
+                    'ratus': '03-numbers/ratus.mp3',
+                    'ribu': '03-numbers/ribu.mp3'
+                };
+                
                 const lastAnnounced = (() => {
                     try {
                         return JSON.parse(localStorage.getItem('displayLastAnnounced') || '{}') || {};
@@ -232,6 +321,9 @@
 
                 function setSoundEnabled(nextValue) {
                     soundEnabled = !!nextValue;
+                    if (window.queueSound && typeof window.queueSound.toggleSound === 'function') {
+                        window.queueSound.toggleSound(soundEnabled);
+                    }
                     if (soundToggleBtn) {
                         soundToggleBtn.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
                         soundToggleBtn.className = soundEnabled
@@ -462,11 +554,17 @@
                     await speakTextRemote(safeText);
                 }
 
-                function enqueueAnnouncement(text) {
+                function enqueueAnnouncement(payload) {
                     if (!soundEnabled) return;
-                    const safeText = String(text || '').trim();
-                    if (!safeText) return;
-                    speechQueue.push(safeText);
+                    if (typeof payload === 'string') {
+                        const safeText = String(payload || '').trim();
+                        if (!safeText) return;
+                        speechQueue.push(safeText);
+                    } else if (payload && typeof payload === 'object' && payload.noAntrian) {
+                        speechQueue.push(payload);
+                    } else {
+                        return;
+                    }
                     drainSpeechQueue();
                 }
 
@@ -475,11 +573,19 @@
                     if (speechBusy) return;
                     if (speechQueue.length === 0) return;
                     speechBusy = true;
-                    const text = speechQueue.shift();
+                    const nextItem = speechQueue.shift();
                     try {
-                        await playAirportChime();
-                        await sleep(150);
-                        await speakText(text);
+                        if (nextItem && typeof nextItem === 'object' && window.queueSound) {
+                            if (nextItem.unit === 'FARMASI') {
+                                await window.queueSound.announceFarmasi(nextItem);
+                            } else if (nextItem.unit === 'POLIKLINIK') {
+                                await window.queueSound.announcePoliklinik(nextItem);
+                            }
+                        } else {
+                            await playAirportChime();
+                            await sleep(150);
+                            await speakText(nextItem);
+                        }
                     } finally {
                         speechBusy = false;
                         if (speechQueue.length > 0) drainSpeechQueue();
@@ -532,6 +638,17 @@
                     return `Perhatian. Nomor antrean ${spokenCode}.`;
                 }
 
+                function buildAnnouncementPayload(unit, item) {
+                    const noAntrian = String(item?.no_antrian || '').trim();
+                    if (!noAntrian) return null;
+                    return {
+                        unit,
+                        noAntrian,
+                        jenisPasien: antreanJalurLabel(item, unit),
+                        loketTujuan: item?.loket_tujuan || ''
+                    };
+                }
+
                 function announceNewCalls(farmasiRows, poliklinikRows) {
                     if (!soundEnabled) return;
                     const calledFarmasi = (farmasiRows || []).filter((x) => x.status_norm === 'dipanggil');
@@ -542,7 +659,7 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementText('FARMASI', farmasiCurrent));
+                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', farmasiCurrent) || buildAnnouncementText('FARMASI', farmasiCurrent));
                         }
                     }
 
@@ -555,7 +672,7 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }));
+                            enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }) || buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }));
                         }
                     }
                     if (loket2?.no_antrian) {
@@ -564,7 +681,7 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }));
+                            enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }) || buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }));
                         }
                     }
                 }
