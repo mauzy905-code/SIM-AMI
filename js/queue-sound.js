@@ -19,8 +19,7 @@ class QueueSoundSystem {
             queueNumber: 'Nomor Antrian.mp3',
             umum: 'Umum.mp3',
             prioritas: 'Prioritas.mp3',
-            menuju: 'Menuju.mp3',
-            loket: 'Loket.mp3',
+            menujuLoket: 'Menuju Loket.mp3',
             ribu: 'ribu.mp3'
         };
     }
@@ -327,8 +326,7 @@ class QueueSoundSystem {
 
         // 5. Menuju loket
         if (loketTujuan) {
-            sequence.push(this.getWordSound(this.soundFiles.menuju));
-            sequence.push(this.getWordSound(this.soundFiles.loket));
+            sequence.push(this.getWordSound(this.soundFiles.menujuLoket));
             const loketLetters = this.getLoketLetters(loketTujuan);
             for (let i = 0; i < loketLetters.length; i++) {
                 const letterPath = this.getLetterSound(loketLetters[i]);
