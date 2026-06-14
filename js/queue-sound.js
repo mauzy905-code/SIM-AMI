@@ -40,6 +40,9 @@ class QueueSoundSystem {
         try {
             localStorage.setItem('queueSoundEnabled', enabled ? '1' : '0');
         } catch (e) {}
+        // #region debug-point A:queue-toggle
+        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"A",location:"queue-sound.js:toggleSound",msg:"[DEBUG] queue sound toggled",data:{enabled:!!enabled,basePath:String(this.basePath||"")},ts:Date.now()})}).catch(()=>{});
+        // #endregion
         console.log('🔊 Sound:', enabled ? 'ON' : 'OFF');
     }
 
@@ -96,6 +99,9 @@ class QueueSoundSystem {
     playSound(filePath) {
         return new Promise((resolve) => {
             if (!this.soundEnabled) {
+                // #region debug-point E:play-sound-disabled
+                fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"E",location:"queue-sound.js:playSound:disabled",msg:"[DEBUG] playSound skipped because disabled",data:{candidateCount:Array.isArray(filePath)?filePath.length:1},ts:Date.now()})}).catch(()=>{});
+                // #endregion
                 resolve();
                 return;
             }
@@ -129,6 +135,9 @@ class QueueSoundSystem {
                 const next = () => {
                     if (settled) return;
                     settled = true;
+                    // #region debug-point E:play-sound-next
+                    fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"E",location:"queue-sound.js:playSound:next",msg:"[DEBUG] playSound candidate failed, moving next",data:{path:String(currentPath||""),candidateIndex:Number(index||0)},ts:Date.now()})}).catch(()=>{});
+                    // #endregion
                     tryPlay(index + 1);
                 };
 
@@ -137,7 +146,16 @@ class QueueSoundSystem {
 
                 const playPromise = audio.play();
                 if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise.catch(() => next());
+                    playPromise.then(() => {
+                        // #region debug-point E:play-sound-started
+                        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"E",location:"queue-sound.js:playSound:started",msg:"[DEBUG] playSound started",data:{path:String(currentPath||""),candidateIndex:Number(index||0)},ts:Date.now()})}).catch(()=>{});
+                        // #endregion
+                    }).catch((err) => {
+                        // #region debug-point E:play-sound-catch
+                        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"E",location:"queue-sound.js:playSound:catch",msg:"[DEBUG] playSound rejected",data:{path:String(currentPath||""),candidateIndex:Number(index||0),message:String(err?.message||err||"")},ts:Date.now()})}).catch(()=>{});
+                        // #endregion
+                        next();
+                    });
                 }
 
                 this.currentAudio = audio;
@@ -152,7 +170,9 @@ class QueueSoundSystem {
      */
     async playSequence(soundFiles) {
         if (!this.soundEnabled || soundFiles.length === 0) return;
-        
+        // #region debug-point F:play-sequence
+        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"F",location:"queue-sound.js:playSequence",msg:"[DEBUG] playSequence start",data:{length:Number(soundFiles.length||0),preview:Array.isArray(soundFiles)?soundFiles.slice(0,5):[]},ts:Date.now()})}).catch(()=>{});
+        // #endregion
         this.soundQueue = soundFiles;
         this.isPlaying = true;
         this.currentIndex = 0;
@@ -331,6 +351,10 @@ class QueueSoundSystem {
                 if (letterPath.length) sequence.push(letterPath);
             }
         }
+
+        // #region debug-point G:build-sequence
+        fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"G",location:"queue-sound.js:buildQueueSequence",msg:"[DEBUG] queue sequence built",data:{noAntrian:String(noAntrian||""),jenisPasien:String(jenisPasien||""),loketTujuan:String(loketTujuan||""),steps:Number(sequence.length||0),numberTokens:this.buildNumberTokens(this.getQueueNumberValue(noAntrian))},ts:Date.now()})}).catch(()=>{});
+        // #endregion
 
         return sequence;
     }
