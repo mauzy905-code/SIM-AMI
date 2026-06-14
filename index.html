@@ -13,6 +13,14 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
+    <div id="globalLoadingShell" class="pointer-events-none fixed inset-x-0 top-0 z-[70] opacity-0 transition-all duration-300">
+        <div class="h-1.5 w-full overflow-hidden bg-white/35 shadow-[0_10px_32px_-20px_rgba(15,23,42,0.45)] backdrop-blur">
+            <div id="globalLoadingBar" class="h-full w-0 bg-[linear-gradient(90deg,_#10b981_0%,_#14b8a6_45%,_#3b82f6_100%)] transition-[width] duration-200 ease-out"></div>
+        </div>
+        <div id="globalLoadingHint" class="ml-auto mr-4 mt-2 hidden rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-sm backdrop-blur md:block">
+            Menyiapkan Dashboard...
+        </div>
+    </div>
     <div id="loginOverlay" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-950/50 backdrop-blur-md"></div>
         <div class="relative min-h-full flex items-center justify-center p-4">
@@ -352,6 +360,9 @@
                                             <button id="nextFarmasiBtn" type="button" class="mt-4 w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_42%,_#047857_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(5,150,105,0.5)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
                                                 Next Farmasi
                                             </button>
+                                        <button id="recallFarmasiBtn" type="button" class="mt-3 w-full rounded-2xl border border-sky-200 bg-[linear-gradient(135deg,_#38bdf8_0%,_#0ea5e9_48%,_#2563eb_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(14,165,233,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+                                            Panggil Ulang
+                                        </button>
                                         <button id="skipFarmasiBtn" type="button" class="mt-3 w-full rounded-2xl border border-rose-200 bg-[linear-gradient(135deg,_#fb7185_0%,_#f43f5e_48%,_#e11d48_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(244,63,94,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
                                             Lewati Antrean
                                         </button>
@@ -369,6 +380,9 @@
                                             <button id="callPrioritasPoliklinikBtn" type="button" class="mt-3 w-full rounded-2xl border border-amber-200 bg-[linear-gradient(135deg,_#fbbf24_0%,_#f59e0b_55%,_#d97706_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(245,158,11,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
                                                 Panggil Prioritas
                                             </button>
+                                        <button id="recallPoliklinikBtn" type="button" class="mt-3 w-full rounded-2xl border border-sky-200 bg-[linear-gradient(135deg,_#38bdf8_0%,_#0ea5e9_48%,_#2563eb_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(14,165,233,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
+                                            Panggil Ulang
+                                        </button>
                                         <button id="skipPoliklinikBtn" type="button" class="mt-3 w-full rounded-2xl border border-rose-200 bg-[linear-gradient(135deg,_#fb7185_0%,_#f43f5e_48%,_#e11d48_100%)] px-4 py-3 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(244,63,94,0.45)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50">
                                             Lewati Antrean
                                         </button>
@@ -622,20 +636,121 @@
             }
             @page { size: 50mm 30mm; margin: 0; }
         }
+
+        #globalLoadingShell.is-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #globalLoadingShell:not(.is-active) {
+            transform: translateY(-6px);
+        }
+
+        #globalLoadingBar {
+            box-shadow: 0 0 18px rgba(16, 185, 129, 0.35), 0 0 26px rgba(59, 130, 246, 0.32);
+        }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const globalLoadingShell = document.getElementById('globalLoadingShell');
+            const globalLoadingBar = document.getElementById('globalLoadingBar');
+            const globalLoadingHint = document.getElementById('globalLoadingHint');
+            let loadingTaskCount = 0;
+            let loadingProgress = 0;
+            let loadingPulseTimer = null;
+            let loadingRevealTimer = null;
+            let loadingHideTimer = null;
+            let loadingStartAt = 0;
+
+            function updateLoadingBar(progress) {
+                if (!globalLoadingBar) return;
+                globalLoadingBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+            }
+
+            function setLoadingHint(text) {
+                if (!globalLoadingHint) return;
+                globalLoadingHint.textContent = text || 'Memuat Data...';
+            }
+
+            function startLoadingBar(label) {
+                loadingTaskCount += 1;
+                if (label) {
+                    setLoadingHint(label);
+                } else if (loadingTaskCount === 1) {
+                    setLoadingHint('Memuat Data...');
+                }
+                window.clearTimeout(loadingHideTimer);
+                if (loadingTaskCount > 1) return;
+
+                loadingStartAt = Date.now();
+                loadingProgress = 12;
+                updateLoadingBar(loadingProgress);
+                window.clearTimeout(loadingRevealTimer);
+                loadingRevealTimer = window.setTimeout(() => {
+                    globalLoadingShell?.classList.add('is-active');
+                }, 90);
+                window.clearInterval(loadingPulseTimer);
+                loadingPulseTimer = window.setInterval(() => {
+                    loadingProgress = Math.min(88, loadingProgress + Math.max(1.8, (90 - loadingProgress) * 0.09));
+                    updateLoadingBar(loadingProgress);
+                }, 170);
+            }
+
+            function finishLoadingBar() {
+                loadingTaskCount = Math.max(0, loadingTaskCount - 1);
+                if (loadingTaskCount > 0) return;
+
+                const finalize = () => {
+                    window.clearInterval(loadingPulseTimer);
+                    loadingPulseTimer = null;
+                    globalLoadingShell?.classList.add('is-active');
+                    loadingProgress = 100;
+                    updateLoadingBar(loadingProgress);
+                    loadingHideTimer = window.setTimeout(() => {
+                        globalLoadingShell?.classList.remove('is-active');
+                        loadingProgress = 0;
+                        updateLoadingBar(loadingProgress);
+                        setLoadingHint('Menyiapkan Dashboard...');
+                    }, 260);
+                };
+
+                window.clearTimeout(loadingRevealTimer);
+                const elapsed = Date.now() - loadingStartAt;
+                if (elapsed < 180) {
+                    window.setTimeout(finalize, 180 - elapsed);
+                } else {
+                    finalize();
+                }
+            }
+
+            async function withPageLoading(label, task) {
+                startLoadingBar(label);
+                try {
+                    return await task();
+                } finally {
+                    finishLoadingBar();
+                }
+            }
+
             const SUPABASE_URL = 'https://rlxztgkiycrdbollichk.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_W7J0qUmxLpfoNWw9ypFZQA_EFNfw4H1';
             if (typeof window.supabase !== 'undefined') {
+                const trackedFetch = async (url, options = {}) => {
+                    startLoadingBar();
+                    try {
+                        return await window.fetch(url, { ...options, cache: 'no-store' });
+                    } finally {
+                        finishLoadingBar();
+                    }
+                };
                 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                     global: {
                         headers: {
                             'Cache-Control': 'no-cache'
                         }
                     },
-                    fetch: (url, options = {}) => fetch(url, { ...options, cache: 'no-store' })
+                    fetch: trackedFetch
                 });
 
                 const viewPendaftaran = document.getElementById('viewPendaftaran');
@@ -709,8 +824,10 @@
                 const poliExamMessage = document.getElementById('poliExamMessage');
                 const savePoliExamBtn = document.getElementById('savePoliExamBtn');
                 const nextFarmasiBtn = document.getElementById('nextFarmasiBtn');
+                const recallFarmasiBtn = document.getElementById('recallFarmasiBtn');
                 const skipFarmasiBtn = document.getElementById('skipFarmasiBtn');
                 const nextPoliklinikBtn = document.getElementById('nextPoliklinikBtn');
+                const recallPoliklinikBtn = document.getElementById('recallPoliklinikBtn');
                 const skipPoliklinikBtn = document.getElementById('skipPoliklinikBtn');
                 const nextPrioritasBtn = document.getElementById('nextPrioritasBtn');
                 const callPrioritasPoliklinikBtn = document.getElementById('callPrioritasPoliklinikBtn');
@@ -994,13 +1111,8 @@
                         const poliSel = document.getElementById('r_poli_tujuan');
                         if (unitSel) unitSel.value = 'POLIKLINIK';
                         if (poliSel) poliSel.value = getPetugasPoliDefaultPoli() || poliSel.value || '';
-                        const today = new Date();
-                        const yyyy = today.getFullYear();
-                        const mm = String(today.getMonth() + 1).padStart(2, '0');
-                        const dd = String(today.getDate()).padStart(2, '0');
-                        const todayStr = `${yyyy}-${mm}-${dd}`;
-                        if (fromInput) fromInput.value = todayStr;
-                        if (toInput) toInput.value = todayStr;
+                        if (fromInput) fromInput.value = '';
+                        if (toInput) toInput.value = '';
                     }
 
                     if (headEl) {
@@ -1425,28 +1537,30 @@
                 }
 
                 async function login() {
-                    loginError.classList.add('hidden');
-                    const email = (loginEmail.value || '').trim();
-                    const password = loginPassword.value || '';
-                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                    if (error) {
-                        loginError.textContent = error.message;
-                        loginError.classList.remove('hidden');
-                        return;
-                    }
-                    const session = await requireSession();
-                    if (!session) return;
-                    await loadAdminProfile(session);
-                    await detectQueueRoutingColumns();
-                    await detectQueueProcessingColumns();
-                    await detectPoliExamColumns();
-                    await detectRiwayatLinkColumn();
-                    await detectNoRegistrasiColumn();
-                    showView(canAccessPendaftaranView() ? 'pendaftaran' : 'rekap');
-                    await initForm();
-                    await loadQueueControls();
-                    await refreshStats();
-                    await r_reloadToFirstPage();
+                    await withPageLoading('Masuk Ke Dashboard...', async () => {
+                        loginError.classList.add('hidden');
+                        const email = (loginEmail.value || '').trim();
+                        const password = loginPassword.value || '';
+                        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                        if (error) {
+                            loginError.textContent = error.message;
+                            loginError.classList.remove('hidden');
+                            return;
+                        }
+                        const session = await requireSession();
+                        if (!session) return;
+                        await loadAdminProfile(session);
+                        await detectQueueRoutingColumns();
+                        await detectQueueProcessingColumns();
+                        await detectPoliExamColumns();
+                        await detectRiwayatLinkColumn();
+                        await detectNoRegistrasiColumn();
+                        showView(canAccessPendaftaranView() ? 'pendaftaran' : 'rekap');
+                        await initForm();
+                        await loadQueueControls();
+                        await refreshStats();
+                        await r_reloadToFirstPage();
+                    });
                 }
 
                 async function logout() {
@@ -1464,27 +1578,33 @@
                 menuPendaftaran.addEventListener('click', async () => {
                     closeDrawer();
                     showView('pendaftaran');
-                    await refreshStats();
+                    await withPageLoading('Menyegarkan Dashboard...', async () => {
+                        await refreshStats();
+                    });
                 });
                 menuRekap.addEventListener('click', async () => {
                     closeDrawer();
-                    if (isPetugasPoliRole()) {
-                        petugasPoliRekapMode = 'poli';
-                        showView('rekap');
-                        applyRekapRolePresentation();
-                    } else {
-                        showView('rekap');
-                    }
-                    await r_reloadToFirstPage();
+                    await withPageLoading('Memuat Rekap Pasien...', async () => {
+                        if (isPetugasPoliRole()) {
+                            petugasPoliRekapMode = 'poli';
+                            showView('rekap');
+                            applyRekapRolePresentation();
+                        } else {
+                            showView('rekap');
+                        }
+                        await r_reloadToFirstPage();
+                    });
                 });
                 if (menuRekapAll) {
                     menuRekapAll.addEventListener('click', async () => {
                         closeDrawer();
-                        petugasPoliRekapMode = 'all';
-                        showView('rekap_all');
-                        if (rEls?.poliTujuan) rEls.poliTujuan.value = '';
-                        applyRekapRolePresentation();
-                        await r_reloadToFirstPage();
+                        await withPageLoading('Memuat Semua Rekap...', async () => {
+                            petugasPoliRekapMode = 'all';
+                            showView('rekap_all');
+                            if (rEls?.poliTujuan) rEls.poliTujuan.value = '';
+                            applyRekapRolePresentation();
+                            await r_reloadToFirstPage();
+                        });
                     });
                 }
                 logoutBtnTop.addEventListener('click', () => logout());
@@ -2173,7 +2293,9 @@
                         queueCurrentPoliklinik.textContent = '-';
                         queueCurrentPoliklinikMeta.textContent = 'Gagal memuat kontrol antrean.';
                         nextPoliklinikBtn.disabled = true;
+                        if (recallPoliklinikBtn) recallPoliklinikBtn.disabled = true;
                         skipPoliklinikBtn.disabled = true;
+                        if (recallFarmasiBtn) recallFarmasiBtn.disabled = true;
                         if (nextPrioritasBtn) {
                             nextPrioritasBtn.disabled = true;
                             nextPrioritasBtn.classList.add('hidden');
@@ -2192,12 +2314,14 @@
                         const labelEl = unit === 'FARMASI' ? queueCurrentFarmasi : queueCurrentPoliklinik;
                         const metaEl = unit === 'FARMASI' ? queueCurrentFarmasiMeta : queueCurrentPoliklinikMeta;
                         const btnEl = unit === 'FARMASI' ? nextFarmasiBtn : nextPoliklinikBtn;
+                        const recallBtnEl = unit === 'FARMASI' ? recallFarmasiBtn : recallPoliklinikBtn;
                         const skipBtnEl = unit === 'FARMASI' ? skipFarmasiBtn : skipPoliklinikBtn;
 
                         if (!current) {
                             labelEl.textContent = '-';
                             metaEl.textContent = 'Belum ada antrean terdaftar.';
                             btnEl.disabled = true;
+                            if (recallBtnEl) recallBtnEl.disabled = true;
                             skipBtnEl.disabled = true;
                             if (unit === 'POLIKLINIK') {
                                 if (nextPrioritasBtn) {
@@ -2243,6 +2367,7 @@
                         labelEl.textContent = currentLabel;
                         metaEl.textContent = `${waitingName} • Sisa antrean siap slide: ${totalReady}`;
                         btnEl.disabled = false;
+                        if (recallBtnEl) recallBtnEl.disabled = false;
                         btnEl.textContent = 'Next ' + prefix;
                         skipBtnEl.disabled = false;
                         skipBtnEl.textContent = 'Lewati Antrean';
@@ -2480,6 +2605,70 @@
                         }
                     } catch (err) {
                         alert('Gagal next prioritas: ' + (err?.message || String(err)));
+                    } finally {
+                        buttonEl.disabled = false;
+                        buttonEl.textContent = originalText;
+                    }
+                }
+
+                async function recallCurrentQueue(unit, buttonEl) {
+                    const originalText = buttonEl.textContent;
+                    buttonEl.disabled = true;
+                    buttonEl.textContent = 'Memanggil...';
+
+                    try {
+                        const { startISO, endISO } = getTodayRangeISO();
+                        const { data, error } = await withTimeout(
+                            supabaseClient
+                                .from('antrian')
+                                .select('id,no_antrian,status,nama_pasien,loket_tujuan')
+                                .gte('created_at', startISO)
+                                .lte('created_at', endISO)
+                                .eq('unit', unit)
+                                .in('status', ['dipanggil', 'terdaftar'])
+                                .order('created_at', { ascending: true })
+                                .limit(25),
+                            15000,
+                            'Muat antrean untuk panggil ulang'
+                        );
+                        if (error) throw new Error(error.message);
+
+                        const scopedRows = filterRowsByCurrentLoket(data || [], true);
+                        const current = scopedRows.find((item) => String(item.status || '').toLowerCase() === 'dipanggil')
+                            || scopedRows.find((item) => String(item.status || '').toLowerCase() === 'terdaftar')
+                            || null;
+
+                        if (!current) {
+                            throw new Error(`Tidak ada antrean ${queueControlPrefix(unit)} yang bisa dipanggil ulang.`);
+                        }
+
+                        let query = supabaseClient
+                            .from('antrian')
+                            .update(buildQueueCallPayload({ status: 'dipanggil' }))
+                            .eq('id', current.id)
+                            .eq('status', String(current.status || '').toLowerCase());
+
+                        query = applyCurrentLoketClaimFilter(query);
+
+                        const updateRes = await withTimeout(
+                            query.select('id'),
+                            15000,
+                            'Panggil ulang antrean'
+                        );
+
+                        if (updateRes?.error) throw new Error(updateRes.error.message);
+                        if (!Array.isArray(updateRes?.data) || updateRes.data.length === 0) {
+                            throw new Error('Antrean ini baru saja diproses loket lain. Silakan klik ulang.');
+                        }
+
+                        await loadQueueControls();
+                        await syncRegistrationLockWithCurrentQueue();
+                        await refreshStats();
+                        if (!viewRekap.classList.contains('hidden')) {
+                            await r_loadPage(r_currentPage);
+                        }
+                    } catch (err) {
+                        alert('Gagal panggil ulang antrean: ' + (err?.message || String(err)));
                     } finally {
                         buttonEl.disabled = false;
                         buttonEl.textContent = originalText;
@@ -2879,7 +3068,13 @@
                 modeBaruBtn.addEventListener('click', async () => setPatientMode('baru'));
                 modeLamaBtn.addEventListener('click', async () => setPatientMode('lama'));
                 nextPoliklinikBtn.addEventListener('click', async () => slideNextQueue('POLIKLINIK', nextPoliklinikBtn));
+                if (recallPoliklinikBtn) {
+                    recallPoliklinikBtn.addEventListener('click', async () => recallCurrentQueue('POLIKLINIK', recallPoliklinikBtn));
+                }
                 skipPoliklinikBtn.addEventListener('click', async () => skipCurrentQueue('POLIKLINIK', skipPoliklinikBtn));
+                if (recallFarmasiBtn) {
+                    recallFarmasiBtn.addEventListener('click', async () => recallCurrentQueue('FARMASI', recallFarmasiBtn));
+                }
                 if (nextPrioritasBtn) {
                     nextPrioritasBtn.addEventListener('click', async () => slideNextPrioritas(nextPrioritasBtn));
                 }
@@ -3493,12 +3688,8 @@
                 });
                 savePoliExamBtn.addEventListener('click', () => savePoliExam());
 
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-                rEls.from.value = `${yyyy}-${mm}-${dd}`;
-                rEls.to.value = `${yyyy}-${mm}-${dd}`;
+                rEls.from.value = '';
+                rEls.to.value = '';
 
                 async function refreshStats() {
                     const { startISO: start, endISO: end } = getTodayRangeISO();
@@ -3521,21 +3712,23 @@
                 }
 
                 (async function bootstrap() {
-                    const session = await requireSession();
-                    if (!session) return;
+                    await withPageLoading('Menyiapkan Dashboard...', async () => {
+                        const session = await requireSession();
+                        if (!session) return;
 
-                    await loadAdminProfile(session);
-                    await detectQueueRoutingColumns();
-                    await detectQueueProcessingColumns();
-                    await detectPoliExamColumns();
-                    await detectAlamatColumn();
-                    await detectRiwayatLinkColumn();
-                    await detectNoRegistrasiColumn();
-                    showView('pendaftaran');
-                    await initForm();
-                    await loadQueueControls();
-                    await refreshStats();
-                    await r_reloadToFirstPage();
+                        await loadAdminProfile(session);
+                        await detectQueueRoutingColumns();
+                        await detectQueueProcessingColumns();
+                        await detectPoliExamColumns();
+                        await detectAlamatColumn();
+                        await detectRiwayatLinkColumn();
+                        await detectNoRegistrasiColumn();
+                        showView('pendaftaran');
+                        await initForm();
+                        await loadQueueControls();
+                        await refreshStats();
+                        await r_reloadToFirstPage();
+                    });
                 })();
             }
         });
