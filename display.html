@@ -18,7 +18,7 @@
             <div class="text-center lg:text-left">
                 <h1 class="text-white text-2xl md:text-3xl font-extrabold tracking-tight">RSUD AJI MUHAMMAD IDRIS</h1>
                 <div class="text-emerald-100 font-semibold">SIM-AMI</div>
-                <div class="text-emerald-100/90 font-semibold">Display Antrian</div>
+                <div class="text-emerald-100/90 font-semibold">Display Antrean</div>
             </div>
             <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
                 <a href="index.html" class="rounded-full bg-white/15 px-4 py-2 text-white font-semibold hover:bg-white/20 transition" target="_blank" rel="noreferrer">Admin</a>
@@ -324,9 +324,6 @@
                     if (window.queueSound && typeof window.queueSound.toggleSound === 'function') {
                         window.queueSound.toggleSound(soundEnabled);
                     }
-                    // #region debug-point A:toggle-sound
-                    fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"A",location:"display.html:setSoundEnabled",msg:"[DEBUG] display sound toggled",data:{soundEnabled:!!soundEnabled,hasQueueSound:!!window.queueSound},ts:Date.now()})}).catch(()=>{});
-                    // #endregion
                     if (soundToggleBtn) {
                         soundToggleBtn.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
                         soundToggleBtn.className = soundEnabled
@@ -559,9 +556,6 @@
 
                 function enqueueAnnouncement(payload) {
                     if (!soundEnabled) return;
-                    // #region debug-point B:enqueue-announcement
-                    fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"B",location:"display.html:enqueueAnnouncement",msg:"[DEBUG] announcement enqueued",data:{payloadType:typeof payload,isObject:!!(payload&&typeof payload==='object'),noAntrian:String(payload?.noAntrian||payload?.no_antrian||""),unit:String(payload?.unit||""),queueLengthBefore:Number(speechQueue.length||0)},ts:Date.now()})}).catch(()=>{});
-                    // #endregion
                     if (typeof payload === 'string') {
                         const safeText = String(payload || '').trim();
                         if (!safeText) return;
@@ -580,9 +574,6 @@
                     if (speechQueue.length === 0) return;
                     speechBusy = true;
                     const nextItem = speechQueue.shift();
-                    // #region debug-point C:drain-speech
-                    fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"C",location:"display.html:drainSpeechQueue",msg:"[DEBUG] draining speech queue",data:{hasQueueSound:!!window.queueSound,itemType:typeof nextItem,isObject:!!(nextItem&&typeof nextItem==='object'),unit:String(nextItem?.unit||""),noAntrian:String(nextItem?.noAntrian||nextItem?.no_antrian||""),remainingQueue:Number(speechQueue.length||0)},ts:Date.now()})}).catch(()=>{});
-                    // #endregion
                     try {
                         if (nextItem && typeof nextItem === 'object' && window.queueSound) {
                             if (nextItem.unit === 'FARMASI') {
@@ -675,9 +666,6 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            // #region debug-point D:announce-farmasi
-                            fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"D",location:"display.html:announceNewCalls:farmasi",msg:"[DEBUG] new farmasi call detected",data:{key:String(key),signature:String(nextVal),noAntrian:String(farmasiCurrent.no_antrian||""),waktuPanggil:String(farmasiCurrent.waktu_panggil||"")},ts:Date.now()})}).catch(()=>{});
-                            // #endregion
                             enqueueAnnouncement(buildAnnouncementPayload('FARMASI', farmasiCurrent) || buildAnnouncementText('FARMASI', farmasiCurrent));
                         }
                     }
@@ -691,9 +679,6 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            // #region debug-point D:announce-poliklinik-1
-                            fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"D",location:"display.html:announceNewCalls:poliklinik1",msg:"[DEBUG] new poliklinik loket1 call detected",data:{key:String(key),signature:String(nextVal),noAntrian:String(loket1.no_antrian||""),waktuPanggil:String(loket1.waktu_panggil||""),loket:"LOKET_1"},ts:Date.now()})}).catch(()=>{});
-                            // #endregion
                             enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }) || buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'LOKET_1' }));
                         }
                     }
@@ -703,9 +688,6 @@
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            // #region debug-point D:announce-poliklinik-2
-                            fetch("http://127.0.0.1:7777/event",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionId:"display-audio-missing",runId:"pre-fix",hypothesisId:"D",location:"display.html:announceNewCalls:poliklinik2",msg:"[DEBUG] new poliklinik loket2 call detected",data:{key:String(key),signature:String(nextVal),noAntrian:String(loket2.no_antrian||""),waktuPanggil:String(loket2.waktu_panggil||""),loket:"LOKET_2"},ts:Date.now()})}).catch(()=>{});
-                            // #endregion
                             enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }) || buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'LOKET_2' }));
                         }
                     }
@@ -770,7 +752,7 @@
                     singleCurrent.classList.add('hidden');
                     dualCurrent.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.POLIKLINIK;
-                    document.getElementById('focusedNextTitle').textContent = 'Antrean Menunggu Poliklinik';
+                    document.getElementById('focusedNextTitle').textContent = 'Daftar Antrean Selanjutnya';
                     document.getElementById('focusedCurrentPanel').className = 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-950/85 to-slate-950/85';
                     document.getElementById('focusedNextPanel').className = 'lg:w-1/3 bg-blue-950/35 backdrop-blur-sm p-6 border-l border-blue-800/50 overflow-y-auto';
 
