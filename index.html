@@ -198,9 +198,9 @@
                             <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#f0fdfa_0%,_#eff6ff_100%)] px-5 py-5">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
-                                        <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-700">Pendaftaran Poliklinik</div>
-                                        <div class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Input Data Pasien Poliklinik</div>
-                                        <div class="mt-1.5 text-sm font-semibold text-slate-500">Lengkapi jenis pasien, poli tujuan, nomor antrean Poliklinik, lalu isi identitas pasien dengan cepat.</div>
+                                        <div id="registrationSectionEyebrow" class="text-xs font-extrabold uppercase tracking-[0.22em] text-emerald-700">Pendaftaran Poliklinik</div>
+                                        <div id="registrationSectionTitle" class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Input Data Pasien Poliklinik</div>
+                                        <div id="registrationSectionDescription" class="mt-1.5 text-sm font-semibold text-slate-500">Lengkapi jenis pasien, poli tujuan, nomor antrean Poliklinik, lalu isi identitas pasien dengan cepat.</div>
                                     </div>
                                     <div class="hidden md:flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl shadow-sm">🗂️</div>
                                 </div>
@@ -362,8 +362,8 @@
                         <div class="overflow-hidden rounded-[30px] border border-white/70 bg-white/90 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
                             <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#f0fdfa_0%,_#eff6ff_100%)] px-5 py-5">
                                 <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-blue-700">Status Hari Ini</div>
-                                <div class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Ringkasan Aktivitas Poliklinik</div>
-                                <div class="mt-1.5 text-sm font-semibold text-slate-500">Pantau status antrean Poliklinik dan jumlah pasien yang sudah masuk pada hari ini.</div>
+                                <div id="statsSectionTitle" class="mt-1.5 text-xl font-black tracking-tight text-slate-900">Ringkasan Aktivitas Poliklinik</div>
+                                <div id="statsSectionDescription" class="mt-1.5 text-sm font-semibold text-slate-500">Pantau status antrean Poliklinik dan jumlah pasien yang sudah masuk pada hari ini.</div>
                             </div>
                             <div class="p-5 md:p-6">
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -843,6 +843,11 @@
                 const summaryBox3Label = document.getElementById('summaryBox3Label');
                 const summaryBox3Value = document.getElementById('summaryBox3Value');
                 const dashboardQuickHint = document.getElementById('dashboardQuickHint');
+                const registrationSectionEyebrow = document.getElementById('registrationSectionEyebrow');
+                const registrationSectionTitle = document.getElementById('registrationSectionTitle');
+                const registrationSectionDescription = document.getElementById('registrationSectionDescription');
+                const statsSectionTitle = document.getElementById('statsSectionTitle');
+                const statsSectionDescription = document.getElementById('statsSectionDescription');
                 const modeBaruBtn = document.getElementById('modeBaruBtn');
                 const modeLamaBtn = document.getElementById('modeLamaBtn');
                 const pasienBaruPanel = document.getElementById('pasienBaruPanel');
@@ -1277,6 +1282,11 @@
                         summaryBox3Label.textContent = 'Antrean';
                         summaryBox3Value.textContent = 'Manual';
                         dashboardQuickHint.textContent = 'Isi nomor antrean IGD secara manual, lalu simpan data pasien. Rekap dan kontrol slide antrean tidak dipakai pada akun ini.';
+                        registrationSectionEyebrow.textContent = 'Pendaftaran IGD';
+                        registrationSectionTitle.textContent = 'Input Data Pasien IGD';
+                        registrationSectionDescription.textContent = '';
+                        statsSectionTitle.textContent = 'Ringkasan Aktivitas IGD';
+                        statsSectionDescription.textContent = 'Pantau status dan jumlah pasien IGD yang sudah masuk pada hari ini.';
                     } else {
                         supervisorMenuLinks.classList.add('hidden');
                         drawerRoleEyebrow.textContent = 'SIM-AMI';
@@ -1293,6 +1303,11 @@
                         summaryBox3Label.textContent = 'Backup';
                         summaryBox3Value.textContent = 'Excel Ready';
                         dashboardQuickHint.textContent = 'Gunakan menu di kiri atas untuk berpindah cepat antara formulir pendaftaran Poliklinik dan rekap data pasien.';
+                        registrationSectionEyebrow.textContent = 'Pendaftaran Poliklinik';
+                        registrationSectionTitle.textContent = 'Input Data Pasien Poliklinik';
+                        registrationSectionDescription.textContent = 'Lengkapi jenis pasien, poli tujuan, nomor antrean Poliklinik, lalu isi identitas pasien dengan cepat.';
+                        statsSectionTitle.textContent = 'Ringkasan Aktivitas Poliklinik';
+                        statsSectionDescription.textContent = 'Pantau status antrean Poliklinik dan jumlah pasien yang sudah masuk pada hari ini.';
                     }
                     applyRekapRolePresentation();
                 }
