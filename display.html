@@ -13,18 +13,18 @@
         .priority-card {
             border-color: rgba(251, 191, 36, 0.5) !important;
             background:
-                radial-gradient(circle at top, rgba(251, 191, 36, 0.18), transparent 42%),
+                radial-gradient(circle at top, rgba(251, 191, 36, 0.12), transparent 38%),
                 linear-gradient(135deg, rgba(120, 53, 15, 0.6) 0%, rgba(127, 29, 29, 0.46) 100%);
             box-shadow:
                 0 0 0 1px rgba(251, 191, 36, 0.14),
-                0 22px 52px rgba(244, 63, 94, 0.18);
+                0 12px 28px rgba(244, 63, 94, 0.12);
         }
 
         .priority-chip {
             border-color: rgba(253, 224, 71, 0.56) !important;
             background: linear-gradient(90deg, rgba(245, 158, 11, 0.36), rgba(244, 63, 94, 0.32));
             color: #fff7ed !important;
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+            box-shadow: none;
             letter-spacing: 0.18em;
         }
 
@@ -33,7 +33,7 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent !important;
-            filter: drop-shadow(0 0 24px rgba(251, 191, 36, 0.24));
+            filter: none;
         }
 
         .priority-text {
@@ -45,7 +45,7 @@
         }
 
         .priority-ring {
-            animation: priorityPulse 2.4s ease-in-out infinite;
+            transform: translateZ(0);
         }
 
         .waiting-priority-card {
@@ -56,25 +56,12 @@
             color: #fff7ed !important;
             box-shadow:
                 0 0 0 1px rgba(251, 191, 36, 0.12),
-                0 18px 40px rgba(244, 63, 94, 0.16);
+                0 10px 22px rgba(244, 63, 94, 0.12);
         }
 
         .waiting-priority-status {
             color: #fde68a;
-            text-shadow: 0 0 18px rgba(251, 191, 36, 0.26);
-        }
-
-        @keyframes priorityPulse {
-            0%, 100% {
-                box-shadow:
-                    0 0 0 1px rgba(251, 191, 36, 0.16),
-                    0 22px 52px rgba(244, 63, 94, 0.14);
-            }
-            50% {
-                box-shadow:
-                    0 0 0 1px rgba(253, 224, 71, 0.22),
-                    0 26px 58px rgba(244, 63, 94, 0.22);
-            }
+            text-shadow: none;
         }
     </style>
     <!-- Sistem Suara Antrian -->
