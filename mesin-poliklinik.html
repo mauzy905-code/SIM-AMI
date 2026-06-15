@@ -257,6 +257,8 @@
             }
 
             const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const MACHINE_EMAIL = 'mesin@rsudami.com';
+            const MACHINE_UID = '6244cd8b-155d-44d3-897c-1676c2494a4d';
             const payerModal = document.getElementById('payerModal');
             const modalJalurTitle = document.getElementById('modalJalurTitle');
             const closePayerModal = document.getElementById('closePayerModal');
@@ -264,6 +266,20 @@
             const unitLabel = 'POLIKLINIK';
             let selectedJalur = '';
             let selectedJenis = '';
+
+            async function ensureMachineSession() {
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+                const session = data?.session || null;
+                const user = session?.user || null;
+                const valid = !!user
+                    && String(user.email || '').trim().toLowerCase() === MACHINE_EMAIL
+                    && String(user.id || '').trim() === MACHINE_UID;
+                if (!valid) {
+                    window.location.href = 'mesin-antrian.html';
+                    throw new Error('Session mesin tidak ditemukan.');
+                }
+            }
 
             function getTodayRangeISO() {
                 const start = new Date();
@@ -392,8 +408,11 @@
             }
 
             document.querySelectorAll('.jalur-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    openPayerModal(this.dataset.jalur);
+                btn.addEventListener('click', async function() {
+                    try {
+                        await ensureMachineSession();
+                        openPayerModal(this.dataset.jalur);
+                    } catch (err) {}
                 });
             });
 
@@ -424,6 +443,8 @@
                     closePayer();
                 }
             });
+
+            ensureMachineSession().catch(() => {});
 
         });
     </script>
