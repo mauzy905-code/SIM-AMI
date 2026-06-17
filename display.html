@@ -263,6 +263,39 @@
                 let displayRealtimeChannel = null;
                 let displayRefreshIntervalId = null;
 
+                // #region debug-point A:reporter
+                const DEBUG_SERVER_URL = 'http://127.0.0.1:7777/event';
+                const DEBUG_SESSION_ID = 'display-freeze-logout';
+                function reportDisplayDebug(hypothesisId, location, msg, data = {}) {
+                    fetch(DEBUG_SERVER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sessionId: DEBUG_SESSION_ID,
+                            runId: 'pre-fix',
+                            hypothesisId,
+                            location,
+                            msg: `[DEBUG] ${msg}`,
+                            data,
+                            ts: Date.now()
+                        })
+                    }).catch(() => {});
+                }
+                window.addEventListener('error', (event) => {
+                    reportDisplayDebug('A', 'display.html:window.error', 'Unhandled window error', {
+                        message: event?.message || '',
+                        source: event?.filename || '',
+                        lineno: event?.lineno || 0,
+                        colno: event?.colno || 0
+                    });
+                });
+                window.addEventListener('unhandledrejection', (event) => {
+                    reportDisplayDebug('A', 'display.html:window.rejection', 'Unhandled promise rejection', {
+                        reason: String(event?.reason?.message || event?.reason || '')
+                    });
+                });
+                // #endregion
+
                 function showAuthMessage(message, tone = 'info') {
                     if (!displayAuthMessage) return;
                     displayAuthMessage.textContent = message;
@@ -296,25 +329,56 @@
                 }
 
                 async function ensureDisplayAccount(session) {
+                    // #region debug-point B:ensure-display-account
+                    reportDisplayDebug('B', 'display.html:ensureDisplayAccount:start', 'Checking display account', {
+                        hasSession: !!session,
+                        email: String(session?.user?.email || ''),
+                        userId: String(session?.user?.id || '')
+                    });
+                    // #endregion
                     const user = session?.user || null;
                     if (!user) return false;
 
                     const userEmail = String(user.email || '').trim().toLowerCase();
                     const userId = String(user.id || '').trim();
                     if (userEmail !== DISPLAY_EMAIL) {
+                        // #region debug-point B:ensure-display-account-email-mismatch
+                        reportDisplayDebug('B', 'display.html:ensureDisplayAccount:email-mismatch', 'Display email mismatch', {
+                            actualEmail: userEmail,
+                            expectedEmail: DISPLAY_EMAIL
+                        });
+                        // #endregion
                         await supabaseClient.auth.signOut();
                         throw new Error('Akun ini bukan akun display yang diizinkan.');
                     }
 
                     if (userId !== DISPLAY_UID) {
+                        // #region debug-point B:ensure-display-account-uid-mismatch
+                        reportDisplayDebug('B', 'display.html:ensureDisplayAccount:uid-mismatch', 'Display UID mismatch', {
+                            actualUid: userId,
+                            expectedUid: DISPLAY_UID
+                        });
+                        // #endregion
                         await supabaseClient.auth.signOut();
                         throw new Error('UID akun ini tidak sesuai dengan akun display yang diizinkan.');
                     }
 
+                    // #region debug-point B:ensure-display-account-pass
+                    reportDisplayDebug('B', 'display.html:ensureDisplayAccount:pass', 'Display account accepted', {
+                        email: userEmail,
+                        userId
+                    });
+                    // #endregion
                     return true;
                 }
 
                 async function stopDisplayRuntime() {
+                    // #region debug-point C:stop-runtime
+                    reportDisplayDebug('C', 'display.html:stopDisplayRuntime:start', 'Stopping display runtime', {
+                        hadChannel: !!displayRealtimeChannel,
+                        hadInterval: !!displayRefreshIntervalId
+                    });
+                    // #endregion
                     if (displayRealtimeChannel) {
                         try {
                             await supabaseClient.removeChannel(displayRealtimeChannel);
@@ -330,9 +394,22 @@
                     speechQueue.length = 0;
                     speechBusy = false;
                     setSyncStatus('Sinkron: login diperlukan', 'ok');
+                    // #region debug-point C:stop-runtime-done
+                    reportDisplayDebug('C', 'display.html:stopDisplayRuntime:done', 'Display runtime stopped', {
+                        hadChannel: !!displayRealtimeChannel,
+                        hadInterval: !!displayRefreshIntervalId
+                    });
+                    // #endregion
                 }
 
                 async function startDisplayRuntime() {
+                    // #region debug-point C:start-runtime
+                    reportDisplayDebug('C', 'display.html:startDisplayRuntime:start', 'Starting display runtime', {
+                        displayAccessGranted,
+                        hasChannel: !!displayRealtimeChannel,
+                        hasInterval: !!displayRefreshIntervalId
+                    });
+                    // #endregion
                     if (!displayAccessGranted) return;
                     setSectionVisibility();
                     await loadAntrian();
@@ -340,14 +417,26 @@
                     if (!displayRefreshIntervalId) {
                         displayRefreshIntervalId = window.setInterval(() => loadAntrian(), 3000);
                     }
+                    // #region debug-point C:start-runtime-done
+                    reportDisplayDebug('C', 'display.html:startDisplayRuntime:done', 'Display runtime started', {
+                        hasChannel: !!displayRealtimeChannel,
+                        hasInterval: !!displayRefreshIntervalId
+                    });
+                    // #endregion
                 }
 
                 async function restoreDisplaySession() {
+                    // #region debug-point D:restore-session-start
+                    reportDisplayDebug('D', 'display.html:restoreDisplaySession:start', 'Restoring display session');
+                    // #endregion
                     const { data, error } = await supabaseClient.auth.getSession();
                     if (error) throw error;
 
                     const session = data?.session || null;
                     if (!session) {
+                        // #region debug-point D:restore-session-empty
+                        reportDisplayDebug('D', 'display.html:restoreDisplaySession:empty', 'No session found during restore');
+                        // #endregion
                         await stopDisplayRuntime();
                         setDisplayView(false);
                         return false;
@@ -357,6 +446,12 @@
                     setDisplayView(true, session);
                     hideAuthMessage();
                     await startDisplayRuntime();
+                    // #region debug-point D:restore-session-success
+                    reportDisplayDebug('D', 'display.html:restoreDisplaySession:success', 'Display session restored', {
+                        email: String(session?.user?.email || ''),
+                        userId: String(session?.user?.id || '')
+                    });
+                    // #endregion
                     return true;
                 }
 
@@ -1216,6 +1311,12 @@
                 async function loadAntrian() {
                     if (!displayAccessGranted) return;
                     try {
+                        // #region debug-point E:load-antrian-start
+                        reportDisplayDebug('E', 'display.html:loadAntrian:start', 'Loading antrian', {
+                            selectedUnit,
+                            hasChannel: !!displayRealtimeChannel
+                        });
+                        // #endregion
                         const { data: antrianData, error: antrianError } = await supabaseClient
                             .from('antrian')
                             .select('*')
@@ -1223,7 +1324,13 @@
                             .limit(250);
 
                         if (antrianError) {
-                            console.error('Error loading antrian:', antrianError);
+                            // #region debug-point E:load-antrian-query-error
+                            reportDisplayDebug('E', 'display.html:loadAntrian:query-error', 'Query antrian failed', {
+                                message: antrianError?.message || '',
+                                code: antrianError?.code || '',
+                                details: antrianError?.details || ''
+                            });
+                            // #endregion
                             setSyncStatus('Sinkron gagal', 'error');
                             return;
                         }
@@ -1257,18 +1364,44 @@
                         const mm = now.getMinutes().toString().padStart(2, '0');
                         const ss = now.getSeconds().toString().padStart(2, '0');
                         setSyncStatus(`Sinkron: ${hh}:${mm}:${ss} • ${todayData.length} data`, 'ok');
+                        // #region debug-point E:load-antrian-success
+                        reportDisplayDebug('E', 'display.html:loadAntrian:success', 'Antrian loaded', {
+                            fetchedRows: (antrianData || []).length,
+                            todayRows: todayData.length,
+                            farmasiRows: farmasiRows.length,
+                            poliklinikRows: poliklinikRows.length
+                        });
+                        // #endregion
                     } catch (err) {
-                        console.error('Display loadAntrian exception:', err);
+                        // #region debug-point E:load-antrian-exception
+                        reportDisplayDebug('E', 'display.html:loadAntrian:exception', 'loadAntrian threw exception', {
+                            message: err?.message || String(err)
+                        });
+                        // #endregion
                         setSyncStatus('Sinkron error', 'error');
                     }
                 }
 
                 function subscribeToRealtime() {
                     if (!displayAccessGranted || displayRealtimeChannel) return;
+                    // #region debug-point F:subscribe-realtime
+                    reportDisplayDebug('F', 'display.html:subscribeToRealtime:start', 'Subscribing realtime channel', {
+                        displayAccessGranted,
+                        hasChannel: !!displayRealtimeChannel
+                    });
+                    // #endregion
                     displayRealtimeChannel = supabaseClient
                         .channel('public:antrian_display')
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => loadAntrian())
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => {
+                            // #region debug-point F:realtime-event
+                            reportDisplayDebug('F', 'display.html:subscribeToRealtime:event', 'Realtime antrian event received');
+                            // #endregion
+                            loadAntrian();
+                        })
                         .subscribe();
+                    // #region debug-point F:subscribe-realtime-done
+                    reportDisplayDebug('F', 'display.html:subscribeToRealtime:done', 'Realtime channel subscribed');
+                    // #endregion
                 }
 
                 // Event listener untuk memilih unit di display
@@ -1334,6 +1467,12 @@
                     e.preventDefault();
                     const email = String(displayEmailInput.value || '').trim().toLowerCase();
                     const password = String(displayPasswordInput.value || '');
+                    // #region debug-point G:login-submit
+                    reportDisplayDebug('G', 'display.html:login:submit', 'Display login submitted', {
+                        email,
+                        hasPassword: !!password
+                    });
+                    // #endregion
                     if (!email || !password) {
                         showAuthMessage('Email dan password display harus diisi.', 'error');
                         return;
@@ -1354,8 +1493,19 @@
                         setDisplayView(true, data?.session || null);
                         displayPasswordInput.value = '';
                         await startDisplayRuntime();
+                        // #region debug-point G:login-success
+                        reportDisplayDebug('G', 'display.html:login:success', 'Display login succeeded', {
+                            email: String(data?.session?.user?.email || ''),
+                            userId: String(data?.session?.user?.id || '')
+                        });
+                        // #endregion
                         showAuthMessage('Login display berhasil. Monitoring antrean sudah aktif.', 'success');
                     } catch (err) {
+                        // #region debug-point G:login-failed
+                        reportDisplayDebug('G', 'display.html:login:failed', 'Display login failed', {
+                            message: err?.message || String(err)
+                        });
+                        // #endregion
                         await stopDisplayRuntime();
                         setDisplayView(false);
                         showAuthMessage('Login display gagal: ' + (err?.message || String(err)), 'error');
@@ -1366,14 +1516,38 @@
                 });
 
                 displayLogoutBtn.addEventListener('click', async function() {
-                    await supabaseClient.auth.signOut();
-                    await stopDisplayRuntime();
-                    setDisplayView(false);
-                    showAuthMessage('Session display telah di-logout.', 'info');
+                    // #region debug-point H:logout-click
+                    reportDisplayDebug('H', 'display.html:logout:click', 'Display logout clicked', {
+                        displayAccessGranted
+                    });
+                    // #endregion
+                    try {
+                        await supabaseClient.auth.signOut();
+                        await stopDisplayRuntime();
+                        setDisplayView(false);
+                        showAuthMessage('Session display telah di-logout.', 'info');
+                        // #region debug-point H:logout-success
+                        reportDisplayDebug('H', 'display.html:logout:success', 'Display logout completed');
+                        // #endregion
+                    } catch (err) {
+                        // #region debug-point H:logout-failed
+                        reportDisplayDebug('H', 'display.html:logout:failed', 'Display logout failed', {
+                            message: err?.message || String(err)
+                        });
+                        // #endregion
+                        throw err;
+                    }
                 });
 
                 supabaseClient.auth.onAuthStateChange(async (_event, session) => {
                     try {
+                        // #region debug-point I:auth-state-change
+                        reportDisplayDebug('I', 'display.html:onAuthStateChange', 'Display auth state changed', {
+                            event: String(_event || ''),
+                            hasSession: !!session,
+                            email: String(session?.user?.email || '')
+                        });
+                        // #endregion
                         if (!session) {
                             await stopDisplayRuntime();
                             setDisplayView(false);
@@ -1384,6 +1558,11 @@
                         hideAuthMessage();
                         await startDisplayRuntime();
                     } catch (err) {
+                        // #region debug-point I:auth-state-change-error
+                        reportDisplayDebug('I', 'display.html:onAuthStateChange:error', 'Auth state change handler failed', {
+                            message: err?.message || String(err)
+                        });
+                        // #endregion
                         await stopDisplayRuntime();
                         setDisplayView(false);
                         showAuthMessage('Session display tidak valid. Silakan login ulang.', 'error');
