@@ -2186,6 +2186,11 @@
                     return String(Math.trunc(safeNumber)).padStart(6, '0');
                 }
 
+                let reservedNoRm = '';
+                let reservedNoRegistrasi = '';
+                let noRmRpcAvailable = null;
+                let noRegistrasiRpcAvailable = null;
+
                 async function getNextSequentialNumber(columnName, prefix = '') {
                     const { count, error } = await supabaseClient
                         .from('pasien')
@@ -2214,6 +2219,70 @@
                     }
 
                     throw new Error('Gagal membuat nomor urut otomatis. Silakan cek data pasien di database.');
+                }
+
+                function isRpcMissingError(err) {
+                    const message = String(err?.message || err || '').toLowerCase();
+                    return message.includes('could not find the function') ||
+                        message.includes('function not found') ||
+                        message.includes('pgrst202');
+                }
+
+                function isUniqueViolationError(err) {
+                    const message = String(err?.message || err || '').toLowerCase();
+                    return message.includes('duplicate key value') ||
+                        message.includes('unique constraint') ||
+                        message.includes('already exists');
+                }
+
+                async function allocateNoRmAtomic() {
+                    if (noRmRpcAvailable !== false) {
+                        try {
+                            const { data, error } = await supabaseClient.rpc('next_no_rm');
+                            if (error) {
+                                if (isRpcMissingError(error)) {
+                                    noRmRpcAvailable = false;
+                                } else {
+                                    throw error;
+                                }
+                            } else if (data) {
+                                noRmRpcAvailable = true;
+                                return String(data).trim();
+                            }
+                        } catch (err) {
+                            if (isRpcMissingError(err)) {
+                                noRmRpcAvailable = false;
+                            } else {
+                                throw new Error(err?.message || String(err));
+                            }
+                        }
+                    }
+                    return await getNextSequentialNumber('no_rm');
+                }
+
+                async function allocateNoRegistrasiAtomic() {
+                    if (noRegistrasiRpcAvailable !== false) {
+                        try {
+                            const { data, error } = await supabaseClient.rpc('next_no_registrasi');
+                            if (error) {
+                                if (isRpcMissingError(error)) {
+                                    noRegistrasiRpcAvailable = false;
+                                } else {
+                                    throw error;
+                                }
+                            } else if (data) {
+                                noRegistrasiRpcAvailable = true;
+                                return String(data).trim();
+                            }
+                        } catch (err) {
+                            if (isRpcMissingError(err)) {
+                                noRegistrasiRpcAvailable = false;
+                            } else {
+                                throw new Error(err?.message || String(err));
+                            }
+                        }
+                    }
+                    return await getNextSequentialNumber('no_registrasi', 'REG-');
                 }
 
                 function escapeHtml(value) {
@@ -2348,18 +2417,22 @@
                 async function refreshAutomaticNumbers() {
                     if (noRegistrasiColumnAvailable) {
                         noRegistrasiPreview.textContent = 'MEMUAT...';
-                        const nextRegistrasi = await getNextSequentialNumber('no_registrasi', 'REG-');
-                        document.getElementById('no_registrasi').value = nextRegistrasi;
-                        noRegistrasiPreview.textContent = nextRegistrasi;
+                        if (!reservedNoRegistrasi) {
+                            reservedNoRegistrasi = await allocateNoRegistrasiAtomic();
+                        }
+                        document.getElementById('no_registrasi').value = reservedNoRegistrasi;
+                        noRegistrasiPreview.textContent = reservedNoRegistrasi;
                     } else {
                         document.getElementById('no_registrasi').value = '';
                     }
 
                     if (patientMode === 'baru') {
                         noRmPreview.textContent = 'MEMUAT...';
-                        const nextNoRm = await getNextSequentialNumber('no_rm');
-                        document.getElementById('no_rm').value = nextNoRm;
-                        noRmPreview.textContent = nextNoRm;
+                        if (!reservedNoRm) {
+                            reservedNoRm = await allocateNoRmAtomic();
+                        }
+                        document.getElementById('no_rm').value = reservedNoRm;
+                        noRmPreview.textContent = reservedNoRm;
                     } else {
                         noRmPreview.textContent = 'PASIEN LAMA';
                     }
@@ -3764,8 +3837,8 @@
                     saveBtn.disabled = true;
                     saveBtn.textContent = 'Menyimpan...';
 
-                    const no_registrasi = (document.getElementById('no_registrasi').value || '').trim();
-                    const no_rm = (document.getElementById('no_rm').value || '').trim();
+                    let no_registrasi = (document.getElementById('no_registrasi').value || '').trim();
+                    let no_rm = (document.getElementById('no_rm').value || '').trim();
                     const unit = getCurrentRegistrationUnit();
                     const isIgdRegistration = unit === 'IGD';
                     const jenis_pasien = document.getElementById('jenis_pasien').value;
@@ -3790,12 +3863,31 @@
                             throw new Error('Pilih Pasien Lama lalu cari NIK terlebih dahulu sampai data pasien ditemukan.');
                         }
 
+                        if (patientMode === 'baru') {
+                            if (!no_rm) {
+                                if (!reservedNoRm) {
+                                    reservedNoRm = await allocateNoRmAtomic();
+                                }
+                                no_rm = reservedNoRm;
+                                document.getElementById('no_rm').value = no_rm;
+                                noRmPreview.textContent = no_rm;
+                            }
+                        }
+
                         if (!no_rm) {
                             throw new Error('Nomor rekam medis belum tersedia. Silakan cek mode pasien lalu coba lagi.');
                         }
 
                         if (noRegistrasiColumnAvailable && !no_registrasi) {
-                            throw new Error('Nomor registrasi belum tersedia. Silakan tunggu nomor otomatis muncul lalu coba lagi.');
+                            if (!reservedNoRegistrasi) {
+                                reservedNoRegistrasi = await allocateNoRegistrasiAtomic();
+                            }
+                            no_registrasi = reservedNoRegistrasi;
+                            document.getElementById('no_registrasi').value = no_registrasi;
+                            noRegistrasiPreview.textContent = no_registrasi;
+                            if (!no_registrasi) {
+                                throw new Error('Nomor registrasi belum tersedia. Silakan tunggu nomor otomatis muncul lalu coba lagi.');
+                            }
                         }
 
                         if (!nik) {
@@ -3910,16 +4002,36 @@
                             pasienPayload.no_registrasi = no_registrasi;
                         }
 
-                        const insertRes = await withTimeout(
-                            supabaseClient
-                                .from('pasien')
-                                .insert([pasienPayload]),
-                            15000,
-                            'Simpan pasien'
-                        );
+                        let inserted = false;
+                        for (let attempt = 0; attempt < 5; attempt += 1) {
+                            const insertRes = await withTimeout(
+                                supabaseClient
+                                    .from('pasien')
+                                    .insert([pasienPayload]),
+                                15000,
+                                'Simpan pasien'
+                            );
 
-                        if (insertRes?.error) {
-                            throw new Error(insertRes.error.message);
+                            if (!insertRes?.error) {
+                                inserted = true;
+                                break;
+                            }
+
+                            const msg = String(insertRes.error.message || '');
+                            const canRetry = patientMode === 'baru' && isUniqueViolationError(insertRes.error);
+                            if (!canRetry) {
+                                throw new Error(msg);
+                            }
+
+                            reservedNoRm = await allocateNoRmAtomic();
+                            no_rm = reservedNoRm;
+                            pasienPayload.no_rm = no_rm;
+                            document.getElementById('no_rm').value = no_rm;
+                            noRmPreview.textContent = no_rm;
+                        }
+
+                        if (!inserted) {
+                            throw new Error('Gagal menyimpan karena nomor RM bentrok. Silakan coba lagi.');
                         }
 
                         if (!isIgdRegistration) {
@@ -3952,6 +4064,13 @@
                             no_antrian,
                             waktu_daftar
                         });
+
+                        if (patientMode === 'baru') {
+                            reservedNoRm = '';
+                        }
+                        if (noRegistrasiColumnAvailable) {
+                            reservedNoRegistrasi = '';
+                        }
 
                         this.reset();
                         await initForm();
