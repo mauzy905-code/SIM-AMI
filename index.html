@@ -2221,6 +2221,25 @@
                     throw new Error('Gagal membuat nomor urut otomatis. Silakan cek data pasien di database.');
                 }
 
+                async function peekNextSequentialNumber(columnName, prefix = '') {
+                    const { data, error } = await supabaseClient
+                        .from('pasien')
+                        .select(columnName)
+                        .not(columnName, 'is', null)
+                        .order(columnName, { ascending: false })
+                        .limit(1);
+
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+
+                    const lastValue = data && data.length > 0 ? String(data[0]?.[columnName] || '').trim() : '';
+                    const digitMatch = lastValue.match(/(\d+)\s*$/);
+                    const lastNumber = digitMatch ? Number.parseInt(digitMatch[1], 10) : 0;
+                    const nextNumber = Number.isFinite(lastNumber) && lastNumber > 0 ? lastNumber + 1 : 1;
+                    return `${prefix}${formatSequentialNumber(nextNumber)}`;
+                }
+
                 function isRpcMissingError(err) {
                     const message = String(err?.message || err || '').toLowerCase();
                     return message.includes('could not find the function') ||
@@ -2417,22 +2436,18 @@
                 async function refreshAutomaticNumbers() {
                     if (noRegistrasiColumnAvailable) {
                         noRegistrasiPreview.textContent = 'MEMUAT...';
-                        if (!reservedNoRegistrasi) {
-                            reservedNoRegistrasi = await allocateNoRegistrasiAtomic();
-                        }
-                        document.getElementById('no_registrasi').value = reservedNoRegistrasi;
-                        noRegistrasiPreview.textContent = reservedNoRegistrasi;
+                        const nextRegistrasiPreview = await peekNextSequentialNumber('no_registrasi', 'REG-');
+                        document.getElementById('no_registrasi').value = '';
+                        noRegistrasiPreview.textContent = nextRegistrasiPreview;
                     } else {
                         document.getElementById('no_registrasi').value = '';
                     }
 
                     if (patientMode === 'baru') {
                         noRmPreview.textContent = 'MEMUAT...';
-                        if (!reservedNoRm) {
-                            reservedNoRm = await allocateNoRmAtomic();
-                        }
-                        document.getElementById('no_rm').value = reservedNoRm;
-                        noRmPreview.textContent = reservedNoRm;
+                        const nextNoRmPreview = await peekNextSequentialNumber('no_rm');
+                        document.getElementById('no_rm').value = '';
+                        noRmPreview.textContent = nextNoRmPreview;
                     } else {
                         noRmPreview.textContent = 'PASIEN LAMA';
                     }
@@ -3863,31 +3878,12 @@
                             throw new Error('Pilih Pasien Lama lalu cari NIK terlebih dahulu sampai data pasien ditemukan.');
                         }
 
-                        if (patientMode === 'baru') {
-                            if (!no_rm) {
-                                if (!reservedNoRm) {
-                                    reservedNoRm = await allocateNoRmAtomic();
-                                }
-                                no_rm = reservedNoRm;
-                                document.getElementById('no_rm').value = no_rm;
-                                noRmPreview.textContent = no_rm;
-                            }
-                        }
-
                         if (!no_rm) {
                             throw new Error('Nomor rekam medis belum tersedia. Silakan cek mode pasien lalu coba lagi.');
                         }
 
                         if (noRegistrasiColumnAvailable && !no_registrasi) {
-                            if (!reservedNoRegistrasi) {
-                                reservedNoRegistrasi = await allocateNoRegistrasiAtomic();
-                            }
-                            no_registrasi = reservedNoRegistrasi;
-                            document.getElementById('no_registrasi').value = no_registrasi;
-                            noRegistrasiPreview.textContent = no_registrasi;
-                            if (!no_registrasi) {
-                                throw new Error('Nomor registrasi belum tersedia. Silakan tunggu nomor otomatis muncul lalu coba lagi.');
-                            }
+                            throw new Error('Nomor registrasi belum tersedia. Silakan tunggu nomor otomatis muncul lalu coba lagi.');
                         }
 
                         if (!nik) {
@@ -3900,6 +3896,20 @@
 
                         if (jenis_pasien === 'BPJS' && !no_bpjs) {
                             throw new Error('Nomor BPJS wajib diisi untuk pasien BPJS.');
+                        }
+
+                        if (patientMode === 'baru') {
+                            reservedNoRm = await allocateNoRmAtomic();
+                            no_rm = reservedNoRm;
+                            document.getElementById('no_rm').value = no_rm;
+                            noRmPreview.textContent = no_rm;
+                        }
+
+                        if (noRegistrasiColumnAvailable) {
+                            reservedNoRegistrasi = await allocateNoRegistrasiAtomic();
+                            no_registrasi = reservedNoRegistrasi;
+                            document.getElementById('no_registrasi').value = no_registrasi;
+                            noRegistrasiPreview.textContent = no_registrasi;
                         }
 
                         if (isIgdRegistration) {
