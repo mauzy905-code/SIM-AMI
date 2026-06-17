@@ -3187,6 +3187,16 @@
                                         callPrioritasPoliklinikBtn.disabled = true;
                                         callPrioritasPoliklinikBtn.textContent = isCallingPrioritas ? 'Prioritas Sedang Dipanggil' : (priorityWaiting > 0 ? 'Selesaikan A Lalu Prioritas' : 'Panggil Prioritas');
                                     }
+                                } else {
+                                    const waitingAny = unitRows.filter((item) =>
+                                        String(item.status || '').toLowerCase() === 'menunggu'
+                                    ).length;
+
+                                    if (waitingAny > 0) {
+                                        btnEl.disabled = false;
+                                        btnEl.textContent = 'Panggil Antrean';
+                                        metaEl.textContent = `Ada ${waitingAny} antrean menunggu. Klik tombol untuk panggil antrean pertama.`;
+                                    }
                                 }
                                 return;
                             }
