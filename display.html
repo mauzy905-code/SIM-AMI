@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-2';
+            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-3';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -93,7 +93,7 @@
         }
     </style>
     <!-- Sistem Suara Antrian -->
-    <script src="js/queue-sound.js?v=20260615-display-cachefix-2"></script>
+    <script src="js/queue-sound.js?v=20260615-display-cachefix-3"></script>
 </head>
 <body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
     <div id="displayAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
@@ -347,6 +347,13 @@
 
                 async function showDisplayUnitPicker() {
                     hideAuthMessage();
+                    displayLockedUnit = null;
+                    selectedUnit = 'ALL';
+                    try {
+                        const nextUrl = new URL(window.location.href);
+                        nextUrl.searchParams.delete('unit');
+                        window.history.replaceState({}, '', nextUrl.toString());
+                    } catch (e) {}
                     setUnitButtonsVisible(false);
                     if (displayUnitPickerOverlay) {
                         displayUnitPickerOverlay.classList.remove('hidden');
@@ -356,7 +363,7 @@
                 }
 
                 function lockDisplayUnit(unit, options = {}) {
-                    const { updateUrl = true } = options;
+                    const { updateUrl = false } = options;
                     const normalized = normalizeDisplayUnit(unit);
                     if (!normalized || normalized === 'ALL') return false;
                     displayLockedUnit = normalized;
@@ -416,6 +423,13 @@
                         await supabaseClient.auth.signOut();
                     } catch (e) {}
                     clearDisplayAuthStorage();
+                    displayLockedUnit = null;
+                    selectedUnit = 'ALL';
+                    try {
+                        const nextUrl = new URL(window.location.href);
+                        nextUrl.searchParams.delete('unit');
+                        window.history.replaceState({}, '', nextUrl.toString());
+                    } catch (e) {}
                     await stopDisplayRuntime();
                     setDisplayView(false);
                     if (displayPasswordInput) {
