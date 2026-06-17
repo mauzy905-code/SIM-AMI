@@ -288,9 +288,9 @@
                                         <label class="block text-slate-700 font-semibold mb-2">Poli Tujuan</label>
                                         <select id="poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                             <option value="">Pilih Poli</option>
-                                            <option value="SPESIALIS_ANAK">Spesialis Anak</option>
-                                            <option value="SPESIALIS_PENYAKIT_DALAM">Spesialis Penyakit Dalam</option>
-                                            <option value="DOKTER_UMUM">Dokter Umum</option>
+                                            <option value="SPESIALIS_ANAK">Poli Anak</option>
+                                            <option value="SPESIALIS_PENYAKIT_DALAM">Poli Penyakit Dalam</option>
+                                            <option value="DOKTER_UMUM">Poli Umum</option>
                                         </select>
                                     </div>
 
@@ -515,9 +515,9 @@
                                 <label class="block text-slate-700 font-semibold mb-2">Poli</label>
                                 <select id="r_poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                     <option value="">Semua Poli</option>
-                                    <option value="SPESIALIS_ANAK">Spesialis Anak</option>
-                                    <option value="SPESIALIS_PENYAKIT_DALAM">Spesialis Penyakit Dalam</option>
-                                    <option value="DOKTER_UMUM">Dokter Umum</option>
+                                    <option value="SPESIALIS_ANAK">Poli Anak</option>
+                                    <option value="SPESIALIS_PENYAKIT_DALAM">Poli Penyakit Dalam</option>
+                                    <option value="DOKTER_UMUM">Poli Umum</option>
                                 </select>
                             </div>
                             <div class="lg:col-span-1">
@@ -4353,9 +4353,9 @@
                         if (!poli) return '';
                         if (poli === 'FARMASI') return '';
                         if (poli === 'IGD') return 'IGD';
-                        if (poli === 'SPESIALIS_ANAK') return 'Spesialis Anak';
-                        if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Spesialis Penyakit Dalam';
-                        if (poli === 'DOKTER_UMUM') return 'Dokter Umum';
+                        if (poli === 'SPESIALIS_ANAK') return 'Poli Anak';
+                        if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Poli Penyakit Dalam';
+                        if (poli === 'DOKTER_UMUM') return 'Poli Umum';
                         return poli;
                     }
 
