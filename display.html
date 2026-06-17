@@ -9,6 +9,34 @@
     <title>SIM-AMI - Display Antrian</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        (function() {
+            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-1';
+            const BUILD_KEY = 'simami-display-build-version';
+            const RELOAD_KEY = 'simami-display-force-reload-once';
+
+            try {
+                const currentUrl = new URL(window.location.href);
+                const currentVersion = currentUrl.searchParams.get('v');
+                const previousVersion = localStorage.getItem(BUILD_KEY);
+                const buildChanged = previousVersion !== DISPLAY_BUILD_VERSION;
+
+                if (buildChanged) {
+                    localStorage.setItem(BUILD_KEY, DISPLAY_BUILD_VERSION);
+                    try { localStorage.removeItem('simami-display-auth'); } catch (e) {}
+                    try { sessionStorage.removeItem('simami-display-auth'); } catch (e) {}
+                }
+
+                if ((buildChanged || currentVersion !== DISPLAY_BUILD_VERSION) && !sessionStorage.getItem(RELOAD_KEY)) {
+                    sessionStorage.setItem(RELOAD_KEY, '1');
+                    currentUrl.searchParams.set('v', DISPLAY_BUILD_VERSION);
+                    window.location.replace(currentUrl.toString());
+                } else if (currentVersion === DISPLAY_BUILD_VERSION) {
+                    sessionStorage.removeItem(RELOAD_KEY);
+                }
+            } catch (e) {}
+        })();
+    </script>
     <style>
         .priority-card {
             border-color: rgba(251, 191, 36, 0.5) !important;
@@ -65,7 +93,7 @@
         }
     </style>
     <!-- Sistem Suara Antrian -->
-    <script src="js/queue-sound.js"></script>
+    <script src="js/queue-sound.js?v=20260615-display-cachefix-1"></script>
 </head>
 <body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
     <div id="displayAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
@@ -328,6 +356,24 @@
                     }
                 }
 
+                function clearDisplayAuthStorage() {
+                    try { localStorage.removeItem('simami-display-auth'); } catch (e) {}
+                    try { sessionStorage.removeItem('simami-display-auth'); } catch (e) {}
+                }
+
+                async function forceDisplayLogout(message = 'Session display telah di-logout.', tone = 'info') {
+                    try {
+                        await supabaseClient.auth.signOut();
+                    } catch (e) {}
+                    clearDisplayAuthStorage();
+                    await stopDisplayRuntime();
+                    setDisplayView(false);
+                    if (displayPasswordInput) {
+                        displayPasswordInput.value = '';
+                    }
+                    showAuthMessage(message, tone);
+                }
+
                 async function ensureDisplayAccount(session) {
                     // #region debug-point B:ensure-display-account
                     reportDisplayDebug('B', 'display.html:ensureDisplayAccount:start', 'Checking display account', {
@@ -348,7 +394,7 @@
                             expectedEmail: DISPLAY_EMAIL
                         });
                         // #endregion
-                        await supabaseClient.auth.signOut();
+                        await forceDisplayLogout('Akun ini bukan akun display yang diizinkan.', 'error');
                         throw new Error('Akun ini bukan akun display yang diizinkan.');
                     }
 
@@ -359,7 +405,7 @@
                             expectedUid: DISPLAY_UID
                         });
                         // #endregion
-                        await supabaseClient.auth.signOut();
+                        await forceDisplayLogout('UID akun ini tidak sesuai dengan akun display yang diizinkan.', 'error');
                         throw new Error('UID akun ini tidak sesuai dengan akun display yang diizinkan.');
                     }
 
@@ -1522,10 +1568,7 @@
                     });
                     // #endregion
                     try {
-                        await supabaseClient.auth.signOut();
-                        await stopDisplayRuntime();
-                        setDisplayView(false);
-                        showAuthMessage('Session display telah di-logout.', 'info');
+                        await forceDisplayLogout('Session display telah di-logout.', 'info');
                         // #region debug-point H:logout-success
                         reportDisplayDebug('H', 'display.html:logout:success', 'Display logout completed');
                         // #endregion
@@ -1549,6 +1592,7 @@
                         });
                         // #endregion
                         if (!session) {
+                            clearDisplayAuthStorage();
                             await stopDisplayRuntime();
                             setDisplayView(false);
                             return;
@@ -1563,9 +1607,7 @@
                             message: err?.message || String(err)
                         });
                         // #endregion
-                        await stopDisplayRuntime();
-                        setDisplayView(false);
-                        showAuthMessage('Session display tidak valid. Silakan login ulang.', 'error');
+                        await forceDisplayLogout('Session display tidak valid. Silakan login ulang.', 'error');
                     }
                 });
 
@@ -1575,9 +1617,7 @@
                 });
 
                 restoreDisplaySession().catch(async (err) => {
-                    await stopDisplayRuntime();
-                    setDisplayView(false);
-                    showAuthMessage('Gagal memulihkan session display: ' + (err?.message || String(err)), 'error');
+                    await forceDisplayLogout('Gagal memulihkan session display: ' + (err?.message || String(err)), 'error');
                 });
             }
         });
