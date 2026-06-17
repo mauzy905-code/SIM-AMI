@@ -3787,7 +3787,7 @@
                                 if (unit === 'POLIKLINIK' && isPrioritasNoAntrian(current.no_antrian)) {
                                     throw new Error('Gunakan tombol Next Prioritas untuk menyelesaikan antrean prioritas.');
                                 }
-                                if (!String(current.nama_pasien || '').trim()) {
+                                if (unit === 'POLIKLINIK' && !String(current.nama_pasien || '').trim()) {
                                     throw new Error('Registrasi pasien dulu sebelum klik Next, agar antrean tidak terlewat.');
                                 }
                                 const updateRes = await withTimeout(
