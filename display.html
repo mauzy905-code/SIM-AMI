@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-1';
+            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-2';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -93,7 +93,7 @@
         }
     </style>
     <!-- Sistem Suara Antrian -->
-    <script src="js/queue-sound.js?v=20260615-display-cachefix-1"></script>
+    <script src="js/queue-sound.js?v=20260615-display-cachefix-2"></script>
 </head>
 <body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
     <div id="displayAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
@@ -166,6 +166,27 @@
                 <div id="syncStatus" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">Sinkron: -</div>
                 <div id="displaySessionLabel" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">display@rsudami.com</div>
                 <button id="displayLogoutBtn" type="button" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="displayUnitPickerOverlay" class="hidden fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm">
+        <div class="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 py-6">
+            <div class="w-full overflow-hidden rounded-[30px] border border-white/30 bg-white/95 shadow-[0_30px_90px_-35px_rgba(15,23,42,0.55)]">
+                <div class="bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_42%,_#1d4ed8_100%)] px-6 py-6 text-white">
+                    <div class="text-xs font-extrabold tracking-[0.3em] uppercase text-emerald-50/90">Pilih Display</div>
+                    <div class="mt-2 text-2xl md:text-3xl font-black tracking-tight">Antrean Farmasi atau Poliklinik?</div>
+                </div>
+                <div class="p-6 md:p-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <button id="displayPickFarmasiBtn" type="button" class="rounded-[24px] border border-emerald-200 bg-emerald-50 px-6 py-5 text-left font-black text-emerald-900 shadow-sm transition hover:bg-emerald-100">
+                        <div class="text-xs font-extrabold tracking-[0.28em] uppercase text-emerald-700">Display</div>
+                        <div class="mt-2 text-2xl font-black">Farmasi</div>
+                    </button>
+                    <button id="displayPickPoliklinikBtn" type="button" class="rounded-[24px] border border-blue-200 bg-blue-50 px-6 py-5 text-left font-black text-blue-900 shadow-sm transition hover:bg-blue-100">
+                        <div class="text-xs font-extrabold tracking-[0.28em] uppercase text-blue-700">Display</div>
+                        <div class="mt-2 text-2xl font-black">Poliklinik</div>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -283,13 +304,75 @@
                 const displayAuthMessage = document.getElementById('displayAuthMessage');
                 const displaySessionLabel = document.getElementById('displaySessionLabel');
                 const displayLogoutBtn = document.getElementById('displayLogoutBtn');
+                const displayUnitPickerOverlay = document.getElementById('displayUnitPickerOverlay');
+                const displayPickFarmasiBtn = document.getElementById('displayPickFarmasiBtn');
+                const displayPickPoliklinikBtn = document.getElementById('displayPickPoliklinikBtn');
                 
                 let selectedUnit = 'ALL';
+                let displayLockedUnit = null;
                 const displayContainer = document.getElementById('displayContainer');
                 const focusedDisplay = document.getElementById('focusedDisplay');
                 let displayAccessGranted = false;
                 let displayRealtimeChannel = null;
                 let displayRefreshIntervalId = null;
+
+                function normalizeDisplayUnit(unitValue) {
+                    const value = String(unitValue || '').trim().toUpperCase();
+                    if (value === 'FARMASI') return 'FARMASI';
+                    if (value === 'POLIKLINIK') return 'POLIKLINIK';
+                    if (value === 'ALL') return 'ALL';
+                    return null;
+                }
+
+                function getDisplayUnitFromUrl() {
+                    try {
+                        const params = new URLSearchParams(window.location.search);
+                        return normalizeDisplayUnit(params.get('unit'));
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                function setUnitButtonsVisible(visible) {
+                    document.querySelectorAll('.display-unit-btn').forEach((btn) => {
+                        btn.classList.toggle('hidden', !visible);
+                    });
+                }
+
+                function hideDisplayUnitPicker() {
+                    if (displayUnitPickerOverlay) {
+                        displayUnitPickerOverlay.classList.add('hidden');
+                    }
+                }
+
+                async function showDisplayUnitPicker() {
+                    hideAuthMessage();
+                    setUnitButtonsVisible(false);
+                    if (displayUnitPickerOverlay) {
+                        displayUnitPickerOverlay.classList.remove('hidden');
+                    }
+                    await stopDisplayRuntime();
+                    setSyncStatus('Pilih display', 'ok');
+                }
+
+                function lockDisplayUnit(unit, options = {}) {
+                    const { updateUrl = true } = options;
+                    const normalized = normalizeDisplayUnit(unit);
+                    if (!normalized || normalized === 'ALL') return false;
+                    displayLockedUnit = normalized;
+                    selectedUnit = normalized;
+                    hideDisplayUnitPicker();
+                    setUnitButtonsVisible(false);
+                    setSectionVisibility();
+                    if (updateUrl) {
+                        try {
+                            const nextUrl = new URL(window.location.href);
+                            nextUrl.searchParams.set('unit', displayLockedUnit);
+                            window.history.replaceState({}, '', nextUrl.toString());
+                        } catch (e) {}
+                    }
+                    return true;
+                }
 
                 function showAuthMessage(message, tone = 'info') {
                     if (!displayAuthMessage) return;
@@ -402,7 +485,13 @@
                     await ensureDisplayAccount(session);
                     setDisplayView(true, session);
                     hideAuthMessage();
-                    await startDisplayRuntime();
+                    const requestedUnit = getDisplayUnitFromUrl();
+                    if (requestedUnit && requestedUnit !== 'ALL') {
+                        lockDisplayUnit(requestedUnit, { updateUrl: false });
+                        await startDisplayRuntime();
+                    } else {
+                        await showDisplayUnitPicker();
+                    }
                     return true;
                 }
 
@@ -1319,6 +1408,7 @@
                 document.querySelectorAll('.display-unit-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         if (!displayAccessGranted) return;
+                        if (displayLockedUnit) return;
                         document.querySelectorAll('.display-unit-btn').forEach(b => {
                             b.classList.remove('active', 'bg-white', 'text-emerald-900', 'ring-4', 'ring-white/25');
                         });
@@ -1397,8 +1487,15 @@
                         await ensureDisplayAccount(data?.session || null);
                         setDisplayView(true, data?.session || null);
                         displayPasswordInput.value = '';
-                        await startDisplayRuntime();
-                        showAuthMessage('Login display berhasil. Monitoring antrean sudah aktif.', 'success');
+                        const requestedUnit = getDisplayUnitFromUrl();
+                        if (requestedUnit && requestedUnit !== 'ALL') {
+                            lockDisplayUnit(requestedUnit, { updateUrl: false });
+                            await startDisplayRuntime();
+                            showAuthMessage('Login display berhasil.', 'success');
+                        } else {
+                            await showDisplayUnitPicker();
+                            showAuthMessage('Login berhasil. Pilih display.', 'success');
+                        }
                     } catch (err) {
                         await stopDisplayRuntime();
                         setDisplayView(false);
@@ -1428,7 +1525,13 @@
                         await ensureDisplayAccount(session);
                         setDisplayView(true, session);
                         hideAuthMessage();
-                        await startDisplayRuntime();
+                        const requestedUnit = getDisplayUnitFromUrl();
+                        if (requestedUnit && requestedUnit !== 'ALL') {
+                            lockDisplayUnit(requestedUnit, { updateUrl: false });
+                            await startDisplayRuntime();
+                        } else if (!displayLockedUnit) {
+                            await showDisplayUnitPicker();
+                        }
                     } catch (err) {
                         await forceDisplayLogout('Session display tidak valid. Silakan login ulang.', 'error');
                     }
@@ -1442,6 +1545,22 @@
                 restoreDisplaySession().catch(async (err) => {
                     await forceDisplayLogout('Gagal memulihkan session display: ' + (err?.message || String(err)), 'error');
                 });
+
+                if (displayPickFarmasiBtn) {
+                    displayPickFarmasiBtn.addEventListener('click', async () => {
+                        if (!displayAccessGranted) return;
+                        if (!lockDisplayUnit('FARMASI')) return;
+                        await startDisplayRuntime();
+                    });
+                }
+
+                if (displayPickPoliklinikBtn) {
+                    displayPickPoliklinikBtn.addEventListener('click', async () => {
+                        if (!displayAccessGranted) return;
+                        if (!lockDisplayUnit('POLIKLINIK')) return;
+                        await startDisplayRuntime();
+                    });
+                }
             }
         });
     </script>
