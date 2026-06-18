@@ -16,25 +16,40 @@
 <body class="min-h-screen antialiased text-slate-900 font-['Inter'] bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(37,99,235,0.18),_transparent_30%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
     <div id="machineAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
         <div class="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-7xl items-center justify-center">
-            <div class="w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/70 bg-white/85 shadow-[0_25px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-                <div class="relative overflow-hidden bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-6 py-7 md:px-10 md:py-9">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.18),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_24%)]"></div>
-                    <div class="relative">
-                        <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-[0.3em] text-emerald-50 uppercase">
-                            Login Perangkat Mesin
-                        </div>
-                        <div class="mt-4 text-white text-3xl md:text-5xl font-black tracking-tight leading-tight">SIM-AMI</div>
-                        <div class="mt-2 text-emerald-50/95 text-sm md:text-base font-semibold tracking-[0.18em] uppercase">Mesin Antrean RSUD Aji Muhammad Idris</div>
-                        <div class="mt-3 text-emerald-50/95 text-lg md:text-xl font-semibold leading-relaxed">
-                            Masuk menggunakan akun perangkat terlebih dahulu, lalu pilih Mesin Poliklinik atau Farmasi.
+            <div class="w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/60 bg-white/95 shadow-[0_36px_90px_-30px_rgba(15,23,42,0.58)]">
+                <div class="grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr]">
+                    <div class="relative overflow-hidden bg-[linear-gradient(135deg,_#064e3b_0%,_#0f766e_36%,_#2563eb_100%)] px-7 py-8 md:px-10 md:py-10">
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_24%)]"></div>
+                        <div class="relative">
+                            <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-50">Enterprise Login</div>
+                            <div class="mt-7 text-emerald-100 text-[11px] font-semibold tracking-[0.34em] uppercase">SIM-AMI</div>
+                            <div class="mt-2 text-white text-4xl md:text-5xl font-black tracking-tight leading-tight">Mesin Antrean Digital</div>
+                            <div class="mt-3 max-w-xl text-emerald-50/90 text-sm md:text-base font-medium leading-7">Panel perangkat untuk mencetak nomor antrean pasien dan memilih layanan Poliklinik maupun Farmasi.</div>
+                            <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
+                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Akun</div>
+                                    <div class="mt-2 text-white text-lg font-black">Perangkat</div>
+                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Mesin memakai akun khusus yang terpisah dari supervisor atau admin.</div>
+                                </div>
+                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
+                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Cetak</div>
+                                    <div class="mt-2 text-white text-lg font-black">Cepat</div>
+                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Nomor antrean dicetak setelah pasien memilih jenis layanan yang dituju.</div>
+                                </div>
+                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
+                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Unit</div>
+                                    <div class="mt-2 text-white text-lg font-black">Pilih</div>
+                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Setelah login, user dapat membuka Mesin Farmasi atau Poliklinik.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="grid gap-6 p-6 md:p-8 lg:grid-cols-[1.1fr,0.9fr]">
-                    <div class="rounded-[28px] border border-emerald-100 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(240,249,255,0.96))] p-6 shadow-inner">
-                        <div class="text-sm font-extrabold tracking-[0.28em] text-blue-700 uppercase">Akses Perangkat</div>
-                        <div class="mt-3 text-2xl font-black tracking-tight text-slate-900">Login Mesin Antrean</div>
-                        <form id="machineLoginForm" class="mt-6 space-y-4">
+                    <div class="bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(248,250,252,0.98)_100%)] px-6 py-7 md:px-9 md:py-10">
+                        <div class="mx-auto max-w-md">
+                            <div class="inline-flex items-center rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.22em] text-emerald-700">Akses Terverifikasi</div>
+                            <div class="mt-5 text-slate-900 text-3xl font-black tracking-tight">Masuk ke Mesin</div>
+                            <div class="mt-2 text-sm font-semibold leading-6 text-slate-500">Gunakan akun perangkat resmi untuk membuka dashboard mesin antrean.</div>
+                            <form id="machineLoginForm" class="mt-7 space-y-5">
                             <div>
                                 <label for="machineEmail" class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-500">Email Perangkat</label>
                                 <input id="machineEmail" type="email" value="mesin@rsudami.com" autocomplete="username" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
@@ -43,24 +58,17 @@
                                 <label for="machinePassword" class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-500">Password</label>
                                 <input id="machinePassword" type="password" autocomplete="current-password" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" placeholder="Masukkan password akun mesin">
                             </div>
-                            <button id="machineLoginBtn" type="submit" class="w-full rounded-[24px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] px-6 py-4 text-base font-black tracking-[0.08em] text-white shadow-[0_18px_38px_-20px_rgba(16,185,129,0.55)] transition hover:-translate-y-0.5">
-                                MASUK KE DASHBOARD MESIN
-                            </button>
-                        </form>
-                        <div id="machineAuthMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
-                    </div>
-                    <div class="space-y-5">
-                        <div class="rounded-[28px] border border-emerald-100 bg-white p-6 shadow-sm">
-                            <div class="text-sm font-extrabold tracking-[0.28em] text-emerald-700 uppercase">Akun Yang Digunakan</div>
-                            <div class="mt-4 rounded-2xl bg-emerald-50 px-4 py-4">
-                                <div class="text-xs font-extrabold uppercase tracking-[0.24em] text-emerald-700">Email</div>
-                                <div class="mt-2 text-lg font-black text-emerald-900">mesin@rsudami.com</div>
-                            </div>
-                            <div class="mt-3 rounded-2xl bg-blue-50 px-4 py-4">
-                                <div class="text-xs font-extrabold uppercase tracking-[0.24em] text-blue-700">Akses</div>
-                                <div class="mt-2 text-sm font-semibold leading-6 text-blue-900">
-                                    Setelah login, user dapat memilih membuka Mesin Farmasi atau Mesin Poliklinik dari dashboard ini.
+                                <div class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">
+                                    Session perangkat tetap dipakai pada browser ini sampai Anda logout atau session Supabase berakhir.
                                 </div>
+                                <button id="machineLoginBtn" type="submit" class="w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] py-3.5 text-base font-black text-white shadow-[0_20px_34px_-16px_rgba(5,150,105,0.56)] transition hover:brightness-105">
+                                    Masuk ke Dashboard Mesin
+                                </button>
+                            </form>
+                            <div id="machineAuthMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                            <div class="mt-5 rounded-[24px] border border-emerald-100 bg-emerald-50 px-4 py-4">
+                                <div class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-emerald-700">Akun Perangkat</div>
+                                <div class="mt-2 text-base font-black text-emerald-900">mesin@rsudami.com</div>
                             </div>
                         </div>
                     </div>
