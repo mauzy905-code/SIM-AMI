@@ -301,9 +301,9 @@
                                         <div class="mt-1 text-xs font-semibold text-slate-500">Nomor diambil otomatis dari antrean aktif (dipanggil/terdaftar/menunggu).</div>
                                         </div>
                                         <div id="manualNoAntrianWrap" class="hidden">
-                                            <label for="manualNoAntrianInput" class="block text-xs font-extrabold tracking-[0.22em] uppercase text-slate-500">Nomor Antrian UGD</label>
-                                            <input type="text" id="manualNoAntrianInput" class="mt-2 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Tulis nomor antrean manual" maxlength="40">
-                                            <div class="mt-1 text-xs font-semibold text-slate-500">Nomor antrean ditulis manual oleh petugas UGD dan harus unik untuk hari yang sama.</div>
+                                            <label for="manualNoAntrianInput" class="block text-xs font-extrabold tracking-[0.22em] uppercase text-slate-500">Nomor Antrian UGD (Opsional)</label>
+                                            <input type="text" id="manualNoAntrianInput" class="mt-2 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Tulis nomor antrean (opsional)" maxlength="40">
+                                            <div class="mt-1 text-xs font-semibold text-slate-500">Nomor antrean boleh dikosongkan. Jika diisi, pastikan unik untuk hari yang sama.</div>
                                         </div>
                                     </div>
 
@@ -2784,7 +2784,8 @@
                             registrationLocked = false;
                             registrationLockedNoAntrian = '';
                             applyRegistrationLockUI();
-                            setSaveMessage(`Data pasien ${String(noAntrian || '').trim()} berhasil disimpan.`, 'success');
+                            const label = String(noAntrian || '').trim();
+                            setSaveMessage(label ? `Data pasien ${label} berhasil disimpan.` : 'Data pasien berhasil disimpan.', 'success');
                             return;
                         }
                         registrationLocked = true;
@@ -3025,7 +3026,7 @@
                             wrap.classList.add('hidden');
                             poliSelect.required = false;
                             poliSelect.value = 'IGD';
-                            manualNoAntrianInput.required = true;
+                            manualNoAntrianInput.required = false;
                             manualNoAntrianInput.value = '';
                             registrationLocked = false;
                             registrationLockedNoAntrian = '';
@@ -4034,28 +4035,27 @@
                             }
 
                             if (isIgdRegistration) {
-                                no_antrian = manual_no_antrian;
-                                if (!no_antrian) {
-                                    throw new Error('Nomor antrean UGD wajib diisi manual.');
-                                }
+                                no_antrian = manual_no_antrian ? manual_no_antrian : null;
 
-                                const duplicateRes = await withTimeout(
-                                    supabaseClient
-                                        .from('pasien')
-                                        .select('id', { head: false })
-                                        .eq('unit', 'IGD')
-                                        .eq('no_antrian', no_antrian)
-                                        .gte('created_at', startISO)
-                                        .lte('created_at', endISO)
-                                        .limit(1),
-                                    15000,
-                                    'Cek nomor antrean UGD'
-                                );
-                                if (duplicateRes?.error) {
-                                    throw new Error(duplicateRes.error.message);
-                                }
-                                if (Array.isArray(duplicateRes?.data) && duplicateRes.data.length > 0) {
-                                    throw new Error(`Nomor antrean UGD ${no_antrian} sudah dipakai hari ini.`);
+                                if (no_antrian) {
+                                    const duplicateRes = await withTimeout(
+                                        supabaseClient
+                                            .from('pasien')
+                                            .select('id', { head: false })
+                                            .eq('unit', 'IGD')
+                                            .eq('no_antrian', no_antrian)
+                                            .gte('created_at', startISO)
+                                            .lte('created_at', endISO)
+                                            .limit(1),
+                                        15000,
+                                        'Cek nomor antrean UGD'
+                                    );
+                                    if (duplicateRes?.error) {
+                                        throw new Error(duplicateRes.error.message);
+                                    }
+                                    if (Array.isArray(duplicateRes?.data) && duplicateRes.data.length > 0) {
+                                        throw new Error(`Nomor antrean UGD ${no_antrian} sudah dipakai hari ini.`);
+                                    }
                                 }
                             } else {
                                 const pickRegistrationAntrian = async () => {
