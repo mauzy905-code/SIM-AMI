@@ -501,6 +501,8 @@
                                 <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                     <option value="">Semua Unit</option>
                                     <option value="POLIKLINIK">Poliklinik</option>
+                                    <option value="IGD">UGD</option>
+                                    <option value="FARMASI">Farmasi</option>
                                 </select>
                             </div>
                             <div id="r_filter_jenis_wrap" class="lg:col-span-2">
@@ -1545,7 +1547,7 @@
                             drawerRoleEyebrow.textContent = 'Akses UGD';
                             drawerTitle.textContent = 'Menu Petugas UGD';
                             drawerDescription.textContent = 'Fokus pada input pasien UGD dengan nomor antrean manual dan pencatatan sesi petugas.';
-                            drawerRoleNote.textContent = 'Petugas UGD hanya menginput pasien UGD. Kontrol antrean otomatis dan rekap tidak ditampilkan pada akun ini.';
+                            drawerRoleNote.textContent = 'Petugas UGD dapat menginput pasien UGD dan mengakses rekap pasien untuk pencarian serta backup mandiri melalui Download Excel.';
                             dashboardRolePill.textContent = 'Panel UGD';
                             dashboardTitle.textContent = 'Input Pasien UGD';
                             dashboardDescription.textContent = 'Kelola pendaftaran pasien UGD dengan nomor antrean manual yang diisi petugas.';
@@ -1555,7 +1557,7 @@
                             summaryBox2Value.textContent = 'Petugas UGD';
                             summaryBox3Label.textContent = 'Antrean';
                             summaryBox3Value.textContent = 'Manual';
-                            dashboardQuickHint.textContent = 'Pengisian nomor antrean UGD secara manual.';
+                            dashboardQuickHint.textContent = 'Gunakan menu untuk berpindah ke rekap pasien dan unduh Excel bila perlu backup data.';
                             registrationSectionEyebrow.textContent = 'Pendaftaran UGD';
                             registrationSectionTitle.textContent = 'Input Data Pasien UGD';
                             registrationSectionDescription.textContent = '';
@@ -1806,7 +1808,7 @@
                     }
 
                     function canAccessRekapView() {
-                        return !isRegistrationWorkflowRole() && !isFarmasiControlRole();
+                        return !isFarmasiControlRole();
                     }
 
                     function getPetugasPoliAccountLabel() {
@@ -2385,7 +2387,7 @@
                             return { canRetry: false, retryNoRm: false, retryNoRegistrasi: false };
                         }
 
-                        const retryNoRm = /(^|[^a-z])no_rm([^a-z]|$)|pasien_no_rm/i.test(message);
+                        const retryNoRm = patientMode === 'baru' && /(^|[^a-z])no_rm([^a-z]|$)|pasien_no_rm/i.test(message);
                         const retryNoRegistrasi = /no_registrasi|pasien_no_registrasi|registrasi/i.test(message);
                         const mentionsOtherUniqueField = /\bnik\b|\bno_bpjs\b|\bemail\b/.test(message);
 
@@ -4272,6 +4274,9 @@
                                     hasNoRegistrasi: noRegistrasiColumnAvailable
                                 });
                                 if (!retryPlan.canRetry) {
+                                    if (patientMode === 'lama' && /(^|[^a-z])no_rm([^a-z]|$)|pasien_no_rm/i.test(msg)) {
+                                        throw new Error('Pasien lama harus tetap memakai No RM yang sama. Database Anda masih mengunci no_rm sebagai unik per baris, sehingga pendaftaran ulang pasien lama ditolak. Lepas unique index no_rm di Supabase agar riwayat kunjungan tetap memakai No RM lama.');
+                                    }
                                     throw new Error(msg);
                                 }
 
@@ -4496,7 +4501,8 @@
                     }
 
                     function r_applyFilters(query) {
-                        const unit = isRmeRole() ? (rEls.unit.value || '') : (rEls.unit.value || 'POLIKLINIK');
+                        const shouldDefaultAllUnits = isRmeRole() || isSupervisorRole() || isPendaftaranRole() || isIgdRole();
+                        const unit = shouldDefaultAllUnits ? (rEls.unit.value || '') : (rEls.unit.value || 'POLIKLINIK');
                         const jenisPasien = rEls.jenisPasien.value || '';
                         const poliTujuan = rEls.poliTujuan.value || '';
                         const fromISO = r_toISOStart(rEls.from.value);
