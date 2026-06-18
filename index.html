@@ -1380,8 +1380,12 @@
 
                     function formatLoketLabel(loket) {
                         const value = String(loket || '').trim().toUpperCase();
+                        if (value === 'A' || value === 'LOKET_A') return 'Loket A';
+                        if (value === 'B' || value === 'LOKET_B') return 'Loket B';
+                        if (value === 'C' || value === 'LOKET_C') return 'Loket C';
                         if (value === 'LOKET_1') return 'Loket A';
                         if (value === 'LOKET_2') return 'Loket B';
+                        if (value === 'LOKET_3') return 'Loket C';
                         if (value === 'SUPERVISOR') return 'Supervisor';
                         return value ? value.replace(/_/g, ' ') : '-';
                     }
@@ -1465,13 +1469,13 @@
                             supervisorMenuLinks.classList.remove('hidden');
                             drawerRoleEyebrow.textContent = 'Akses Pengawasan';
                             drawerTitle.textContent = 'Menu Supervisor';
-                            drawerDescription.textContent = 'Fokus pada monitoring dua loket, pendaftaran, dan rekap aktivitas.';
+                            drawerDescription.textContent = 'Fokus pada monitoring tiga loket, pendaftaran, dan rekap aktivitas.';
                             drawerRoleNote.textContent = 'Supervisor dapat membuka display antrean dan mesin antrean langsung dari menu ini untuk kebutuhan monitoring dan pengecekan operasional.';
                             dashboardRolePill.textContent = 'Panel Supervisor';
                             dashboardTitle.textContent = 'Monitoring Supervisor & Rekap';
-                            dashboardDescription.textContent = 'Pantau dua loket, cek ringkasan aktivitas, dan akses rekap pasien dalam satu dashboard pengawasan.';
+                            dashboardDescription.textContent = 'Pantau tiga loket, cek ringkasan aktivitas, dan akses rekap pasien dalam satu dashboard pengawasan.';
                             summaryBox1Label.textContent = 'Monitoring';
-                            summaryBox1Value.textContent = '2 Loket';
+                            summaryBox1Value.textContent = '3 Loket';
                             summaryBox2Label.textContent = 'Peran';
                             summaryBox2Value.textContent = 'Supervisor';
                             summaryBox3Label.textContent = 'Audit';
@@ -1728,8 +1732,31 @@
                         return String(currentAdminProfile?.email || loginEmail.value || '').trim();
                     }
 
+                    function normalizeLoketCode(value) {
+                        const raw = String(value || '').trim().toUpperCase();
+                        if (!raw) return '';
+                        if (raw === 'SUPERVISOR') return 'SUPERVISOR';
+                        if (raw === 'A' || raw === 'LOKET_A' || raw === 'LOKETA' || raw === 'LOKET-A') return 'A';
+                        if (raw === 'B' || raw === 'LOKET_B' || raw === 'LOKETB' || raw === 'LOKET-B') return 'B';
+                        if (raw === 'C' || raw === 'LOKET_C' || raw === 'LOKETC' || raw === 'LOKET-C') return 'C';
+                        if (raw === 'LOKET_1' || raw === 'LOKET1') return 'A';
+                        if (raw === 'LOKET_2' || raw === 'LOKET2') return 'B';
+                        if (raw === 'LOKET_3' || raw === 'LOKET3') return 'C';
+                        const match = raw.match(/\b([ABC])\b/);
+                        return match ? match[1] : raw;
+                    }
+
+                    function getLoketAliases(loketCode) {
+                        const code = normalizeLoketCode(loketCode);
+                        if (!code || code === 'SUPERVISOR') return [];
+                        if (code === 'A') return ['A', 'LOKET_1', 'LOKET_A'];
+                        if (code === 'B') return ['B', 'LOKET_2', 'LOKET_B'];
+                        if (code === 'C') return ['C', 'LOKET_3', 'LOKET_C'];
+                        return [code];
+                    }
+
                     function getCurrentLoketValue() {
-                        return String(currentLoket || '').trim().toUpperCase();
+                        return normalizeLoketCode(currentLoket);
                     }
 
                     function isSupervisorRole() {
@@ -1880,7 +1907,7 @@
                     }
 
                     function normalizeLoketValue(value) {
-                        return String(value || '').trim().toUpperCase();
+                        return normalizeLoketCode(value);
                     }
 
                     function rowMatchesCurrentLoket(item, allowUnassigned = true) {
@@ -1931,7 +1958,9 @@
                         if (!queueRoutingColumnsAvailable || !hasLoketScope()) {
                             return query;
                         }
-                        return query.or(`loket_tujuan.is.null,loket_tujuan.eq.${getCurrentLoketValue()}`);
+                        const aliases = getLoketAliases(getCurrentLoketValue());
+                        const parts = ['loket_tujuan.is.null'].concat(aliases.map((v) => `loket_tujuan.eq.${v}`));
+                        return query.or(parts.join(','));
                     }
 
                     function buildQueueCallPayload(basePayload = {}) {
