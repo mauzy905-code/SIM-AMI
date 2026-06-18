@@ -1373,6 +1373,7 @@
                         const storedName = getStoredStaffName();
                         if (storedName) {
                             currentStaffName = storedName;
+                            renderAdminIdentity();
                             return storedName;
                         }
 
