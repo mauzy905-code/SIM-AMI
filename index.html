@@ -813,6 +813,71 @@
                 </div>
             </div>
         </div>
+
+        <div id="patientEditModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"></div>
+            <div class="relative min-h-full flex items-center justify-center p-4">
+                <div class="w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-[0_30px_90px_-30px_rgba(15,23,42,0.55)]">
+                    <div class="bg-[linear-gradient(135deg,_#312e81_0%,_#2563eb_48%,_#0f766e_100%)] px-6 py-5 md:px-8">
+                        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                            <div>
+                                <div class="text-indigo-100 text-xs font-extrabold tracking-[0.3em] uppercase">Edit Data Pasien</div>
+                                <div id="patientEditTitle" class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-white">-</div>
+                                <div id="patientEditMeta" class="mt-2 text-sm font-semibold text-indigo-50/95">-</div>
+                            </div>
+                            <button id="closePatientEditModal" type="button" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-5 md:p-6">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">Nama Pasien</label>
+                                <input id="patientEditNamaInput" type="text" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Nama pasien">
+                            </div>
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">NIK</label>
+                                <input id="patientEditNikInput" type="text" inputmode="numeric" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="16 digit NIK">
+                            </div>
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">No BPJS</label>
+                                <input id="patientEditBpjsInput" type="text" inputmode="numeric" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Nomor BPJS">
+                            </div>
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">No Telepon</label>
+                                <input id="patientEditTeleponInput" type="text" inputmode="tel" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Nomor telepon">
+                            </div>
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">Jenis Kelamin</label>
+                                <select id="patientEditJkInput" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100">
+                                    <option value="">Pilih jenis kelamin</option>
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="mb-2 block font-semibold text-slate-700">Tanggal Lahir</label>
+                                <input id="patientEditTanggalLahirInput" type="date" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="mb-2 block font-semibold text-slate-700">Alamat</label>
+                                <textarea id="patientEditAlamatInput" rows="3" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Alamat pasien"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+                            No RM dan No Registrasi sengaja tidak bisa diubah dari modal ini.
+                        </div>
+                        <div id="patientEditMessage" class="hidden mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                        <div class="mt-4 flex flex-wrap items-center gap-2">
+                            <button id="savePatientEditBtn" type="button" class="rounded-xl bg-[linear-gradient(135deg,_#312e81_0%,_#2563eb_45%,_#0f766e_100%)] px-4 py-2.5 text-sm font-bold text-white shadow-[0_14px_24px_-12px_rgba(37,99,235,0.5)] transition hover:brightness-105">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div id="stickerContainer" class="hidden">
             <div id="sticker" style="width: 50mm; height: 30mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 7pt; line-height: 1.15;">
@@ -1108,6 +1173,19 @@
                     const poliExamDiagnosisInput = document.getElementById('poliExamDiagnosisInput');
                     const poliExamMessage = document.getElementById('poliExamMessage');
                     const savePoliExamBtn = document.getElementById('savePoliExamBtn');
+                    const patientEditModal = document.getElementById('patientEditModal');
+                    const closePatientEditModal = document.getElementById('closePatientEditModal');
+                    const patientEditTitle = document.getElementById('patientEditTitle');
+                    const patientEditMeta = document.getElementById('patientEditMeta');
+                    const patientEditNamaInput = document.getElementById('patientEditNamaInput');
+                    const patientEditNikInput = document.getElementById('patientEditNikInput');
+                    const patientEditBpjsInput = document.getElementById('patientEditBpjsInput');
+                    const patientEditTeleponInput = document.getElementById('patientEditTeleponInput');
+                    const patientEditJkInput = document.getElementById('patientEditJkInput');
+                    const patientEditTanggalLahirInput = document.getElementById('patientEditTanggalLahirInput');
+                    const patientEditAlamatInput = document.getElementById('patientEditAlamatInput');
+                    const patientEditMessage = document.getElementById('patientEditMessage');
+                    const savePatientEditBtn = document.getElementById('savePatientEditBtn');
                     const queueControlPanel = document.getElementById('queueControlPanel');
                     const registrationForm = document.getElementById('registrationForm');
                     const farmasiControlNotice = document.getElementById('farmasiControlNotice');
@@ -1178,6 +1256,10 @@
                     let currentPoliExamVisitId = '';
                     let currentPoliExamNoRm = '';
                     let currentPoliExamPatientName = '';
+                    let currentPatientEditId = '';
+                    let currentPatientEditNoRm = '';
+                    let currentPatientEditNoRegistrasi = '';
+                    let currentPatientEditName = '';
                     let petugasPoliRekapMode = 'poli';
                     let registrationLocked = false;
                     let registrationLockedNoAntrian = '';
@@ -2149,6 +2231,10 @@
                         return isPetugasPoliRole() || isIgdRole();
                     }
 
+                    function canManagePatientIdentityEdit() {
+                        return isSupervisorRole();
+                    }
+
                     function updateHistoryDriveAccess() {
                         const canManage = canManagePatientDriveLink();
                         historyDriveLinkInput.readOnly = !canManage;
@@ -2174,6 +2260,20 @@
                             poliExamMessage.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
                         }
                         poliExamMessage.classList.remove('hidden');
+                    }
+
+                    function showPatientEditMessage(message, tone) {
+                        patientEditMessage.textContent = message;
+                        patientEditMessage.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700', 'border-blue-200', 'bg-blue-50', 'text-blue-700');
+
+                        if (tone === 'error') {
+                            patientEditMessage.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+                        } else if (tone === 'success') {
+                            patientEditMessage.classList.add('border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
+                        } else {
+                            patientEditMessage.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700');
+                        }
+                        patientEditMessage.classList.remove('hidden');
                     }
 
                     function closePoliExamModalPanel() {
@@ -2211,6 +2311,57 @@
                         } else {
                             savePoliExamBtn.disabled = false;
                         }
+                    }
+
+                    function closePatientEditModalPanel() {
+                        patientEditModal.classList.add('hidden');
+                        currentPatientEditId = '';
+                        currentPatientEditNoRm = '';
+                        currentPatientEditNoRegistrasi = '';
+                        currentPatientEditName = '';
+                        patientEditTitle.textContent = '-';
+                        patientEditMeta.textContent = '-';
+                        patientEditNamaInput.value = '';
+                        patientEditNikInput.value = '';
+                        patientEditBpjsInput.value = '';
+                        patientEditTeleponInput.value = '';
+                        patientEditJkInput.value = '';
+                        patientEditTanggalLahirInput.value = '';
+                        patientEditAlamatInput.value = '';
+                        patientEditMessage.classList.add('hidden');
+                        savePatientEditBtn.disabled = false;
+                        savePatientEditBtn.textContent = 'Simpan Perubahan';
+                    }
+
+                    function openPatientEditModalPanel(payload) {
+                        currentPatientEditId = String(payload?.id || '');
+                        currentPatientEditNoRm = String(payload?.noRm || '');
+                        currentPatientEditNoRegistrasi = String(payload?.noRegistrasi || '');
+                        currentPatientEditName = String(payload?.nama || '');
+
+                        patientEditTitle.textContent = currentPatientEditName || 'Pasien';
+                        patientEditMeta.textContent = `No RM: ${currentPatientEditNoRm || '-'} • No Registrasi: ${currentPatientEditNoRegistrasi || '-'}`;
+                        patientEditNamaInput.value = String(payload?.nama || '');
+                        patientEditNikInput.value = String(payload?.nik || '');
+                        patientEditBpjsInput.value = String(payload?.bpjs || '');
+                        patientEditTeleponInput.value = String(payload?.telepon || '');
+                        patientEditJkInput.value = String(payload?.jk || '');
+                        patientEditTanggalLahirInput.value = String(payload?.tanggalLahir || '');
+                        patientEditAlamatInput.value = String(payload?.alamat || '');
+                        patientEditMessage.classList.add('hidden');
+                        patientEditModal.classList.remove('hidden');
+
+                        if (!canManagePatientIdentityEdit()) {
+                            savePatientEditBtn.disabled = true;
+                            showPatientEditMessage('Hanya supervisor yang dapat mengubah data identitas pasien dari rekap.', 'error');
+                            return;
+                        }
+                        if (!currentPatientEditId) {
+                            savePatientEditBtn.disabled = true;
+                            showPatientEditMessage('ID data pasien tidak ditemukan. Coba refresh rekap lalu ulangi.', 'error');
+                            return;
+                        }
+                        savePatientEditBtn.disabled = false;
                     }
 
                     function hasLoketScope() {
@@ -3133,6 +3284,73 @@
                         } finally {
                             savePoliExamBtn.disabled = false;
                             savePoliExamBtn.textContent = 'Simpan Pemeriksaan';
+                        }
+                    }
+
+                    async function savePatientIdentityEdit() {
+                        if (!currentPatientEditId) return;
+                        if (!canManagePatientIdentityEdit()) {
+                            showPatientEditMessage('Hanya supervisor yang dapat mengubah data identitas pasien dari rekap.', 'error');
+                            return;
+                        }
+
+                        const namaPasien = String(patientEditNamaInput.value || '').trim();
+                        const nik = String(patientEditNikInput.value || '').trim();
+                        const noBpjs = String(patientEditBpjsInput.value || '').trim();
+                        const noTelepon = String(patientEditTeleponInput.value || '').trim();
+                        const jenisKelamin = String(patientEditJkInput.value || '').trim();
+                        const tanggalLahir = String(patientEditTanggalLahirInput.value || '').trim();
+                        const alamat = String(patientEditAlamatInput.value || '').trim();
+                        const umur = computeAgeYears(tanggalLahir);
+
+                        if (!namaPasien) {
+                            showPatientEditMessage('Nama pasien wajib diisi.', 'error');
+                            return;
+                        }
+
+                        savePatientEditBtn.disabled = true;
+                        savePatientEditBtn.textContent = 'Menyimpan...';
+
+                        try {
+                            const updatePayload = {
+                                nama_pasien: namaPasien,
+                                nik: nik || null,
+                                no_bpjs: noBpjs || null,
+                                jenis_kelamin: jenisKelamin || null,
+                                tanggal_lahir: tanggalLahir || null,
+                                umur: umur || null
+                            };
+
+                            if (teleponColumnAvailable) {
+                                updatePayload.no_telepon = noTelepon || null;
+                            }
+                            if (alamatColumnAvailable) {
+                                updatePayload.alamat = alamat || null;
+                            }
+
+                            const { error } = await withTimeout(
+                                supabaseClient
+                                    .from('pasien')
+                                    .update(updatePayload)
+                                    .eq('id', currentPatientEditId),
+                                15000,
+                                'Simpan edit data pasien'
+                            );
+
+                            if (error) throw new Error(error.message);
+
+                            currentPatientEditName = namaPasien;
+                            patientEditTitle.textContent = namaPasien;
+                            showPatientEditMessage('Data pasien berhasil diperbarui.', 'success');
+                            await r_loadPage(r_currentPage);
+                            if (!historyModal.classList.contains('hidden') && currentHistoryNoRm && currentHistoryNoRm === currentPatientEditNoRm) {
+                                await openPatientHistory(currentHistoryNoRm, currentPatientEditName);
+                            }
+                        } catch (err) {
+                            showPatientEditMessage('Gagal menyimpan perubahan: ' + (err?.message || String(err)), 'error');
+                        } finally {
+                            savePatientEditBtn.disabled = false;
+                            savePatientEditBtn.textContent = 'Simpan Perubahan';
                         }
                     }
 
@@ -4922,14 +5140,20 @@
                             const examBtn = canEditExam
                                 ? `<button type="button" class="poli-exam-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}" data-dokter="${escapeHtml(String(p.nama_dokter || ''))}" data-diagnosa="${escapeHtml(String(p.diagnosa || ''))}">Dokter/Diagnosa</button>`
                                 : '';
+                            const canEditPatientIdentity = canManagePatientIdentityEdit() && String(p.id || '').trim() !== '';
+                            const patientEditBtn = canEditPatientIdentity
+                                ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
+                                : '';
                             const riwayatLinkCell = normalizedLink
                                 ? `<div class="flex items-center gap-2 whitespace-nowrap">
                                     ${examBtn}
+                                    ${patientEditBtn}
                                     <a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100">Buka GDrive</a>
                                     <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>
                                 </div>`
                                 : `<div class="flex items-center gap-2 whitespace-nowrap">
                                     ${examBtn}
+                                    ${patientEditBtn}
                                     <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Input Link</button>
                                 </div>`;
                             if (isRme) {
@@ -5147,8 +5371,26 @@
                             });
                             return;
                         }
+
+                        const patientEditBtn = event.target.closest('.patient-edit-btn');
+                        if (patientEditBtn) {
+                            openPatientEditModalPanel({
+                                id: patientEditBtn.dataset.id,
+                                noRm: patientEditBtn.dataset.noRm,
+                                noRegistrasi: patientEditBtn.dataset.noRegistrasi,
+                                nama: patientEditBtn.dataset.nama,
+                                nik: patientEditBtn.dataset.nik,
+                                bpjs: patientEditBtn.dataset.bpjs,
+                                telepon: patientEditBtn.dataset.telepon,
+                                jk: patientEditBtn.dataset.jk,
+                                tanggalLahir: patientEditBtn.dataset.tanggalLahir,
+                                alamat: patientEditBtn.dataset.alamat
+                            });
+                            return;
+                        }
                         const target = event.target.closest('.history-btn');
                         if (!target) return;
+                        openPatientHistory(target.dataset.noRm, target.dataset.nama);
                         openPatientHistory(target.dataset.noRm, target.dataset.nama);
                     });
                     closeHistoryModal.addEventListener('click', () => closeHistoryModalPanel());
@@ -5169,6 +5411,13 @@
                         }
                     });
                     savePoliExamBtn.addEventListener('click', () => savePoliExam());
+                    closePatientEditModal.addEventListener('click', () => closePatientEditModalPanel());
+                    patientEditModal.addEventListener('click', (event) => {
+                        if (event.target === patientEditModal || event.target === patientEditModal.firstElementChild) {
+                            closePatientEditModalPanel();
+                        }
+                    });
+                    savePatientEditBtn.addEventListener('click', () => savePatientIdentityEdit());
 
                     rEls.from.value = '';
                     rEls.to.value = '';
