@@ -302,7 +302,7 @@
                                         <select id="unitSelect" class="w-full rounded-2xl border border-emerald-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" required disabled>
                                             <option value="POLIKLINIK" selected>🩺 Poliklinik</option>
                                             <option value="FARMASI">Farmasi</option>
-                                            <option value="IGD">UGD</option>
+                                            <option value="UGD">UGD</option>
                                         </select>
                                     </div>
 
@@ -533,7 +533,7 @@
                                 <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                     <option value="">Semua Unit</option>
                                     <option value="POLIKLINIK">Poliklinik</option>
-                                    <option value="IGD">UGD</option>
+                                    <option value="UGD">UGD</option>
                                     <option value="FARMASI">Farmasi</option>
                                 </select>
                             </div>
@@ -1881,9 +1881,14 @@
                         return isRegistrationWorkflowRole() || isFarmasiControlRole();
                     }
 
+                    function isUgdValue(value) {
+                        const normalized = String(value || '').trim().toUpperCase();
+                        return normalized === 'UGD' || normalized === 'IGD';
+                    }
+
                     function getCurrentRegistrationUnit() {
                         if (isFarmasiControlRole()) return 'FARMASI';
-                        return isIgdRole() ? 'IGD' : 'POLIKLINIK';
+                        return isIgdRole() ? 'UGD' : 'POLIKLINIK';
                     }
 
                     function usesAutomaticQueueControls() {
@@ -3199,7 +3204,7 @@
                         } else if (manualMode) {
                             wrap.classList.add('hidden');
                             poliSelect.required = false;
-                            poliSelect.value = 'IGD';
+                            poliSelect.value = 'UGD';
                             manualNoAntrianInput.required = false;
                             manualNoAntrianInput.value = '';
                             registrationLocked = false;
@@ -3208,7 +3213,7 @@
                         } else {
                             wrap.classList.remove('hidden');
                             poliSelect.required = true;
-                            if (poliSelect.value === 'IGD') {
+                            if (isUgdValue(poliSelect.value)) {
                                 poliSelect.value = '';
                             }
                             manualNoAntrianInput.required = false;
@@ -4175,9 +4180,9 @@
                         let no_registrasi = (document.getElementById('no_registrasi').value || '').trim();
                         let no_rm = (document.getElementById('no_rm').value || '').trim();
                         const unit = getCurrentRegistrationUnit();
-                        const isIgdRegistration = unit === 'IGD';
+                        const isIgdRegistration = isUgdValue(unit);
                         const jenis_pasien = document.getElementById('jenis_pasien').value;
-                        const poli_tujuan = isIgdRegistration ? 'IGD' : document.getElementById('poli_tujuan').value;
+                        const poli_tujuan = isIgdRegistration ? 'UGD' : document.getElementById('poli_tujuan').value;
                         const manual_no_antrian = (manualNoAntrianInput?.value || '').trim();
                         const nama_pasien = document.getElementById('nama_pasien').value.trim();
                         const nik = document.getElementById('nik').value.trim();
@@ -4248,7 +4253,7 @@
                                         supabaseClient
                                             .from('pasien')
                                             .select('id', { head: false })
-                                            .eq('unit', 'IGD')
+                                            .in('unit', ['UGD', 'IGD'])
                                             .eq('no_antrian', no_antrian)
                                             .gte('created_at', startISO)
                                             .lte('created_at', endISO)
@@ -4563,7 +4568,7 @@
                         if (!unit) return '-';
                         if (unit === 'FARMASI') return 'Farmasi';
                         if (unit === 'POLIKLINIK') return 'Poliklinik';
-                        if (unit === 'IGD') return 'UGD';
+                        if (isUgdValue(unit)) return 'UGD';
                         return unit;
                     }
 
@@ -4578,7 +4583,7 @@
                     function r_poliLabel(poli) {
                         if (!poli) return '';
                         if (poli === 'FARMASI') return '';
-                        if (poli === 'IGD') return 'UGD';
+                        if (isUgdValue(poli)) return 'UGD';
                         if (poli === 'SPESIALIS_ANAK') return 'Poli Anak';
                         if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Poli Penyakit Dalam';
                         if (poli === 'DOKTER_UMUM') return 'Poli Umum';
@@ -4599,9 +4604,9 @@
                         const toISO = r_toISOEnd(rEls.to.value);
                         const q = (rEls.q.value || '').trim();
 
-                        if (unit) query = query.eq('unit', unit);
+                        if (unit) query = isUgdValue(unit) ? query.in('unit', ['UGD', 'IGD']) : query.eq('unit', unit);
                         if (jenisPasien) query = query.eq('jenis_pasien', jenisPasien);
-                        if (poliTujuan) query = query.eq('poli_tujuan', poliTujuan);
+                        if (poliTujuan) query = isUgdValue(poliTujuan) ? query.in('poli_tujuan', ['UGD', 'IGD']) : query.eq('poli_tujuan', poliTujuan);
                         if (fromISO) query = query.gte('created_at', fromISO);
                         if (toISO) query = query.lte('created_at', toISO);
 
