@@ -1348,6 +1348,7 @@
                         if (value === 'admin_igd') return 'Petugas UGD';
                         if (value === 'bidan') return 'Bidan';
                         if (value === 'perawat') return 'Perawat';
+                        if (value === 'dokter') return 'Dokter';
                         if (value === 'admin_farmasi' || value === 'petugas_farmasi' || value === 'petugas farmasi') return 'Petugas Farmasi';
                         if (value === 'petugas_poli' || value === 'petugas poli') return getPetugasPoliAccountLabel();
                         return value ? value.replace(/_/g, ' ') : 'Belum Diatur';
@@ -1791,6 +1792,7 @@
                         const isPetugasPoli = isPetugasPoliRole();
                         const isBidan = isBidanRole();
                         const isPerawat = isPerawatRole();
+                        const isDokter = isDokterRole();
                         const isReadOnlyViewer = isReadOnlyPatientViewerRole();
                         const petugasPoliLabel = getPetugasPoliAccountLabel();
 
@@ -1899,18 +1901,19 @@
                             summaryBox3Value.textContent = 'Siap Dibuka';
                             dashboardQuickHint.textContent = 'Gunakan rekap untuk melihat daftar pasien poli hari ini sesuai poli akun yang sedang login.';
                         } else if (isReadOnlyViewer) {
+                            const readOnlyRoleLabel = isBidan ? 'Bidan' : (isPerawat ? 'Perawat' : 'Dokter');
                             supervisorMenuLinks.classList.add('hidden');
-                            drawerRoleEyebrow.textContent = isBidan ? 'Akses Bidan' : 'Akses Perawat';
-                            drawerTitle.textContent = isBidan ? 'Menu Bidan' : 'Menu Perawat';
+                            drawerRoleEyebrow.textContent = `Akses ${readOnlyRoleLabel}`;
+                            drawerTitle.textContent = `Menu ${readOnlyRoleLabel}`;
                             drawerDescription.textContent = 'Fokus pada melihat daftar pasien yang masuk tanpa akses input atau perubahan hardfile.';
                             drawerRoleNote.textContent = 'Akun ini hanya untuk melihat data pasien yang masuk. Form input pasien, kontrol antrean, dan pengelolaan link Google Drive disembunyikan.';
-                            dashboardRolePill.textContent = isBidan ? 'Panel Bidan' : 'Panel Perawat';
-                            dashboardTitle.textContent = isBidan ? 'Daftar Pasien Untuk Bidan' : 'Daftar Pasien Untuk Perawat';
+                            dashboardRolePill.textContent = `Panel ${readOnlyRoleLabel}`;
+                            dashboardTitle.textContent = `Daftar Pasien Untuk ${readOnlyRoleLabel}`;
                             dashboardDescription.textContent = 'Gunakan rekap untuk melihat pasien yang sudah masuk tanpa akses edit data operasional.';
                             summaryBox1Label.textContent = 'Mode';
                             summaryBox1Value.textContent = 'Lihat Pasien';
                             summaryBox2Label.textContent = 'Akses';
-                            summaryBox2Value.textContent = isBidan ? 'Bidan' : 'Perawat';
+                            summaryBox2Value.textContent = readOnlyRoleLabel;
                             summaryBox3Label.textContent = 'Hardfile';
                             summaryBox3Value.textContent = 'Admin RME';
                             dashboardQuickHint.textContent = 'Gunakan menu rekap untuk mencari pasien dan melihat riwayat kunjungan. Link Google Drive hanya dikelola oleh Admin RME.';
@@ -2217,8 +2220,12 @@
                         return String(currentAdminRole || '').trim().toLowerCase() === 'perawat';
                     }
 
+                    function isDokterRole() {
+                        return String(currentAdminRole || '').trim().toLowerCase() === 'dokter';
+                    }
+
                     function isReadOnlyPatientViewerRole() {
-                        return isBidanRole() || isPerawatRole();
+                        return isBidanRole() || isPerawatRole() || isDokterRole();
                     }
 
                     function getPetugasPoliDefaultPoli() {
