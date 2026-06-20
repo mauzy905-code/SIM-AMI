@@ -5111,7 +5111,12 @@
                     }
 
                     function r_applyFilters(query) {
-                        const shouldDefaultAllUnits = isRmeRole() || isSupervisorRole() || isPendaftaranRole() || isIgdRole() || isReadOnlyPatientViewerRole();
+                        const shouldDefaultAllUnits = isRmeRole()
+                            || isSupervisorRole()
+                            || isPendaftaranRole()
+                            || isIgdRole()
+                            || isReadOnlyPatientViewerRole()
+                            || (isPetugasPoliRole() && !isPetugasPoliScopedRekap());
                         const unit = shouldDefaultAllUnits ? (rEls.unit.value || '') : (rEls.unit.value || 'POLIKLINIK');
                         const jenisPasien = rEls.jenisPasien.value || '';
                         const poliTujuan = rEls.poliTujuan.value || '';
