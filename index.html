@@ -501,12 +501,14 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-slate-700 font-semibold mb-2">NIK</label>
-                                            <input type="text" id="nik" inputmode="numeric" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan NIK" required>
+                                            <input type="text" id="nik" inputmode="numeric" maxlength="16" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan NIK (16 digit)" required>
+                                            <div id="nikDigitHint" class="mt-1 hidden text-xs font-semibold"></div>
                                         </div>
                                         <div id="noBpjsWrap">
                                             <label class="block text-slate-700 font-semibold mb-2">Nomor BPJS</label>
-                                            <input type="text" id="no_bpjs" inputmode="numeric" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan nomor BPJS">
+                                            <input type="text" id="no_bpjs" inputmode="numeric" maxlength="13" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan nomor BPJS (13 digit)">
                                             <div class="mt-1 text-xs font-semibold text-slate-500">Isi jika tersedia. Untuk pasien BPJS, nomor ini tetap wajib diinput.</div>
+                                            <div id="bpjsDigitHint" class="mt-1 hidden text-xs font-semibold"></div>
                                         </div>
                                     </div>
 
@@ -4747,6 +4749,71 @@
                         input.required = false;
                     }
 
+                    function digitsOnly(value) {
+                        return String(value || '').replace(/\D/g, '');
+                    }
+
+                    function setFieldHint(el, message, tone = 'error') {
+                        if (!el) return;
+                        el.textContent = message || '';
+                        el.classList.remove('hidden', 'text-red-600', 'text-amber-700', 'text-emerald-700');
+                        if (!message) {
+                            el.classList.add('hidden');
+                            return;
+                        }
+                        if (tone === 'warn') {
+                            el.classList.add('text-amber-700');
+                        } else if (tone === 'success') {
+                            el.classList.add('text-emerald-700');
+                        } else {
+                            el.classList.add('text-red-600');
+                        }
+                    }
+
+                    function normalizeDigitInput(inputEl, maxLen) {
+                        if (!inputEl) return '';
+                        const cleaned = digitsOnly(inputEl.value || '').slice(0, maxLen);
+                        if (String(inputEl.value || '') !== cleaned) {
+                            inputEl.value = cleaned;
+                        }
+                        return cleaned;
+                    }
+
+                    function updateNikHint() {
+                        const nikHint = document.getElementById('nikDigitHint');
+                        const nikInput = document.getElementById('nik');
+                        const nikValue = normalizeDigitInput(nikInput, 16);
+                        if (!nikValue) {
+                            setFieldHint(nikHint, '');
+                            return;
+                        }
+                        if (nikValue.length !== 16) {
+                            setFieldHint(nikHint, `NIK harus 16 digit. Saat ini ${nikValue.length} digit.`, 'warn');
+                            return;
+                        }
+                        setFieldHint(nikHint, 'NIK valid (16 digit).', 'success');
+                    }
+
+                    function updateBpjsHint() {
+                        const bpjsHint = document.getElementById('bpjsDigitHint');
+                        const bpjsInput = document.getElementById('no_bpjs');
+                        const bpjsValue = normalizeDigitInput(bpjsInput, 13);
+                        const jenisPasien = String(document.getElementById('jenis_pasien')?.value || '').toUpperCase();
+                        if (!bpjsValue) {
+                            if (jenisPasien === 'BPJS') {
+                                setFieldHint(bpjsHint, 'Nomor BPJS wajib diisi untuk pasien BPJS.', 'warn');
+                            } else {
+                                setFieldHint(bpjsHint, '');
+                            }
+                            return;
+                        }
+                        if (bpjsValue.length !== 13) {
+                            setFieldHint(bpjsHint, `Nomor BPJS harus 13 digit. Saat ini ${bpjsValue.length} digit.`, 'warn');
+                            return;
+                        }
+                        setFieldHint(bpjsHint, 'Nomor BPJS valid (13 digit).', 'success');
+                    }
+
                     // Event listener untuk memilih unit
                     document.getElementById('unitSelect').addEventListener('change', function() {
                         configureRegistrationFormMode();
@@ -4755,6 +4822,7 @@
                     document.getElementById('jenis_pasien').addEventListener('change', function() {
                         syncNoBpjsField();
                         refreshAntrianDropdown();
+                        updateBpjsHint();
                     });
                     document.getElementById('poli_tujuan').addEventListener('change', function() {
                         refreshAntrianDropdown();
@@ -4795,6 +4863,10 @@
                             pasienLookupInfo.classList.add('hidden');
                         }
                     });
+                    document.getElementById('nik').addEventListener('input', () => updateNikHint());
+                    document.getElementById('no_bpjs').addEventListener('input', () => updateBpjsHint());
+                    document.getElementById('nik').addEventListener('blur', () => updateNikHint());
+                    document.getElementById('no_bpjs').addEventListener('blur', () => updateBpjsHint());
                     window.addEventListener('afterprint', () => {
                         clearActivePrintMode();
                     });
@@ -4831,8 +4903,8 @@
                         const poli_tujuan = isIgdRegistration ? 'UGD' : document.getElementById('poli_tujuan').value;
                         const manual_no_antrian = (manualNoAntrianInput?.value || '').trim();
                         const nama_pasien = document.getElementById('nama_pasien').value.trim();
-                        const nik = document.getElementById('nik').value.trim();
-                        const no_bpjs = document.getElementById('no_bpjs').value.trim();
+                        const nik = normalizeDigitInput(document.getElementById('nik'), 16);
+                        const no_bpjs = normalizeDigitInput(document.getElementById('no_bpjs'), 13);
                         const no_telepon = document.getElementById('no_telepon').value.trim();
                         const jenis_kelamin = document.getElementById('jenis_kelamin').value;
                         const tanggal_lahir = document.getElementById('tanggal_lahir').value;
@@ -4841,6 +4913,39 @@
                         const waktu_daftar = new Date();
 
                         try {
+                            updateNikHint();
+                            updateBpjsHint();
+
+                            if (!nik || nik.length !== 16) {
+                                throw new Error('NIK harus 16 digit. Silakan periksa kembali.');
+                            }
+                            if (no_bpjs && no_bpjs.length !== 13) {
+                                throw new Error('Nomor BPJS harus 13 digit. Silakan periksa kembali.');
+                            }
+                            if (jenis_pasien === 'BPJS' && (!no_bpjs || no_bpjs.length !== 13)) {
+                                throw new Error('Nomor BPJS wajib diisi dan harus 13 digit untuk pasien BPJS.');
+                            }
+
+                            if (patientMode === 'baru') {
+                                const { count: nikCount, error: nikCheckError } = await withTimeout(
+                                    supabaseClient
+                                        .from('pasien')
+                                        .select('id', { count: 'exact', head: true })
+                                        .eq('nik', nik),
+                                    15000,
+                                    'Validasi NIK pasien'
+                                );
+                                if (nikCheckError) {
+                                    throw new Error('Gagal memvalidasi NIK pasien: ' + nikCheckError.message);
+                                }
+                                if (typeof nikCount === 'number' && nikCount > 0) {
+                                    await setPatientMode('lama');
+                                    noRmLookup.value = nik;
+                                    await lookupPasienLama();
+                                    throw new Error('NIK ini sudah terdaftar. Gunakan mode Pasien Lama agar No RM tidak berubah.');
+                                }
+                            }
+
                             const { startISO, endISO } = getTodayRangeISO();
                             let antrianTarget = null;
                             let no_antrian = '';
