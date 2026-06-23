@@ -6542,7 +6542,7 @@
                 width: 210mm;
                 min-height: 297mm;
                 margin: 0 auto 12mm;
-                padding: 10mm 11mm 9mm;
+                padding: 7.5mm 11mm 7mm;
                 background: #ffffff;
                 box-shadow: 0 18px 50px -24px rgba(15, 23, 42, 0.35);
                 box-sizing: border-box;
@@ -6569,7 +6569,7 @@
                 align-items: stretch;
                 border: 1.5px solid #111111;
                 padding: 4mm 4mm 3.5mm;
-                margin-bottom: 4mm;
+                margin-bottom: 3.2mm;
             }
             .gc-patient-col {
                 border-left: 1.5px solid #111111;
@@ -6636,8 +6636,9 @@
                 vertical-align: top;
             }
             .gc-patient-meta td:first-child {
-                width: 20mm;
+                width: 22mm;
                 font-weight: 700;
+                white-space: nowrap;
             }
             .gc-patient-meta td:nth-child(2) {
                 width: 3mm;
@@ -6646,23 +6647,23 @@
                 border: 1.5px solid #111111;
                 text-align: center;
                 padding: 2.8mm 3mm;
-                font-size: 13pt;
+                font-size: 12.5pt;
                 font-weight: 700;
                 margin-bottom: 1.4mm;
             }
             .gc-subtitle {
                 text-align: center;
-                font-size: 11.2pt;
+                font-size: 11pt;
                 font-weight: 700;
-                margin-bottom: 1.4mm;
+                margin-bottom: 1.1mm;
                 text-transform: uppercase;
                 line-height: 1.2;
             }
             .gc-body-box {
                 border: 1.5px solid #111111;
-                padding: 3.5mm 4mm 4mm;
-                font-size: 10.8pt;
-                line-height: 1.42;
+                padding: 3mm 3.5mm 3.2mm;
+                font-size: 10.5pt;
+                line-height: 1.36;
             }
             .gc-body-box-second {
                 min-height: 260mm;
@@ -6695,7 +6696,7 @@
                 outline: none;
             }
             .gc-section {
-                margin-top: 3.2mm;
+                margin-top: 2.4mm;
             }
             .gc-section-title {
                 font-weight: 700;
@@ -6704,7 +6705,7 @@
             .gc-paragraph,
             .gc-plain-paragraph {
                 text-align: justify;
-                margin-bottom: 1.4mm;
+                margin-bottom: 1.1mm;
             }
             .gc-paragraph {
                 padding-left: 5.5mm;
@@ -6720,16 +6721,16 @@
                 grid-template-columns: 6mm 1fr;
                 gap: 1mm;
                 margin-left: 8mm;
-                margin-bottom: 1.1mm;
+                margin-bottom: 0.8mm;
                 text-align: justify;
             }
             .gc-family-table {
-                margin-top: 1.2mm;
+                margin-top: 0.8mm;
                 margin-left: 7mm;
-                font-size: 10.8pt;
+                font-size: 10.5pt;
             }
             .gc-family-table td {
-                padding: 0.7mm 1mm 0.7mm 0;
+                padding: 0.5mm 1mm 0.5mm 0;
                 vertical-align: top;
             }
             .gc-family-table td:first-child {
@@ -6862,6 +6863,11 @@
                 }
                 body[data-print-mode="general-consent"] .gc-sheet:last-child {
                     page-break-after: auto;
+                }
+                body[data-print-mode="general-consent"] .gc-body-box,
+                body[data-print-mode="general-consent"] .gc-family-table {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
                 }
                 body[data-print-mode="general-consent"] .gc-input {
                     -webkit-appearance: none;
