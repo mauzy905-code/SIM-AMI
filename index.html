@@ -6141,6 +6141,10 @@
                         return String(value || '').replace(/\D+/g, '');
                     }
 
+                    function isGeneralConsentPatientSelfRelation(value) {
+                        return String(value || '').trim().toLowerCase() === 'pasien sendiri';
+                    }
+
                     function showGeneralConsentValidation(message = '') {
                         const box = document.getElementById('gcValidationMessage');
                         if (!box) return;
@@ -6154,6 +6158,21 @@
                     }
 
                     function validateGeneralConsentAuthorizers() {
+                        const hubunganSigner = String(document.getElementById('gc_hubungan_select')?.value || '').trim();
+                        const signerName = String(document.getElementById('gc_nama_ttd')?.value || '').trim();
+                        const signerBirthDate = String(document.getElementById('gc_tgl_lahir_ttd')?.value || '').trim();
+                        const signerAddress = String(document.getElementById('gc_alamat_ttd')?.value || '').trim();
+                        const signerPhone = sanitizePhoneDigits(document.getElementById('gc_telepon_ttd')?.value || '');
+                        if (!hubunganSigner) {
+                            showGeneralConsentValidation('Hubungan penandatangan harus dipilih terlebih dahulu.');
+                            return false;
+                        }
+                        if (!isGeneralConsentPatientSelfRelation(hubunganSigner)) {
+                            if (!signerName || !signerBirthDate || !signerAddress || !signerPhone) {
+                                showGeneralConsentValidation('Jika penandatangan bukan pasien sendiri, nama, tanggal lahir, alamat, dan telepon pada bagian yang bertanda tangan dibawah ini harus dilengkapi.');
+                                return false;
+                            }
+                        }
                         const auth1Name = String(document.getElementById('gc_auth1_name')?.value || '').trim();
                         const auth1Relation = String(document.getElementById('gc_auth1_relation')?.value || '').trim();
                         const auth1Phone = sanitizePhoneDigits(document.getElementById('gc_auth1_phone')?.value || '');
@@ -6176,27 +6195,79 @@
                         return true;
                     }
 
+                    function setGeneralConsentSignerFields(values = {}, readOnly = false) {
+                        const nameInput = document.getElementById('gc_nama_ttd');
+                        const birthInput = document.getElementById('gc_tgl_lahir_ttd');
+                        const addressInput = document.getElementById('gc_alamat_ttd');
+                        const phoneInput = document.getElementById('gc_telepon_ttd');
+                        if (nameInput) {
+                            nameInput.value = values.nama || '';
+                            nameInput.readOnly = readOnly;
+                        }
+                        if (birthInput) {
+                            birthInput.value = values.tanggal_lahir || '';
+                            birthInput.readOnly = readOnly;
+                        }
+                        if (addressInput) {
+                            addressInput.value = values.alamat || '';
+                            addressInput.readOnly = readOnly;
+                        }
+                        if (phoneInput) {
+                            phoneInput.value = values.telepon || '';
+                            phoneInput.readOnly = readOnly;
+                        }
+                    }
+
+                    function refreshGeneralConsentSignerIdentity({ clearManual = false } = {}) {
+                        const hubunganSelect = document.getElementById('gc_hubungan_select');
+                        const hubunganValue = String(hubunganSelect?.value || '').trim();
+                        const formattedBirthDate = formatGeneralConsentDate(currentPatientForConsent?.tanggal_lahir || '');
+                        if (isGeneralConsentPatientSelfRelation(hubunganValue)) {
+                            setGeneralConsentSignerFields({
+                                nama: currentPatientForConsent?.nama_pasien || '',
+                                tanggal_lahir: formattedBirthDate,
+                                alamat: currentPatientForConsent?.alamat || '',
+                                telepon: sanitizePhoneDigits(currentPatientForConsent?.no_telepon || '')
+                            }, true);
+                            return;
+                        }
+                        const currentName = String(document.getElementById('gc_nama_ttd')?.value || '').trim();
+                        const currentBirthDate = String(document.getElementById('gc_tgl_lahir_ttd')?.value || '').trim();
+                        const currentAddress = String(document.getElementById('gc_alamat_ttd')?.value || '').trim();
+                        const currentPhone = sanitizePhoneDigits(document.getElementById('gc_telepon_ttd')?.value || '');
+                        const patientPhone = sanitizePhoneDigits(currentPatientForConsent?.no_telepon || '');
+                        const matchesPatientIdentity = currentName === String(currentPatientForConsent?.nama_pasien || '').trim()
+                            && currentBirthDate === formattedBirthDate
+                            && currentAddress === String(currentPatientForConsent?.alamat || '').trim()
+                            && currentPhone === patientPhone;
+                        if (clearManual || matchesPatientIdentity) {
+                            setGeneralConsentSignerFields({}, false);
+                        } else {
+                            setGeneralConsentSignerFields({
+                                nama: currentName,
+                                tanggal_lahir: currentBirthDate,
+                                alamat: currentAddress,
+                                telepon: currentPhone
+                            }, false);
+                        }
+                    }
+
                     function updateGeneralConsentAuthorizers() {
-                        const patientName = currentPatientForConsent?.nama_pasien || '';
-                        const auth1Name = String(document.getElementById('gc_auth1_name')?.value || '').trim();
-                        const auth1Relation = String(document.getElementById('gc_auth1_relation')?.value || '').trim();
                         const auth1PhoneInput = document.getElementById('gc_auth1_phone');
                         const auth2PhoneInput = document.getElementById('gc_auth2_phone');
                         const auth1Phone = sanitizePhoneDigits(auth1PhoneInput?.value || '');
-                        const auth2Name = String(document.getElementById('gc_auth2_name')?.value || '').trim();
-                        const auth2Relation = String(document.getElementById('gc_auth2_relation')?.value || '').trim();
                         const auth2Phone = sanitizePhoneDigits(auth2PhoneInput?.value || '');
-                        const hubunganSelect = document.getElementById('gc_hubungan_select');
+                        const signerName = String(document.getElementById('gc_nama_ttd')?.value || '').trim();
+                        const signerPhoneInput = document.getElementById('gc_telepon_ttd');
+                        const signerPhone = sanitizePhoneDigits(signerPhoneInput?.value || '');
+                        const witnessName = String(document.getElementById('gc_saksi_manual')?.value || '').trim();
                         if (auth1PhoneInput && auth1PhoneInput.value !== auth1Phone) auth1PhoneInput.value = auth1Phone;
                         if (auth2PhoneInput && auth2PhoneInput.value !== auth2Phone) auth2PhoneInput.value = auth2Phone;
-                        document.getElementById('gc_sign_primary_name').textContent = auth1Name || patientName || '';
-                        document.getElementById('gc_sign_witness_name').textContent = auth2Name || '';
+                        if (signerPhoneInput && signerPhoneInput.value !== signerPhone) signerPhoneInput.value = signerPhone;
+                        document.getElementById('gc_sign_primary_name').textContent = signerName || currentPatientForConsent?.nama_pasien || '';
+                        document.getElementById('gc_sign_witness_name').textContent = witnessName || '';
                         document.getElementById('gc_sign_admin_name').textContent = getCurrentOperatorName() || '';
                         document.getElementById('gc_sign_admin_label').textContent = getCurrentOperatorName() || '-';
-
-                        if (hubunganSelect) {
-                            hubunganSelect.value = auth1Relation || '';
-                        }
                         validateGeneralConsentAuthorizers();
                     }
 
@@ -6210,25 +6281,23 @@
                         document.getElementById('gc_jk').textContent = patientData.jenis_kelamin || '';
                         document.getElementById('gc_tgl_lahir').textContent = formattedBirthDate;
                         
-                        // Tanda tangan section (same as patient for now)
-                        document.getElementById('gc_nama_ttd').textContent = patientData.nama_pasien || '';
-                        document.getElementById('gc_tgl_lahir_ttd').textContent = formattedBirthDate;
-                        document.getElementById('gc_alamat_ttd').textContent = patientData.alamat || '';
-                        document.getElementById('gc_telepon_ttd').textContent = patientData.no_telepon || '';
                         const hubunganSelect = document.getElementById('gc_hubungan_select');
-                        if (hubunganSelect) hubunganSelect.value = '';
+                        if (hubunganSelect) hubunganSelect.value = 'Pasien Sendiri';
+                        refreshGeneralConsentSignerIdentity({ clearManual: true });
                         const auth1NameInput = document.getElementById('gc_auth1_name');
                         const auth1RelationInput = document.getElementById('gc_auth1_relation');
                         const auth1PhoneInput = document.getElementById('gc_auth1_phone');
                         const auth2NameInput = document.getElementById('gc_auth2_name');
                         const auth2RelationInput = document.getElementById('gc_auth2_relation');
                         const auth2PhoneInput = document.getElementById('gc_auth2_phone');
+                        const witnessInput = document.getElementById('gc_saksi_manual');
                         if (auth1NameInput) auth1NameInput.value = '';
                         if (auth1RelationInput) auth1RelationInput.value = '';
                         if (auth1PhoneInput) auth1PhoneInput.value = '';
                         if (auth2NameInput) auth2NameInput.value = '';
                         if (auth2RelationInput) auth2RelationInput.value = '';
                         if (auth2PhoneInput) auth2PhoneInput.value = '';
+                        if (witnessInput) witnessInput.value = '';
                         showGeneralConsentValidation('');
                         updateGeneralConsentAuthorizers();
                         
@@ -6268,6 +6337,18 @@
                         el.addEventListener('input', updateGeneralConsentAuthorizers);
                         el.addEventListener('change', updateGeneralConsentAuthorizers);
                     });
+                    document.getElementById('gc_hubungan_select')?.addEventListener('change', function() {
+                        refreshGeneralConsentSignerIdentity({ clearManual: true });
+                        updateGeneralConsentAuthorizers();
+                    });
+                    ['gc_nama_ttd', 'gc_tgl_lahir_ttd', 'gc_alamat_ttd', 'gc_telepon_ttd'].forEach((id) => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        el.addEventListener('input', updateGeneralConsentAuthorizers);
+                        el.addEventListener('change', updateGeneralConsentAuthorizers);
+                    });
+                    document.getElementById('gc_saksi_manual')?.addEventListener('input', updateGeneralConsentAuthorizers);
+                    document.getElementById('gc_saksi_manual')?.addEventListener('change', updateGeneralConsentAuthorizers);
 
                     // Button from form
                     document.getElementById('printGeneralConsentFromFormBtn').addEventListener('click', function() {
@@ -6385,23 +6466,23 @@
                                 <div class="gc-body-box">
                                     <table class="gc-identity-table">
                                         <tr><td class="gc-label-wide">Yang bertanda tangan dibawah ini</td><td class="gc-colon">:</td><td></td></tr>
-                                        <tr><td>Nama</td><td class="gc-colon">:</td><td id="gc_nama_ttd"></td></tr>
-                                        <tr><td>Tanggal lahir</td><td class="gc-colon">:</td><td id="gc_tgl_lahir_ttd"></td></tr>
-                                        <tr><td>Alamat</td><td class="gc-colon gc-align-top">:</td><td id="gc_alamat_ttd"></td></tr>
-                                        <tr><td>Telepon</td><td class="gc-colon">:</td><td id="gc_telepon_ttd"></td></tr>
+                                        <tr><td>Nama</td><td class="gc-colon">:</td><td><input id="gc_nama_ttd" type="text" class="gc-input gc-line-input gc-signer-input" placeholder="Nama penandatangan"></td></tr>
+                                        <tr><td>Tanggal lahir</td><td class="gc-colon">:</td><td><input id="gc_tgl_lahir_ttd" type="text" class="gc-input gc-line-input gc-signer-input" placeholder="Tanggal lahir"></td></tr>
+                                        <tr><td>Alamat</td><td class="gc-colon gc-align-top">:</td><td><textarea id="gc_alamat_ttd" rows="2" class="gc-input gc-line-input gc-signer-textarea" placeholder="Alamat penandatangan"></textarea></td></tr>
+                                        <tr><td>Telepon</td><td class="gc-colon">:</td><td><input id="gc_telepon_ttd" type="text" inputmode="tel" class="gc-input gc-line-input gc-signer-input" placeholder="Nomor telepon"></td></tr>
                                         <tr>
                                             <td>Hubungan</td>
                                             <td class="gc-colon">:</td>
                                             <td>
                                                 <select id="gc_hubungan_select" class="gc-input gc-input-inline">
-                                                    <option value="">Pilih Hubungan</option>
+                                                    <option value="Pasien Sendiri">Pasien Sendiri</option>
                                                     <option value="Suami">Suami</option>
                                                     <option value="Istri">Istri</option>
                                                     <option value="Anak">Anak</option>
                                                     <option value="Orang Tua">Orang Tua</option>
                                                     <option value="Wali">Wali</option>
                                                     <option value="Keluarga">Keluarga</option>
-                                                    <option value="Pasien Sendiri">Pasien Sendiri</option>
+                                                    <option value="Teman">Teman</option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -6439,6 +6520,7 @@
                                                         <option value="Wali">Wali</option>
                                                         <option value="Keluarga">Keluarga</option>
                                                         <option value="Pasien Sendiri">Pasien Sendiri</option>
+                                                        <option value="Teman">Teman</option>
                                                     </select>
                                                 </td>
                                                 <td><input id="gc_auth1_phone" type="text" inputmode="tel" class="gc-input gc-line-input" placeholder="No Telp"></td>
@@ -6456,6 +6538,7 @@
                                                         <option value="Wali">Wali</option>
                                                         <option value="Keluarga">Keluarga</option>
                                                         <option value="Pasien Sendiri">Pasien Sendiri</option>
+                                                        <option value="Teman">Teman</option>
                                                     </select>
                                                 </td>
                                                 <td><input id="gc_auth2_phone" type="text" inputmode="tel" class="gc-input gc-line-input" placeholder="No Telp"></td>
@@ -6502,7 +6585,8 @@
                                                 </td>
                                                 <td>
                                                     <div class="gc-sign-role">Saksi I</div>
-                                                    <div class="gc-sign-subrole">Keluarga pasien</div>
+                                                    <div class="gc-sign-subrole">Diisi manual oleh petugas</div>
+                                                    <input id="gc_saksi_manual" type="text" class="gc-input gc-line-input gc-signer-input gc-witness-input" placeholder="Nama Saksi I">
                                                     <div class="gc-sign-space"></div>
                                                     <div class="gc-sign-line">(<span id="gc_sign_witness_name"></span>)</div>
                                                     <div class="gc-sign-note">Nama Lengkap Dan Tanda tangan</div>
@@ -6697,6 +6781,19 @@
                 background: transparent;
                 padding: 0;
                 outline: none;
+            }
+            .gc-signer-input {
+                width: 100%;
+            }
+            .gc-signer-textarea {
+                width: 100%;
+                min-height: 11mm;
+                resize: none;
+                line-height: 1.3;
+                padding-top: 0.4mm;
+            }
+            .gc-witness-input {
+                margin-top: 1.4mm;
             }
             .gc-section {
                 margin-top: 2.4mm;
