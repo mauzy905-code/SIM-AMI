@@ -6584,7 +6584,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="gc-sign-role">Saksi I</div>
-                                                    <div class="gc-sign-subrole">Diisi manual oleh petugas</div>
+                                                    <div class="gc-sign-subrole">&nbsp;</div>
                                                     <input id="gc_saksi_manual" type="text" class="gc-input gc-line-input gc-signer-input gc-witness-input" placeholder="Nama Saksi I">
                                                     <div class="gc-sign-space"></div>
                                                     <div class="gc-sign-line">(<span id="gc_sign_witness_name"></span>)</div>
@@ -6635,12 +6635,13 @@
             }
             .gc-vertical-label {
                 position: absolute;
-                right: -7mm;
-                top: 110mm;
-                transform: rotate(90deg);
-                transform-origin: top right;
+                right: -18mm;
+                top: 50%;
+                transform: translateY(-50%) rotate(90deg);
+                transform-origin: center;
                 font-size: 11pt;
                 font-weight: 700;
+                font-style: italic;
                 letter-spacing: 0.02em;
                 white-space: nowrap;
                 color: #111111;
@@ -6955,9 +6956,15 @@
                 }
                 body[data-print-mode="general-consent"] .gc-sheet {
                     margin: 0;
+                    width: auto;
+                    min-height: auto;
+                    padding: 5mm 8mm 5mm;
                     box-shadow: none;
                     break-after: auto;
                     page-break-after: auto;
+                }
+                body[data-print-mode="general-consent"] .gc-sheet-break {
+                    padding-top: 4mm;
                 }
                 body[data-print-mode="general-consent"] .gc-sheet:not(:last-of-type) {
                     break-after: page;
