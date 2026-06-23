@@ -1764,6 +1764,11 @@
                         setPrintPageSize('');
                     }
 
+                    window.addEventListener('afterprint', () => {
+                        if (!activePrintMode) return;
+                        clearActivePrintMode();
+                    });
+
                     async function triggerPatientPrint(mode) {
                         if (!lastRegisteredPrintPayload) {
                             setPrintButtonsState(false);
@@ -6182,13 +6187,6 @@
                         const hubunganSelect = document.getElementById('gc_hubungan_select');
                         if (auth1PhoneInput && auth1PhoneInput.value !== auth1Phone) auth1PhoneInput.value = auth1Phone;
                         if (auth2PhoneInput && auth2PhoneInput.value !== auth2Phone) auth2PhoneInput.value = auth2Phone;
-
-                        document.getElementById('gc_keluarga_1').textContent = auth1Name;
-                        document.getElementById('gc_hubungan_1').textContent = auth1Relation;
-                        document.getElementById('gc_telp_1').textContent = auth1Phone;
-                        document.getElementById('gc_keluarga_2').textContent = auth2Name;
-                        document.getElementById('gc_hubungan_2').textContent = auth2Relation;
-                        document.getElementById('gc_telp_2').textContent = auth2Phone;
                         document.getElementById('gc_sign_primary_name').textContent = auth1Name || patientName || '';
                         document.getElementById('gc_sign_witness_name').textContent = auth2Name || '';
                         document.getElementById('gc_sign_admin_name').textContent = getCurrentOperatorName() || '';
@@ -6252,7 +6250,10 @@
 
                     function printGeneralConsent() {
                         if (!validateGeneralConsentAuthorizers()) return;
-                        window.print();
+                        activePrintMode = 'general-consent';
+                        document.body.setAttribute('data-print-mode', 'general-consent');
+                        setPrintPageSize('A4');
+                        window.setTimeout(() => window.print(), 30);
                     }
 
                     // Event listeners for General Consent
@@ -6791,17 +6792,14 @@
                 min-height: 7mm;
             }
             @media print {
-                @page {
-                    size: A4 portrait;
-                    margin: 0;
-                }
-                body * {
+                body[data-print-mode="general-consent"] * {
                     visibility: hidden;
                 }
-                #generalConsentModal, #generalConsentModal * {
+                body[data-print-mode="general-consent"] #generalConsentModal,
+                body[data-print-mode="general-consent"] #generalConsentModal * {
                     visibility: visible;
                 }
-                #generalConsentModal {
+                body[data-print-mode="general-consent"] #generalConsentModal {
                     position: absolute;
                     left: 0;
                     top: 0;
@@ -6809,14 +6807,14 @@
                     height: auto;
                     background: white !important;
                 }
-                #generalConsentModal > div:first-child {
+                body[data-print-mode="general-consent"] #generalConsentModal > div:first-child {
                     display: none;
                 }
-                #generalConsentModal > div:last-child > div:first-child {
+                body[data-print-mode="general-consent"] #generalConsentModal > div:last-child > div:first-child {
                     display: none;
                 }
-                #generalConsentModal > div:last-child,
-                #generalConsentModal > div:last-child > div {
+                body[data-print-mode="general-consent"] #generalConsentModal > div:last-child,
+                body[data-print-mode="general-consent"] #generalConsentModal > div:last-child > div {
                     display: block;
                     min-height: auto;
                     max-height: none;
@@ -6825,32 +6823,32 @@
                     border-radius: 0;
                     background: white;
                 }
-                #generalConsentModal .sticky {
+                body[data-print-mode="general-consent"] #generalConsentModal .sticky {
                     display: none !important;
                 }
-                #generalConsentModal .p-6 {
+                body[data-print-mode="general-consent"] #generalConsentModal .p-6 {
                     padding: 0 !important;
                     background: white !important;
                 }
-                #gcValidationMessage {
+                body[data-print-mode="general-consent"] #gcValidationMessage {
                     display: none !important;
                 }
-                .gc-sheet {
+                body[data-print-mode="general-consent"] .gc-sheet {
                     margin: 0;
                     box-shadow: none;
                     page-break-after: always;
                 }
-                .gc-sheet:last-child {
+                body[data-print-mode="general-consent"] .gc-sheet:last-child {
                     page-break-after: auto;
                 }
-                .gc-input {
+                body[data-print-mode="general-consent"] .gc-input {
                     -webkit-appearance: none;
                     -moz-appearance: none;
                     appearance: none;
                     border: none !important;
                     background: transparent !important;
                 }
-                select.gc-input {
+                body[data-print-mode="general-consent"] select.gc-input {
                     pointer-events: none;
                 }
             }
