@@ -952,12 +952,14 @@
 
         <style>
             @media print {
-                html, body {
+                body[data-print-mode="barcode"],
+                body[data-print-mode="wristband"] {
                     margin: 0 !important;
                     padding: 0 !important;
                     overflow: hidden !important;
                 }
-                body > * {
+                body[data-print-mode="barcode"] > *,
+                body[data-print-mode="wristband"] > * {
                     display: none !important;
                 }
                 body[data-print-mode="barcode"] {
@@ -6362,7 +6364,7 @@
                                             <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>
                                             <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>
                                             <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>
-                                            <div class="gc-header-address">Kecamatan Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris@gmail.com</div>
+                                            <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris@gmail.com</div>
                                         </div>
                                     </div>
                                     <div class="gc-patient-box">
@@ -6472,9 +6474,9 @@
                                     <div class="gc-section">
                                         <div class="gc-section-title">V. KEBUTUHAN PRIVASI PASIEN DAN HARAPAN PASIEN</div>
                                         <div class="gc-plain-paragraph">Saya memberikan ijin kepada RSUD Aji Muhammad Idris menjaga privasi pada saat wawancara, pemeriksaan, perawatan dan saat dipindahkan.</div>
-                                        <div class="gc-line-row"><span>a. Harapan :</span><span class="gc-line-fill" id="gc_harapan"></span></div>
-                                        <div class="gc-line-row"><span>b.</span><span class="gc-line-fill" id="gc_b_privasi"></span></div>
-                                        <div class="gc-line-row"><span>c.</span><span class="gc-line-fill" id="gc_c_privasi"></span></div>
+                                        <div class="gc-line-row"><span>a. Harapan :</span><input id="gc_harapan_input" type="text" class="gc-input gc-line-entry"></div>
+                                        <div class="gc-line-row"><span>b.</span><input id="gc_b_privasi_input" type="text" class="gc-input gc-line-entry"></div>
+                                        <div class="gc-line-row"><span>c.</span><input id="gc_c_privasi_input" type="text" class="gc-input gc-line-entry"></div>
                                     </div>
 
                                     <div class="gc-section">
@@ -6594,13 +6596,15 @@
                 font-weight: 700;
             }
             .gc-header-title {
-                font-size: 12pt;
+                font-size: 11.5pt;
                 font-weight: 700;
                 margin-top: 1mm;
+                white-space: nowrap;
             }
             .gc-header-address {
-                font-size: 7.8pt;
+                font-size: 7.2pt;
                 margin-top: 0.6mm;
+                white-space: nowrap;
             }
             .gc-patient-box {
                 border: 1.5px solid #111111;
@@ -6660,7 +6664,8 @@
                 vertical-align: top;
             }
             .gc-label-wide {
-                width: 43mm;
+                width: 60mm;
+                white-space: nowrap;
             }
             .gc-colon {
                 width: 4mm;
@@ -6743,6 +6748,15 @@
                 display: block;
                 min-height: 5.5mm;
                 border-bottom: 1px dotted #111111;
+            }
+            .gc-line-entry {
+                width: 100%;
+                font: inherit;
+                border: none;
+                border-bottom: 1px dotted #111111;
+                background: transparent;
+                padding: 0 0 0.6mm;
+                outline: none;
             }
             .gc-signature-block {
                 margin-top: 7mm;
