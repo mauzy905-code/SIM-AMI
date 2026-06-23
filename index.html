@@ -6643,6 +6643,9 @@
             .gc-patient-meta td:nth-child(2) {
                 width: 3mm;
             }
+            #gc_jk {
+                white-space: nowrap;
+            }
             .gc-title-box {
                 border: 1.5px solid #111111;
                 text-align: center;
@@ -6859,10 +6862,12 @@
                 body[data-print-mode="general-consent"] .gc-sheet {
                     margin: 0;
                     box-shadow: none;
-                    page-break-after: always;
-                }
-                body[data-print-mode="general-consent"] .gc-sheet:last-child {
+                    break-after: auto;
                     page-break-after: auto;
+                }
+                body[data-print-mode="general-consent"] .gc-sheet:not(:last-of-type) {
+                    break-after: page;
+                    page-break-after: always;
                 }
                 body[data-print-mode="general-consent"] .gc-body-box,
                 body[data-print-mode="general-consent"] .gc-family-table {
