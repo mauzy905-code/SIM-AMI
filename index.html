@@ -5448,6 +5448,7 @@
 
                     function r_renderRows(items) {
                         const isRme = isRmeRole();
+                        const isIgd = isIgdRole();
                         const isPetugasPoli = isPetugasPoliScopedRekap();
                         const canManageDriveLink = canManagePatientDriveLink();
                         const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
@@ -5492,7 +5493,7 @@
                                 ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
                                 : '';
                             const editIdentityCell = patientEditBtn || `<span class="text-xs font-semibold text-slate-400">-</span>`;
-                            const gcBtnRekap = isIgd
+                            const gcBtnRekap = (isIgd && String(p.unit || '').toUpperCase() === 'UGD')
                                 ? `<button type="button" class="gc-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
                                     nama_pasien: p.nama_pasien,
                                     tanggal_lahir: p.tanggal_lahir,
