@@ -678,12 +678,12 @@
                         </div>
                         <div class="p-5 md:p-6">
                             <div class="rounded-[28px] border border-emerald-100 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fbff_100%)] p-4 md:p-5 shadow-sm">
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                                <div class="lg:col-span-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
+                                <div class="md:col-span-2 xl:col-span-4">
                                     <label id="r_q_label" class="block text-slate-700 font-semibold mb-2">Cari (Nama / NIK / No BPJS / No RM / No Antrian)</label>
                                     <input id="r_q" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari...">
                                 </div>
-                                <div class="lg:col-span-1">
+                                <div class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Urutkan</label>
                                     <select id="r_sort" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                         <option value="created_at_desc">Terbaru</option>
@@ -691,7 +691,7 @@
                                         <option value="no_rm_desc">No RM (Besar → Kecil)</option>
                                     </select>
                                 </div>
-                                <div id="r_filter_unit_wrap" class="lg:col-span-2">
+                                <div id="r_filter_unit_wrap" class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Unit</label>
                                     <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                         <option value="">Semua Unit</option>
@@ -700,7 +700,7 @@
                                         <option value="FARMASI">Farmasi</option>
                                     </select>
                                 </div>
-                                <div id="r_filter_jenis_wrap" class="lg:col-span-2">
+                                <div id="r_filter_jenis_wrap" class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Jenis Pasien</label>
                                     <select id="r_jenis_pasien" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                         <option value="">Semua Jenis</option>
@@ -708,7 +708,7 @@
                                         <option value="UMUM">Umum</option>
                                     </select>
                                 </div>
-                                <div id="r_filter_poli_wrap" class="lg:col-span-2">
+                                <div id="r_filter_poli_wrap" class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Poli</label>
                                     <select id="r_poli_tujuan" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                         <option value="">Semua Poli</option>
@@ -717,11 +717,11 @@
                                         <option value="DOKTER_UMUM">Poli Umum</option>
                                     </select>
                                 </div>
-                                <div class="lg:col-span-1">
+                                <div class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Dari</label>
                                     <input id="r_from" type="date" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                 </div>
-                                <div class="lg:col-span-1">
+                                <div class="xl:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Sampai</label>
                                     <input id="r_to" type="date" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                 </div>
