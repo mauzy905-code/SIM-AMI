@@ -679,9 +679,17 @@
                         <div class="p-5 md:p-6">
                             <div class="rounded-[28px] border border-emerald-100 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fbff_100%)] p-4 md:p-5 shadow-sm">
                             <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                                <div class="lg:col-span-4">
+                                <div class="lg:col-span-3">
                                     <label id="r_q_label" class="block text-slate-700 font-semibold mb-2">Cari (Nama / NIK / No BPJS / No RM / No Antrian)</label>
                                     <input id="r_q" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari...">
+                                </div>
+                                <div class="lg:col-span-1">
+                                    <label class="block text-slate-700 font-semibold mb-2">Urutkan</label>
+                                    <select id="r_sort" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                        <option value="created_at_desc">Terbaru</option>
+                                        <option value="no_rm_asc">No RM (Kecil → Besar)</option>
+                                        <option value="no_rm_desc">No RM (Besar → Kecil)</option>
+                                    </select>
                                 </div>
                                 <div id="r_filter_unit_wrap" class="lg:col-span-2">
                                     <label class="block text-slate-700 font-semibold mb-2">Unit</label>
@@ -5331,6 +5339,7 @@
 
                         const rEls = {
                             q: document.getElementById('r_q'),
+                            sort: document.getElementById('r_sort'),
                             unit: document.getElementById('r_unit'),
                             jenisPasien: document.getElementById('r_jenis_pasien'),
                             poliTujuan: document.getElementById('r_poli_tujuan'),
@@ -5451,6 +5460,25 @@
                             }
 
                             return query;
+                        }
+
+                        function r_applySort(query) {
+                            const sort = String(rEls.sort?.value || 'created_at_desc').trim();
+                            if (sort === 'no_rm_asc') {
+                                return query
+                                    .order('no_rm', { ascending: true })
+                                    .order('created_at', { ascending: false })
+                                    .order('id', { ascending: false });
+                            }
+                            if (sort === 'no_rm_desc') {
+                                return query
+                                    .order('no_rm', { ascending: false })
+                                    .order('created_at', { ascending: false })
+                                    .order('id', { ascending: false });
+                            }
+                            return query
+                                .order('created_at', { ascending: false })
+                                .order('id', { ascending: false });
                         }
 
                         function r_renderRows(items) {
@@ -5601,14 +5629,11 @@
                             r_setLoading(true);
                             rEls.meta.textContent = 'Memuat data...';
 
-                            let query = r_applyFilters(
+                            let query = r_applySort(r_applyFilters(
                                 supabaseClient
-                                .from('pasien')
-                                .select('*', { count: 'exact' })
-                                .order('created_at', { ascending: false })
-                                .order('id', { ascending: false })
-                                .range(from, to)
-                            );
+                                    .from('pasien')
+                                    .select('*', { count: 'exact' })
+                            )).range(from, to);
 
                             const { data, error, count } = await query;
                             r_setLoading(false);
@@ -5648,13 +5673,11 @@
                             exportBtn.textContent = 'Menyiapkan...';
 
                             try {
-                                const { data, error } = await r_applyFilters(
+                                const { data, error } = await r_applySort(r_applyFilters(
                                     supabaseClient
                                         .from('pasien')
                                         .select('*')
-                                        .order('created_at', { ascending: false })
-                                        .order('id', { ascending: false })
-                                );
+                                ));
 
                                 if (error) {
                                     throw new Error(error.message);
@@ -5731,6 +5754,7 @@
                         rEls.from.addEventListener('change', () => r_reloadToFirstPage());
                         rEls.to.addEventListener('change', () => r_reloadToFirstPage());
                         rEls.q.addEventListener('input', () => r_debouncedReload());
+                        rEls.sort?.addEventListener('change', () => r_reloadToFirstPage());
                         [
                             { btn: supervisorPeriod1Btn, days: 1 },
                             { btn: supervisorPeriod7Btn, days: 7 },
