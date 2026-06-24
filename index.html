@@ -6287,6 +6287,26 @@
                             return true;
                         }
 
+                        function gc_autoResizeTextarea(el, maxRows = 2) {
+                            if (!el || el.tagName !== 'TEXTAREA') return;
+                            const computed = window.getComputedStyle(el);
+                            let lineHeight = parseFloat(computed.lineHeight);
+                            if (!Number.isFinite(lineHeight)) {
+                                const fontSize = parseFloat(computed.fontSize);
+                                lineHeight = Number.isFinite(fontSize) ? fontSize * 1.2 : 19.2;
+                            }
+                            const paddingTop = parseFloat(computed.paddingTop) || 0;
+                            const paddingBottom = parseFloat(computed.paddingBottom) || 0;
+                            const borderTop = parseFloat(computed.borderTopWidth) || 0;
+                            const borderBottom = parseFloat(computed.borderBottomWidth) || 0;
+                            const extra = paddingTop + paddingBottom + borderTop + borderBottom;
+                            const minHeight = lineHeight + extra;
+                            const maxHeight = (lineHeight * Math.max(1, Number(maxRows) || 2)) + extra;
+                            el.style.height = 'auto';
+                            const nextHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight);
+                            el.style.height = `${nextHeight}px`;
+                        }
+
                         function setGeneralConsentSignerFields(values = {}, readOnly = false) {
                             const nameInput = document.getElementById('gc_nama_ttd');
                             const birthInput = document.getElementById('gc_tgl_lahir_ttd');
@@ -6303,6 +6323,7 @@
                             if (addressInput) {
                                 addressInput.value = values.alamat || '';
                                 addressInput.readOnly = readOnly;
+                                gc_autoResizeTextarea(addressInput, 2);
                             }
                             if (phoneInput) {
                                 phoneInput.value = values.telepon || '';
@@ -6349,6 +6370,7 @@
                             const auth2PhoneInput = document.getElementById('gc_auth2_phone');
                             const auth1Phone = sanitizePhoneDigits(auth1PhoneInput?.value || '');
                             const auth2Phone = sanitizePhoneDigits(auth2PhoneInput?.value || '');
+                            const addressInput = document.getElementById('gc_alamat_ttd');
                             const signerName = String(document.getElementById('gc_nama_ttd')?.value || '').trim();
                             const signerPhoneInput = document.getElementById('gc_telepon_ttd');
                             const signerPhone = sanitizePhoneDigits(signerPhoneInput?.value || '');
@@ -6356,6 +6378,7 @@
                             if (auth1PhoneInput && auth1PhoneInput.value !== auth1Phone) auth1PhoneInput.value = auth1Phone;
                             if (auth2PhoneInput && auth2PhoneInput.value !== auth2Phone) auth2PhoneInput.value = auth2Phone;
                             if (signerPhoneInput && signerPhoneInput.value !== signerPhone) signerPhoneInput.value = signerPhone;
+                            gc_autoResizeTextarea(addressInput, 2);
                             document.getElementById('gc_sign_primary_name').textContent = signerName || currentPatientForConsent?.nama_pasien || '';
                             document.getElementById('gc_sign_witness_name').textContent = witnessName || '';
                         document.getElementById('gc_sign_admin_name').textContent = getSelectedGeneralConsentAdminName();
@@ -6560,7 +6583,7 @@
                                             <tr><td class="gc-label-wide">Yang bertanda tangan dibawah ini</td><td class="gc-colon">:</td><td></td></tr>
                                             <tr><td>Nama</td><td class="gc-colon">:</td><td><input id="gc_nama_ttd" type="text" class="gc-input gc-line-input gc-signer-input" placeholder="Nama penandatangan"></td></tr>
                                             <tr><td>Tanggal lahir</td><td class="gc-colon">:</td><td><input id="gc_tgl_lahir_ttd" type="text" class="gc-input gc-line-input gc-signer-input" placeholder="Tanggal lahir"></td></tr>
-                                            <tr><td>Alamat</td><td class="gc-colon">:</td><td><input id="gc_alamat_ttd" type="text" class="gc-input gc-line-input gc-signer-input" placeholder="Alamat penandatangan"></td></tr>
+                                            <tr><td>Alamat</td><td class="gc-colon">:</td><td><textarea id="gc_alamat_ttd" rows="1" class="gc-input gc-line-input gc-signer-input gc-auto-textarea" placeholder="Alamat penandatangan"></textarea></td></tr>
                                             <tr><td>Telepon</td><td class="gc-colon">:</td><td><input id="gc_telepon_ttd" type="text" inputmode="tel" class="gc-input gc-line-input gc-signer-input" placeholder="Nomor telepon"></td></tr>
                                             <tr>
                                                 <td>Hubungan</td>
@@ -6928,6 +6951,12 @@
                     background: transparent;
                     padding: 0 0 0.4mm;
                     outline: none;
+                }
+                .gc-auto-textarea {
+                    resize: none;
+                    overflow: hidden;
+                    display: block;
+                    line-height: 1.25;
                 }
                 select.gc-line-input {
                     cursor: pointer;
