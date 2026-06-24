@@ -2191,8 +2191,8 @@
                                     : (isPetugasPoli
                                         ? (scopedPetugasPoli
                                             ? 'Cari Pasien Poli (Nama / NIK)'
-                                            : 'Cari (Nama / NIK)')
-                                        : 'Cari (Nama / NIK)');
+                                            : 'Cari (Nama / NIK / No BPJS / No RM / No An)')
+                                        : 'Cari (Nama / NIK / No BPJS / No RM / No Antrian)');
                             }
                             if (exportBtn) {
                                 exportBtn.classList.toggle('hidden', isPetugasPoli || isReadOnlyViewer);
@@ -6738,7 +6738,6 @@
                     margin-bottom: 3.2mm;
                 }
                 .gc-patient-col {
-                    border-left: 1.5px solid #111111;
                     padding-left: 1.4mm;
                     display: flex;
                     justify-content: flex-end;
