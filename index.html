@@ -2439,7 +2439,7 @@
                         }
 
                         function canManagePoliExam() {
-                            return isPetugasPoliRole() || isIgdRole();
+                            return isPetugasPoliRole();
                         }
 
                         function canManagePatientIdentityEdit() {
@@ -2515,7 +2515,7 @@
 
                             if (!canManagePoliExam()) {
                                 savePoliExamBtn.disabled = true;
-                                showPoliExamMessage('Hanya Petugas Poli atau Petugas UGD yang dapat mengisi dokter dan diagnosa.', 'error');
+                                showPoliExamMessage('Hanya akun Petugas Poli yang dapat mengisi dokter dan diagnosa.', 'error');
                             } else if (!poliExamColumnsAvailable) {
                                 savePoliExamBtn.disabled = true;
                                 showPoliExamMessage('Kolom dokter/diagnosa belum ada di database Supabase. Tambahkan kolom nama_dokter dan diagnosa pada tabel pasien.', 'error');
@@ -3453,7 +3453,7 @@
                         async function savePoliExam() {
                             if (!currentPoliExamVisitId) return;
                             if (!canManagePoliExam()) {
-                                showPoliExamMessage('Hanya Petugas Poli atau Petugas UGD yang dapat mengisi dokter dan diagnosa.', 'error');
+                                showPoliExamMessage('Hanya akun Petugas Poli yang dapat mengisi dokter dan diagnosa.', 'error');
                                 return;
                             }
                             if (!poliExamColumnsAvailable) {
