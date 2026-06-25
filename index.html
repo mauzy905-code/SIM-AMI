@@ -6950,17 +6950,174 @@
                                         </div>
                                     </div>
                                     <div class="triage-title">TRIASE UGD</div>
-                                    <div class="triage-row triage-row-2">
-                                        <div class="triage-field">
-                                            <div class="triage-field-label">Tanggal Pemeriksaan</div>
-                                            <input id="t_tanggal_pemeriksaan" type="text" class="triage-input" placeholder="............................">
+                                    <div class="triage-p1-frame">
+                                        <div class="triage-p1-datetime">
+                                            <div class="triage-p1-line">
+                                                <span class="triage-p1-label">Tanggal Pemeriksaan</span>
+                                                <span>:</span>
+                                                <input id="t_tanggal_pemeriksaan" type="text" class="triage-input triage-p1-input-date" placeholder="........................................">
+                                            </div>
+                                            <div class="triage-p1-line">
+                                                <span class="triage-p1-label">Jam datang</span>
+                                                <span>:</span>
+                                                <input id="t_jam_datang" type="text" class="triage-input triage-p1-input-time" placeholder="..........................">
+                                                <span>WITA</span>
+                                            </div>
                                         </div>
-                                        <div class="triage-field">
-                                            <div class="triage-field-label">Jam Datang (WITA)</div>
-                                            <input id="t_jam_datang" type="text" class="triage-input" placeholder="...............">
+
+                                        <div class="triage-p1-section">
+                                            <div class="triage-p1-vital-title">Tanda Vital</div>
+                                            <div class="triage-p1-vital-grid">
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">TD</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>MmHg</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">Nadi</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>x/mnt</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">RR</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>x/mnt</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">T</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>°C</span></div>
+
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">SpO2</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>%</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">BB</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>kg</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">TB</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>cm</span></div>
+                                                <div class="triage-p1-vital-item"><span class="triage-p1-vital-label">IMT</span><input type="text" class="triage-input triage-p1-vital-input" placeholder="........"><span>kg/m²</span></div>
+                                            </div>
+
+                                            <div class="triage-p1-subtitle">Tindakan Pra Hospital</div>
+                                            <div class="triage-p1-ph-grid">
+                                                <div class="triage-p1-ph-col">
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Infus</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> NGT</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Pipa Oro /nasopharyngeal / ETT</label>
+                                                </div>
+                                                <div class="triage-p1-ph-col">
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> O²</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Bidai</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Bebat tekan</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Kateter urin</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Penjahitan</label>
+                                                </div>
+                                                <div class="triage-p1-ph-col">
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> CPR</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Trakeostomi</label>
+                                                    <div class="triage-p1-ph-other">
+                                                        <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Lain-lain :</label>
+                                                        <div class="triage-p1-ph-lines">
+                                                            <input type="text" class="triage-input triage-p1-ph-line" placeholder="...............................................">
+                                                            <input type="text" class="triage-input triage-p1-ph-line" placeholder="...............................................">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="triage-p1-section triage-p1-section-border">
+                                            <div class="triage-abc-grid">
+                                                <div class="triage-abc-cell triage-abc-label">Jalan Nafas<br>(A)</div>
+                                                <div class="triage-abc-cell">
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Paten</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Partial Obstruksi</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Total Obstruksi</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Stridor Inspirasi</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Stridor Ekspirasi</label>
+                                                </div>
+                                                <div class="triage-abc-cell triage-abc-label">Pernafasan<br>(B)</div>
+                                                <div class="triage-abc-cell">
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Normal</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Retractio Kusmaul</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Dangkal</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Tachypnoe</label>
+                                                </div>
+                                                <div class="triage-abc-cell">
+                                                    <div class="triage-abc-mini-title">Gerakan Dada :</div>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Simetris</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Asimetris</label>
+                                                </div>
+
+                                                <div class="triage-abc-cell triage-abc-label triage-abc-border-top">Sirkulasi<br>(C)</div>
+                                                <div class="triage-abc-cell triage-abc-span4 triage-abc-border-top">
+                                                    <div class="triage-abc-subgrid">
+                                                        <div class="triage-abc-subcol">
+                                                            <div class="triage-abc-mini-title">Kulit/Mukosa :</div>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Normal</label>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Pucat</label>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Jaundice</label>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Berkeringat</label>
+                                                        </div>
+                                                        <div class="triage-abc-subcol triage-abc-subcol-border">
+                                                            <div class="triage-abc-mini-title">Akral :</div>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Hangat</label>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> Dingin</label>
+                                                            <div class="triage-abc-mini-title triage-abc-mini-title-spaced">CRT</div>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> &lt; 2 detik</label>
+                                                            <label class="triage-check-item triage-p1-check"><input type="checkbox" class="triage-check"> &gt; 2 detik</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="triage-p1-section triage-p1-section-border">
+                                            <div class="triage-neuro-bar">
+                                                <div class="triage-neuro-title">Status Neurologi (D)</div>
+                                                <div class="triage-neuro-total">Total skor GCS (Glasgow Coma Scale) : <span class="triage-neuro-line"></span></div>
+                                            </div>
+                                            <div class="triage-gcs-grid">
+                                                <div class="triage-gcs-col">
+                                                    <div class="triage-gcs-head">Membuka Mata/Eye (E)</div>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_e" value="4"> 4. Spontan</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_e" value="3"> 3. Dengan perintah</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_e" value="2"> 2. Rangsang nyeri</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_e" value="1"> 1. Tidak respon</label>
+                                                </div>
+                                                <div class="triage-gcs-col">
+                                                    <div class="triage-gcs-head">Respon Verbal (V)</div>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_v" value="5"> 5. Mampu menjawab dengan benar, orientasi sempurna</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_v" value="4"> 4. Disorientasi, bingung</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_v" value="3"> 3. Kata-kata tidak dapat dimengerti/tidak bermakna</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_v" value="2"> 2. Suara tidak jelas/hanya mengerang</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_v" value="1"> 1. Tidak berespon</label>
+                                                </div>
+                                                <div class="triage-gcs-col">
+                                                    <div class="triage-gcs-head">Respon Motorik (M)</div>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="6"> 6. Gerakan sesuai instruksi</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="5"> 5. Mampu melokalisir nyeri</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="4"> 4. Menghindar sumber nyeri</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="3"> 3. Gerakan fleksi abnormal (decortikasi)</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="2"> 2. Gerakan ekstensi abnormal (decerebrasi)</label>
+                                                    <label class="triage-check-item triage-p1-check"><input type="radio" class="triage-check" name="gcs_m" value="1"> 1. Tidak berespon</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="triage-p1-section triage-p1-section-border triage-p1-section-last">
+                                            <div class="triage-triase-grid">
+                                                <div class="triage-triase-label">Kategori<br>Triase</div>
+                                                <div class="triage-triase-table">
+                                                    <div class="triage-triase-row">
+                                                        <div class="triage-triase-check"><input type="checkbox" class="triage-check"></div>
+                                                        <div class="triage-triase-code triage-triase-p1">P1</div>
+                                                        <div class="triage-triase-desc">Pasien cedera berat mengancam jiwa yang kemungkinan besar dapat hidup bila ditolong segera. Waktu tunggu 0 (nol) menit. Contoh kasus Perdarahan berat, Asfiksia, cedera cervical. Trauma kepala dengan koma, luka bakar &gt; 30%, fraktur terbuka ataupun syok dengan tipe apapun.</div>
+                                                    </div>
+                                                    <div class="triage-triase-row">
+                                                        <div class="triage-triase-check"><input type="checkbox" class="triage-check"></div>
+                                                        <div class="triage-triase-code triage-triase-p2">P2</div>
+                                                        <div class="triage-triase-desc">Pasien memerlukan tindakan definitif, tidak ada ancaman jiwa segera. Waktu tunggu 10-15 menit.</div>
+                                                    </div>
+                                                    <div class="triage-triase-row">
+                                                        <div class="triage-triase-check"><input type="checkbox" class="triage-check"></div>
+                                                        <div class="triage-triase-code triage-triase-p3">P3</div>
+                                                        <div class="triage-triase-desc">Pasien dengan cedera minimal, dapat berjalan dan menolong diri sendiri atau mencari pertolongan. Waktu tunggu 30-60 menit.</div>
+                                                    </div>
+                                                    <div class="triage-triase-row">
+                                                        <div class="triage-triase-check"><input type="checkbox" class="triage-check"></div>
+                                                        <div class="triage-triase-code triage-triase-p0">P0</div>
+                                                        <div class="triage-triase-desc">Pasien meninggal atau cedera fatal yang jelas dan tidak mungkin diresusitasi.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="triage-p1-sign">
+                                                <div class="triage-p1-sign-title">Tanda Tangan Petugas Triase</div>
+                                                <div class="triage-p1-sign-line"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="triage-note">Halaman 1 akan disesuaikan pada revisi berikutnya.</div>
                                 </section>
 
                                 <section class="triage-sheet triage-sheet-break">
@@ -7561,16 +7718,19 @@
                 .triage-document {
                     font-family: Arial, sans-serif;
                     color: #111111;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
                 .triage-sheet {
                     position: relative;
                     width: 210mm;
                     min-height: 330mm;
                     margin: 0 auto 12mm;
-                    padding: 7.5mm 11mm 7mm;
+                    padding: 5mm 6mm 5mm;
                     background: #ffffff;
                     box-shadow: 0 18px 50px -24px rgba(15, 23, 42, 0.35);
                     box-sizing: border-box;
+                    border: 1.5px solid #111111;
                 }
                 .triage-sheet-break {
                     padding-top: 10mm;
@@ -7620,6 +7780,274 @@
                     color: #475569;
                     border: 1px dashed #cbd5e1;
                     padding: 3mm 3.2mm;
+                }
+                .triage-p1-frame {
+                    border: 1.5px solid #111111;
+                }
+                .triage-p1-datetime {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 4mm;
+                    padding: 2mm 2.5mm;
+                    border-bottom: 1.5px solid #111111;
+                    font-size: 10.5pt;
+                    font-weight: 700;
+                }
+                .triage-p1-line {
+                    display: inline-flex;
+                    align-items: baseline;
+                    gap: 1.6mm;
+                    white-space: nowrap;
+                }
+                .triage-p1-label {
+                    font-weight: 800;
+                }
+                .triage-p1-input-date {
+                    width: 80mm;
+                }
+                .triage-p1-input-time {
+                    width: 55mm;
+                }
+                .triage-p1-section {
+                    padding: 2.2mm 2.5mm 2.6mm;
+                }
+                .triage-p1-section-border {
+                    border-top: 1.5px solid #111111;
+                }
+                .triage-p1-section-last {
+                    padding-bottom: 3.2mm;
+                }
+                .triage-p1-vital-title {
+                    font-weight: 900;
+                    font-size: 10.5pt;
+                    margin-bottom: 1.4mm;
+                }
+                .triage-p1-vital-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 1.4mm 4mm;
+                    font-size: 10.3pt;
+                    font-weight: 700;
+                }
+                .triage-p1-vital-item {
+                    display: inline-flex;
+                    align-items: baseline;
+                    gap: 1.4mm;
+                    min-width: 0;
+                }
+                .triage-p1-vital-label {
+                    width: 10mm;
+                    display: inline-block;
+                    font-weight: 800;
+                }
+                .triage-p1-vital-input {
+                    width: 20mm;
+                }
+                .triage-p1-subtitle {
+                    margin-top: 2.4mm;
+                    font-weight: 900;
+                    font-size: 10.5pt;
+                }
+                .triage-p1-ph-grid {
+                    margin-top: 1.6mm;
+                    display: grid;
+                    grid-template-columns: 1.1fr 1fr 1fr;
+                    gap: 3mm;
+                }
+                .triage-p1-ph-col {
+                    display: grid;
+                    gap: 1.2mm;
+                }
+                .triage-p1-check {
+                    font-size: 10.2pt;
+                    font-weight: 700;
+                }
+                .triage-p1-ph-other {
+                    display: grid;
+                    gap: 1mm;
+                }
+                .triage-p1-ph-lines {
+                    display: grid;
+                    gap: 1mm;
+                    padding-left: 5mm;
+                }
+                .triage-p1-ph-line {
+                    width: 100%;
+                }
+                .triage-abc-grid {
+                    display: grid;
+                    grid-template-columns: 22mm 1fr 22mm 1fr 34mm;
+                    border: 1.5px solid #111111;
+                }
+                .triage-abc-cell {
+                    padding: 2mm 2mm;
+                    border-right: 1.5px solid #111111;
+                    min-height: 22mm;
+                }
+                .triage-abc-cell:nth-child(5n) {
+                    border-right: none;
+                }
+                .triage-abc-label {
+                    font-weight: 900;
+                    font-size: 10.2pt;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1.1;
+                }
+                .triage-abc-mini-title {
+                    font-weight: 900;
+                    margin-bottom: 1mm;
+                    font-size: 10.2pt;
+                }
+                .triage-abc-mini-title-spaced {
+                    margin-top: 1.6mm;
+                }
+                .triage-abc-border-top {
+                    border-top: 1.5px solid #111111;
+                }
+                .triage-abc-span4 {
+                    grid-column: 2 / 6;
+                    border-right: none;
+                    padding: 0;
+                }
+                .triage-abc-subgrid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    height: 100%;
+                }
+                .triage-abc-subcol {
+                    padding: 2mm 2mm;
+                }
+                .triage-abc-subcol-border {
+                    border-left: 1.5px solid #111111;
+                }
+                .triage-neuro-bar {
+                    border: 1.5px solid #111111;
+                    border-top: none;
+                    display: grid;
+                    grid-template-columns: 1fr 1.2fr;
+                    align-items: center;
+                    padding: 1.6mm 2mm;
+                    gap: 2mm;
+                }
+                .triage-neuro-title {
+                    font-weight: 900;
+                    text-align: center;
+                    font-size: 10.5pt;
+                }
+                .triage-neuro-total {
+                    font-weight: 800;
+                    font-size: 10.3pt;
+                    display: inline-flex;
+                    align-items: baseline;
+                    gap: 1mm;
+                    white-space: nowrap;
+                }
+                .triage-neuro-line {
+                    flex: 1;
+                    border-bottom: 1px dotted #111111;
+                    height: 0;
+                    margin-left: 1mm;
+                }
+                .triage-gcs-grid {
+                    border: 1.5px solid #111111;
+                    border-top: none;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                }
+                .triage-gcs-col {
+                    padding: 1.8mm 2mm 2.2mm;
+                    border-right: 1.5px solid #111111;
+                }
+                .triage-gcs-col:last-child {
+                    border-right: none;
+                }
+                .triage-gcs-head {
+                    font-weight: 900;
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
+                    font-size: 10.2pt;
+                    margin-bottom: 1.2mm;
+                    text-align: center;
+                }
+                .triage-triase-grid {
+                    display: grid;
+                    grid-template-columns: 26mm 1fr;
+                    border: 1.5px solid #111111;
+                }
+                .triage-triase-label {
+                    font-weight: 900;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-right: 1.5px solid #111111;
+                    font-size: 10.5pt;
+                    line-height: 1.2;
+                    padding: 2mm 1mm;
+                }
+                .triage-triase-table {
+                    display: grid;
+                }
+                .triage-triase-row {
+                    display: grid;
+                    grid-template-columns: 10mm 14mm 1fr;
+                    border-bottom: 1.5px solid #111111;
+                    min-height: 14mm;
+                }
+                .triage-triase-row:last-child {
+                    border-bottom: none;
+                }
+                .triage-triase-check {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-right: 1.5px solid #111111;
+                }
+                .triage-triase-code {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 900;
+                    border-right: 1.5px solid #111111;
+                }
+                .triage-triase-desc {
+                    padding: 1.6mm 2mm;
+                    font-size: 9.8pt;
+                    font-weight: 700;
+                    line-height: 1.25;
+                }
+                .triage-triase-p1 {
+                    background: #ef4444;
+                    color: #111111;
+                }
+                .triage-triase-p2 {
+                    background: #fde047;
+                    color: #111111;
+                }
+                .triage-triase-p3 {
+                    background: #22c55e;
+                    color: #111111;
+                }
+                .triage-triase-p0 {
+                    background: #111111;
+                    color: #ffffff;
+                }
+                .triage-p1-sign {
+                    margin-top: 4mm;
+                    text-align: center;
+                }
+                .triage-p1-sign-title {
+                    font-weight: 900;
+                    font-size: 10.5pt;
+                    margin-bottom: 10mm;
+                }
+                .triage-p1-sign-line {
+                    width: 60mm;
+                    margin: 0 auto;
+                    border-bottom: 1.2px solid #111111;
                 }
                 .triage-section-title {
                     font-weight: 800;
@@ -7981,7 +8409,7 @@
                         margin: 0;
                         width: auto;
                         min-height: auto;
-                        padding: 5mm 8mm 5mm;
+                        padding: 3mm 4mm 3mm;
                         box-shadow: none;
                         break-after: auto;
                         page-break-after: auto;
