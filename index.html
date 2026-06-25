@@ -8986,25 +8986,28 @@
                     margin-top: 0.4mm;
                 }
                 .triage-page3 {
-                    font-size: 9pt;
+                    font-size: 8.7pt;
                     font-weight: 400;
+                }
+                .triage-page3.triage-sheet-break {
+                    padding-top: 4mm;
                 }
                 .triage-page3 .triage-p3-frame {
                     border: 1.5px solid #111111;
-                    padding: 2mm 2mm 2.2mm;
-                    margin-top: 2mm;
+                    padding: 1.2mm 1.4mm 1.4mm;
+                    margin-top: 1.2mm;
                 }
                 .triage-page3 .triage-section-title {
                     font-weight: 900;
                     text-align: center;
                     border: 1.5px solid #111111;
                     background: #e5e7eb;
-                    padding: 1.2mm 2mm;
-                    margin-bottom: 2mm;
-                    font-size: 9pt;
+                    padding: 0.9mm 1.6mm;
+                    margin-bottom: 1.1mm;
+                    font-size: 8.6pt;
                 }
                 .triage-page3 .triage-table {
-                    font-size: 8.3pt;
+                    font-size: 7.7pt;
                 }
                 .triage-morse-table .triage-th:nth-child(1) { width: 38mm; }
                 .triage-morse-table .triage-th:nth-child(3) { width: 12mm; }
@@ -9015,7 +9018,8 @@
                 }
                 .triage-page3 .triage-th,
                 .triage-page3 .triage-td {
-                    padding: 0.75mm 1mm;
+                    padding: 0.45mm 0.7mm;
+                    line-height: 1.08;
                 }
                 .triage-p3-table .triage-th:last-child,
                 .triage-p3-table .triage-td:last-child {
@@ -9024,7 +9028,7 @@
                 .triage-p3-score-input {
                     width: 100%;
                     text-align: center;
-                    padding-bottom: 0.2mm;
+                    padding-bottom: 0.1mm;
                 }
                 .triage-p3-risk-cell {
                     padding: 0 !important;
@@ -9052,18 +9056,19 @@
                 .triage-morse-risk-label {
                     font-weight: 900;
                     text-align: left;
-                    padding: 1.1mm 1.2mm;
+                    padding: 0.8mm 0.9mm;
                     border-right: 1.5px solid #111111;
                     background: #ffffff;
+                    font-size: 8pt;
                 }
                 .triage-morse-risk-value {
                     font-weight: 900;
-                    font-size: 12pt;
+                    font-size: 10.5pt;
                     text-align: center;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    padding: 1.1mm 1.2mm;
+                    padding: 0.8mm 0.9mm;
                     height: 100%;
                     color: #111111;
                 }
@@ -9073,8 +9078,8 @@
                 .triage-morse-risk-note {
                     border-top: 1.5px solid #111111;
                     font-weight: 900;
-                    font-size: 7.5pt;
-                    padding: 1mm 1mm;
+                    font-size: 7pt;
+                    padding: 0.7mm 0.8mm;
                     text-align: center;
                     background: #ffffff;
                 }
@@ -9087,23 +9092,24 @@
                     box-shadow: inset 0 0 0 2px #ffffff, inset 0 0 0 6px #111111;
                 }
                 .triage-p3-title-spaced {
-                    margin-top: 2.5mm;
+                    margin-top: 1.3mm;
                 }
                 .triage-hd-date-row {
                     background: #e5e7eb;
                     font-weight: 700;
                 }
                 .triage-hd-date-input {
-                    width: 85mm;
-                    margin-left: 2mm;
+                    width: 78mm;
+                    margin-left: 1.2mm;
                 }
                 .triage-p3-hd-bottom {
-                    margin-top: 2mm;
+                    margin-top: 1mm;
                 }
                 .triage-p3-hd-bottom-title {
                     font-weight: 900;
                     text-align: center;
-                    margin-bottom: 1.2mm;
+                    margin-bottom: 0.8mm;
+                    font-size: 8.2pt;
                 }
                 .triage-p3-hd-risk-table {
                     width: 100%;
@@ -9237,6 +9243,9 @@
                     }
                     body[data-print-mode="triase-ugd"] .triage-sheet-break {
                         padding-top: 4mm;
+                    }
+                    body[data-print-mode="triase-ugd"] .triage-page3.triage-sheet-break {
+                        padding-top: 2mm;
                     }
                     body[data-print-mode="triase-ugd"] .triage-sheet:not(:last-of-type) {
                         break-after: page;
