@@ -8529,6 +8529,11 @@
                 }
                 .triage-page2 .triage-pain-right {
                     padding: 1.6mm 1.8mm;
+                    display: grid;
+                    grid-template-columns: 1fr 22mm;
+                    grid-template-rows: auto auto 1fr auto;
+                    column-gap: 2mm;
+                    align-items: start;
                 }
                 .triage-page2 .triage-p2-pain-note {
                     font-size: 8.7pt;
@@ -8580,27 +8585,56 @@
                 .triage-page2 .triage-wb-title {
                     font-size: 9pt;
                     font-weight: 900;
+                    grid-column: 1 / -1;
                 }
                 .triage-page2 .triage-wb-sub {
                     font-size: 8.3pt;
                     font-weight: 700;
                     color: #111111;
+                    grid-column: 1 / -1;
+                }
+                .triage-page2 .triage-wb-faces {
+                    grid-column: 1;
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 1.2mm;
+                    margin-top: 1.4mm;
+                }
+                .triage-page2 .triage-wb-face {
+                    display: grid;
+                    grid-template-columns: 12mm 1fr;
+                    align-items: center;
+                    gap: 1.2mm;
+                    padding: 1mm 1mm;
+                    text-align: left;
                 }
                 .triage-page2 .triage-wb-svg {
-                    height: 14mm;
+                    height: 11mm;
+                    width: 12mm;
                 }
                 .triage-page2 .triage-wb-svg svg {
-                    width: 14mm;
-                    height: 14mm;
+                    width: 11mm;
+                    height: 11mm;
                 }
                 .triage-page2 .triage-wb-num {
                     font-size: 8.5pt;
+                    margin-top: 0;
+                    font-weight: 900;
                 }
                 .triage-page2 .triage-wb-scale {
                     font-size: 8.5pt;
+                    grid-column: 2;
+                    margin-top: 1.4mm;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    font-weight: 900;
+                    height: 100%;
                 }
                 .triage-page2 .triage-wb-score {
                     font-size: 9pt;
+                    grid-column: 1 / -1;
                 }
                 .triage-p2-bottom-grid {
                     display: grid;
