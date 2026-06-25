@@ -6565,6 +6565,9 @@
                             document.querySelectorAll('#triageUgdForm [data-wb-score]').forEach((el) => {
                                 el.classList.toggle('triage-wb-active', Number(el.dataset.wbScore) === normalized);
                             });
+                            document.querySelectorAll('#triageUgdForm [data-wb-ind]').forEach((el) => {
+                                el.classList.toggle('triage-wb-ind-active', Number(el.dataset.wbInd) === normalized);
+                            });
                             document.getElementById('t_wb_score').textContent = String(normalized);
                         }
 
@@ -7326,10 +7329,25 @@
                                                     <div class="triage-wb-num">10</div>
                                                 </div>
                                             </div>
-                                            <div class="triage-wb-scale">
-                                                <div class="triage-wb-scale-left">Ringan</div>
-                                                <div class="triage-wb-scale-mid">Sedang</div>
-                                                <div class="triage-wb-scale-right">Berat</div>
+                                            <div class="triage-wb-indicator" aria-hidden="true">
+                                                <div class="triage-wb-ind-row">
+                                                    <div class="triage-wb-ind triage-wb-ind-0" data-wb-ind="0">0</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-1" data-wb-ind="1">1</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-2" data-wb-ind="2">2</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-3" data-wb-ind="3">3</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-4" data-wb-ind="4">4</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-5" data-wb-ind="5">5</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-6" data-wb-ind="6">6</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-7" data-wb-ind="7">7</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-8" data-wb-ind="8">8</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-9" data-wb-ind="9">9</div>
+                                                    <div class="triage-wb-ind triage-wb-ind-10" data-wb-ind="10">10</div>
+                                                </div>
+                                                <div class="triage-wb-ind-labels">
+                                                    <div class="triage-wb-ind-label triage-wb-ind-label-light">Ringan</div>
+                                                    <div class="triage-wb-ind-label triage-wb-ind-label-mid">Sedang</div>
+                                                    <div class="triage-wb-ind-label triage-wb-ind-label-high">Berat</div>
+                                                </div>
                                             </div>
                                             <div class="triage-wb-score">Skor: <span id="t_wb_score">0</span></div>
                                         </div>
@@ -8529,11 +8547,9 @@
                 }
                 .triage-page2 .triage-pain-right {
                     padding: 1.6mm 1.8mm;
-                    display: grid;
-                    grid-template-columns: 1fr 22mm;
-                    grid-template-rows: auto auto 1fr auto;
-                    column-gap: 2mm;
-                    align-items: start;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
                 }
                 .triage-page2 .triage-p2-pain-note {
                     font-size: 8.7pt;
@@ -8544,11 +8560,11 @@
                     border-bottom: 1px solid #111111;
                 }
                 .triage-page2 .triage-table {
-                    font-size: 8.7pt;
+                    font-size: 8pt;
                 }
                 .triage-page2 .triage-th,
                 .triage-page2 .triage-td {
-                    padding: 1.1mm 1.3mm;
+                    padding: 0.9mm 1.1mm;
                 }
                 .triage-page2 .triage-th {
                     background: #ffffff;
@@ -8565,14 +8581,20 @@
                 .triage-flacc-consolability { background: #93c5fd; }
                 .triage-flacc-desc {
                     font-weight: 400;
-                    line-height: 1.22;
+                    line-height: 1.15;
+                    overflow: hidden;
+                    word-break: break-word;
                 }
                 .triage-flacc-choice {
                     display: grid;
-                    grid-template-columns: 4mm minmax(0, 1fr);
-                    gap: 1mm;
+                    grid-template-columns: 3.6mm minmax(0, 1fr);
+                    gap: 0.8mm;
                     align-items: start;
                     width: 100%;
+                }
+                .triage-flacc-choice > span {
+                    display: block;
+                    overflow-wrap: anywhere;
                 }
                 .triage-flacc-score {
                     width: 10mm;
@@ -8585,56 +8607,81 @@
                 .triage-page2 .triage-wb-title {
                     font-size: 9pt;
                     font-weight: 900;
-                    grid-column: 1 / -1;
                 }
                 .triage-page2 .triage-wb-sub {
                     font-size: 8.3pt;
                     font-weight: 700;
                     color: #111111;
-                    grid-column: 1 / -1;
                 }
                 .triage-page2 .triage-wb-faces {
-                    grid-column: 1;
                     display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 1.2mm;
-                    margin-top: 1.4mm;
+                    grid-template-columns: repeat(6, 1fr);
+                    gap: 1mm;
+                    margin-top: 1.2mm;
                 }
                 .triage-page2 .triage-wb-face {
-                    display: grid;
-                    grid-template-columns: 12mm 1fr;
-                    align-items: center;
-                    gap: 1.2mm;
-                    padding: 1mm 1mm;
-                    text-align: left;
+                    padding: 0.7mm 0.6mm 0.5mm;
+                    text-align: center;
                 }
                 .triage-page2 .triage-wb-svg {
-                    height: 11mm;
-                    width: 12mm;
+                    height: 10mm;
                 }
                 .triage-page2 .triage-wb-svg svg {
-                    width: 11mm;
-                    height: 11mm;
+                    width: 10mm;
+                    height: 10mm;
                 }
                 .triage-page2 .triage-wb-num {
                     font-size: 8.5pt;
-                    margin-top: 0;
                     font-weight: 900;
                 }
-                .triage-page2 .triage-wb-scale {
-                    font-size: 8.5pt;
-                    grid-column: 2;
+                .triage-page2 .triage-wb-indicator {
                     margin-top: 1.4mm;
+                }
+                .triage-page2 .triage-wb-ind-row {
+                    display: grid;
+                    grid-template-columns: repeat(11, 1fr);
+                    width: 100%;
+                    border: 1.5px solid #111111;
+                    overflow: hidden;
+                }
+                .triage-page2 .triage-wb-ind {
                     display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    justify-content: space-between;
+                    align-items: center;
+                    justify-content: center;
                     font-weight: 900;
-                    height: 100%;
+                    font-size: 8pt;
+                    height: 6mm;
+                    border-right: 1px solid #111111;
+                    color: #111111;
+                }
+                .triage-page2 .triage-wb-ind:last-child {
+                    border-right: none;
+                }
+                .triage-page2 .triage-wb-ind-active {
+                    outline: 2px solid #111111;
+                    outline-offset: -2px;
+                }
+                .triage-page2 .triage-wb-ind-0 { background: #60a5fa; }
+                .triage-page2 .triage-wb-ind-1 { background: #93c5fd; }
+                .triage-page2 .triage-wb-ind-2 { background: #a7f3d0; }
+                .triage-page2 .triage-wb-ind-3 { background: #86efac; }
+                .triage-page2 .triage-wb-ind-4 { background: #fde047; }
+                .triage-page2 .triage-wb-ind-5 { background: #facc15; }
+                .triage-page2 .triage-wb-ind-6 { background: #fdba74; }
+                .triage-page2 .triage-wb-ind-7 { background: #fb923c; }
+                .triage-page2 .triage-wb-ind-8 { background: #f97316; }
+                .triage-page2 .triage-wb-ind-9 { background: #f87171; }
+                .triage-page2 .triage-wb-ind-10 { background: #ef4444; }
+                .triage-page2 .triage-wb-ind-labels {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    margin-top: 1mm;
+                    font-weight: 900;
+                    font-size: 8.5pt;
+                    text-align: center;
                 }
                 .triage-page2 .triage-wb-score {
                     font-size: 9pt;
-                    grid-column: 1 / -1;
                 }
                 .triage-p2-bottom-grid {
                     display: grid;
