@@ -7479,7 +7479,7 @@
                                 <section class="triage-sheet triage-sheet-break triage-page3">
                                     <div class="triage-p3-frame">
                                         <div class="triage-section-title">PENILAIAN RISIKO JATUH PASIEN DEWASA (MORSE)</div>
-                                        <table class="triage-table triage-p3-table">
+                                        <table class="triage-table triage-p3-table triage-morse-table">
                                             <thead>
                                                 <tr>
                                                     <th class="triage-th triage-th-left">PENILAIAN</th>
@@ -7491,127 +7491,112 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Riwayat Jatuh<br>(&lt; 1 tahun terakhir)</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Ya</div>
-                                                        <div>Tidak</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>25</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-risk-cell" rowspan="7">
-                                                        <div class="triage-p3-risk-wrap">
-                                                            <div id="t_morse_risk_high" class="triage-p3-risk triage-p3-risk-high">
-                                                                <div class="triage-p3-risk-name">Risiko Tinggi</div>
-                                                                <div class="triage-p3-risk-val">45</div>
+                                                    <td class="triage-td triage-td-left" rowspan="2">Riwayat Jatuh<br>(&lt; 1 tahun terakhir)</td>
+                                                    <td class="triage-td">Ya</td>
+                                                    <td class="triage-td triage-center">25</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                    <td class="triage-td triage-center triage-p3-risk-cell" rowspan="14">
+                                                        <div class="triage-morse-risk-stack">
+                                                            <div id="t_morse_risk_high" class="triage-morse-risk triage-p3-risk-high">
+                                                                <div class="triage-morse-risk-label">Risiko Tinggi</div>
+                                                                <div class="triage-morse-risk-value">45</div>
                                                             </div>
-                                                            <div id="t_morse_risk_med" class="triage-p3-risk triage-p3-risk-med">
-                                                                <div class="triage-p3-risk-name">Risiko Sedang</div>
-                                                                <div class="triage-p3-risk-val">25 – 44</div>
+                                                            <div id="t_morse_risk_med" class="triage-morse-risk triage-p3-risk-med">
+                                                                <div class="triage-morse-risk-label">Risiko Sedang</div>
+                                                                <div class="triage-morse-risk-value">25 – 44</div>
                                                             </div>
-                                                            <div id="t_morse_risk_low" class="triage-p3-risk triage-p3-risk-low">
-                                                                <div class="triage-p3-risk-name">Risiko Rendah</div>
-                                                                <div class="triage-p3-risk-val">0 – 24</div>
+                                                            <div id="t_morse_risk_low" class="triage-morse-risk triage-p3-risk-low">
+                                                                <div class="triage-morse-risk-label">Risiko Rendah</div>
+                                                                <div class="triage-morse-risk-value">0 – 24</div>
                                                             </div>
-                                                            <div class="triage-p3-risk-note">LINGKARI RISIKO PASIEN</div>
+                                                            <div class="triage-morse-risk-note">LINGKARI RISIKO PASIEN</div>
                                                         </div>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Diagnosa Sekunder<br>(&gt;1 Penyakit)</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Ya</div>
-                                                        <div>Tidak</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>15</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td">Tidak</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Menggunakan Alat<br>Bantu Mobilisasi</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Berpegangan Furnitur</div>
-                                                        <div><em>Walker</em> / alat penopang</div>
-                                                        <div><em>Bedrest</em> (dibantu perawat)</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>30</div>
-                                                        <div>15</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left" rowspan="2">Diagnosa Sekunder<br>(&gt;1 Penyakit)</td>
+                                                    <td class="triage-td">Ya</td>
+                                                    <td class="triage-td triage-center">15</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Menggunakan IVFD<br>atau Heparin</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Ya</div>
-                                                        <div>Tidak</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>20</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td">Tidak</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Gaya Berjalan</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Gangguan Pergerakan (Pincang)</div>
-                                                        <div>Lemah (tidak bertenaga)</div>
-                                                        <div>Normal / <em>bedrest</em> / kursi roda</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>20</div>
-                                                        <div>10</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Menggunakan Alat<br>Bantu Mobilisasi</td>
+                                                    <td class="triage-td">Berpegangan Furnitur</td>
+                                                    <td class="triage-td triage-center">30</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Status Mental</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Disorientasi (mengalami keterbatasan/kekurangan daya ingat)</div>
-                                                        <div>Orientasi baik (menyadari kondisinya)</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>15</div>
-                                                        <div>0</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td"><em>Walker</em> / alat penopang</td>
+                                                    <td class="triage-td triage-center">15</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-strong triage-center" colspan="3">TOTAL SCORE</td>
+                                                    <td class="triage-td"><em>Bedrest</em> (dibantu perawat)</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="2">Menggunakan IVFD<br>atau Heparin</td>
+                                                    <td class="triage-td">Ya</td>
+                                                    <td class="triage-td triage-center">20</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Tidak</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Gaya Berjalan</td>
+                                                    <td class="triage-td">Gangguan Pergerakan (Pincang)</td>
+                                                    <td class="triage-td triage-center">20</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Lemah (tidak bertenaga)</td>
+                                                    <td class="triage-td triage-center">10</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Normal / <em>bedrest</em> / kursi roda</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="2">Status Mental</td>
+                                                    <td class="triage-td">Disorientasi (mengalami keterbatasan/kekurangan daya ingat)</td>
+                                                    <td class="triage-td triage-center">15</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Orientasi baik (menyadari kondisinya)</td>
+                                                    <td class="triage-td triage-center">0</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-morse-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-strong triage-center" colspan="2">TOTAL SCORE</td>
+                                                    <td class="triage-td triage-center triage-strong">150</td>
                                                     <td class="triage-td triage-center triage-strong"><span id="t_morse_total">0</span></td>
+                                                    <td class="triage-td"></td>
                                                 </tr>
                                             </tbody>
                                         </table>
 
                                         <div class="triage-section-title triage-p3-title-spaced">PENILAIAN RISIKO JATUH PASIEN ANAK (HUMPTY DUMPTY)</div>
-                                        <div class="triage-p3-date-row">
-                                            <div class="triage-p3-date-label">Tanggal saat masuk RS</div>
-                                            <input id="t_hd_tanggal_masuk" type="text" class="triage-input triage-p3-date-input" placeholder="">
-                                        </div>
-
                                         <table class="triage-table triage-p3-table triage-p3-hd-table">
                                             <thead>
                                                 <tr>
-                                                    <th class="triage-th triage-th-left">FAKTOR</th>
+                                                    <th class="triage-th triage-th-left"></th>
                                                     <th class="triage-th triage-th-left">KRITERIA</th>
                                                     <th class="triage-th">SKOR</th>
                                                     <th class="triage-th">SKOR PASIEN</th>
@@ -7619,118 +7604,124 @@
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Umur</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>&lt; 3 tahun</div>
-                                                        <div>3 – 7 tahun</div>
-                                                        <div>7 – 17 tahun</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>4</div>
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left triage-hd-date-row" colspan="4">Tanggal saat masuk RS : <input id="t_hd_tanggal_masuk" type="text" class="triage-input triage-hd-date-input" placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Jenis Kelamin</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Laki – laki</div>
-                                                        <div>Perempuan</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Umur</td>
+                                                    <td class="triage-td">&lt; 3 tahun</td>
+                                                    <td class="triage-td triage-center">4</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Diagnosa</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Kelainan Neurologi</div>
-                                                        <div>Perubahan dalam oksigenasi (masalah saluran nafas, dehidrasi, anemia, anoreksia, sinkop/sakit kepala)</div>
-                                                        <div>Kelainan psikis atau kelainan perilaku</div>
-                                                        <div>Diagnosa lain</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>4</div>
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td">3 – 7 tahun</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Gangguan Kognitif</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Tidak sadar terhadap keterbatasan</div>
-                                                        <div>Lupa keterbatasan</div>
-                                                        <div>Mengetahui kemampuan diri</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td">7 – 17 tahun</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Faktor Lingkungan</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Riwayat jatuh dari tempat tidur saat bayi / anak-anak</div>
-                                                        <div>Pasien menggunakan alat bantu atau box atau meubel</div>
-                                                        <div>Pasien berada di tempat tidur</div>
-                                                        <div>Di luar ruang rawat</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>4</div>
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left" rowspan="2">Jenis Kelamin</td>
+                                                    <td class="triage-td">Laki – laki</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Respon terhadap Operasi / Obat Penenang / Efek Anestesi</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Dalam 24 jam</div>
-                                                        <div>Dalam 48 jam</div>
-                                                        <div>&gt; 48 jam</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td">Perempuan</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="triage-td triage-td-left">Penggunaan Obat</td>
-                                                    <td class="triage-td triage-p3-lines">
-                                                        <div>Bermacam-macam obat yang digunakan</div>
-                                                        <div>Salah satu dari pengobatan di atas</div>
-                                                        <div>Pengobatan lain</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center triage-p3-lines">
-                                                        <div>3</div>
-                                                        <div>2</div>
-                                                        <div>1</div>
-                                                    </td>
-                                                    <td class="triage-td triage-center">
-                                                        <input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder="">
-                                                    </td>
+                                                    <td class="triage-td triage-td-left" rowspan="4">Diagnosa</td>
+                                                    <td class="triage-td">Kelainan Neurologi</td>
+                                                    <td class="triage-td triage-center">4</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Perubahan dalam oksigenasi (masalah saluran nafas, dehidrasi, anemia, anoreksia, sinkop/sakit kepala)</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Kelainan psikis atau kelainan perilaku</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Diagnosa lain</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Gangguan Kognitif</td>
+                                                    <td class="triage-td">Tidak sadar terhadap keterbatasan</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Lupa keterbatasan</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Mengetahui kemampuan diri</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="4">Faktor&nbsp;&nbsp;Lingkungan</td>
+                                                    <td class="triage-td">Riwayat jatuh dari tempat tidur saat bayi / anak-anak</td>
+                                                    <td class="triage-td triage-center">4</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Pasien menggunakan alat bantu atau box atau meubel</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Pasien berada di tempat tidur</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Di luar ruang rawat</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Respon terhadap Operasi/<br>Obat Penenang/ Efek<br>Anestesi</td>
+                                                    <td class="triage-td">Dalam 24 jam</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Dalam 48 jam</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">&gt; 48 jam</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td triage-td-left" rowspan="3">Penggunaan Obat</td>
+                                                    <td class="triage-td">Bermacam – macam obat yang digunakan :</td>
+                                                    <td class="triage-td triage-center">3</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Salah satu dari pengobatan di atas</td>
+                                                    <td class="triage-td triage-center">2</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="triage-td">Pengobatan lain</td>
+                                                    <td class="triage-td triage-center">1</td>
+                                                    <td class="triage-td triage-center"><input type="number" class="triage-input triage-p3-score-input" data-hd-score placeholder=""></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="triage-td triage-strong triage-center" colspan="3">TOTAL SCORE</td>
@@ -9015,6 +9006,10 @@
                 .triage-page3 .triage-table {
                     font-size: 8.3pt;
                 }
+                .triage-morse-table .triage-th:nth-child(1) { width: 38mm; }
+                .triage-morse-table .triage-th:nth-child(3) { width: 12mm; }
+                .triage-morse-table .triage-th:nth-child(4) { width: 18mm; }
+                .triage-morse-table .triage-th:nth-child(5) { width: 44mm; }
                 .triage-page3 .triage-th {
                     background: #e5e7eb;
                 }
@@ -9026,18 +9021,6 @@
                 .triage-p3-table .triage-td:last-child {
                     width: 42mm;
                 }
-                .triage-p3-lines {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0;
-                }
-                .triage-p3-lines > div {
-                    padding: 0.55mm 0;
-                    border-bottom: 1px solid #111111;
-                }
-                .triage-p3-lines > div:last-child {
-                    border-bottom: none;
-                }
                 .triage-p3-score-input {
                     width: 100%;
                     text-align: center;
@@ -9047,39 +9030,43 @@
                     padding: 0 !important;
                     vertical-align: top;
                 }
-                .triage-p3-risk-wrap {
+                .triage-morse-risk-stack {
                     height: 100%;
-                    display: grid;
-                    grid-template-rows: 1fr 1fr 1fr auto;
-                }
-                .triage-p3-risk {
-                    border-bottom: 1.5px solid #111111;
+                    min-height: 110mm;
                     display: flex;
                     flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    gap: 1.2mm;
                 }
-                .triage-p3-risk:last-of-type {
+                .triage-morse-risk {
+                    flex: 1 1 0;
+                    border-bottom: 1.5px solid #111111;
+                    display: grid;
+                    grid-template-columns: 1fr 22mm;
+                    align-items: center;
+                    padding: 1.6mm 1.6mm;
+                    gap: 1mm;
+                }
+                .triage-morse-risk:last-of-type {
                     border-bottom: 1.5px solid #111111;
                 }
                 .triage-p3-risk-high { background: #ef4444; color: #111111; }
                 .triage-p3-risk-med { background: #fde047; color: #111111; }
                 .triage-p3-risk-low { background: #22c55e; color: #111111; }
-                .triage-p3-risk-name {
+                .triage-morse-risk-label {
                     font-weight: 900;
-                    font-size: 9pt;
+                    text-align: left;
                 }
-                .triage-p3-risk-val {
+                .triage-morse-risk-value {
                     font-weight: 900;
                     font-size: 14pt;
+                    text-align: center;
                 }
-                .triage-p3-risk-note {
+                .triage-morse-risk-note {
                     border-top: 1.5px solid #111111;
                     font-weight: 900;
                     font-size: 8pt;
                     padding: 1.3mm 1mm;
                     text-align: center;
+                    background: #ffffff;
                 }
                 .triage-page3 .triage-risk-active {
                     outline: 3px solid #111111;
@@ -9088,21 +9075,13 @@
                 .triage-p3-title-spaced {
                     margin-top: 2.5mm;
                 }
-                .triage-p3-date-row {
-                    border: 1.5px solid #111111;
-                    border-top: none;
-                    padding: 1.4mm 2mm;
-                    display: grid;
-                    grid-template-columns: 40mm 1fr;
-                    gap: 2mm;
-                    align-items: center;
-                    margin-bottom: 2mm;
-                }
-                .triage-p3-date-label {
+                .triage-hd-date-row {
+                    background: #e5e7eb;
                     font-weight: 700;
                 }
-                .triage-p3-date-input {
-                    width: 70mm;
+                .triage-hd-date-input {
+                    width: 85mm;
+                    margin-left: 2mm;
                 }
                 .triage-p3-hd-bottom {
                     margin-top: 2mm;
