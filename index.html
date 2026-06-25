@@ -6556,10 +6556,6 @@
 
                         function applyTriaseWongBakerSelection(score) {
                             const normalized = mapFlaccToWongBakerScore(score);
-                            const faceScore = Math.max(0, Math.min(10, Math.round(normalized / 2) * 2));
-                            document.querySelectorAll('#triageUgdForm [data-wb-score]').forEach((el) => {
-                                el.classList.toggle('triage-wb-active', Number(el.dataset.wbScore) === faceScore);
-                            });
                             document.querySelectorAll('#triageUgdForm [data-wb-ind]').forEach((el) => {
                                 el.classList.toggle('triage-wb-ind-active', Number(el.dataset.wbInd) === normalized);
                             });
@@ -7291,37 +7287,31 @@
                                                     <div class="triage-wb-svg triage-wb-color-0">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 39c6 7 14 7 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">0</div>
                                                 </div>
                                                 <div class="triage-wb-face" data-wb-score="2">
                                                     <div class="triage-wb-svg triage-wb-color-2">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 40c6 6 14 6 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">2</div>
                                                 </div>
                                                 <div class="triage-wb-face" data-wb-score="4">
                                                     <div class="triage-wb-svg triage-wb-color-4">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 41c6 4 14 4 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">4</div>
                                                 </div>
                                                 <div class="triage-wb-face" data-wb-score="6">
                                                     <div class="triage-wb-svg triage-wb-color-6">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 42c6 0 14 0 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">6</div>
                                                 </div>
                                                 <div class="triage-wb-face" data-wb-score="8">
                                                     <div class="triage-wb-svg triage-wb-color-8">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 43c6 -4 14 -4 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">8</div>
                                                 </div>
                                                 <div class="triage-wb-face" data-wb-score="10">
                                                     <div class="triage-wb-svg triage-wb-color-10">
                                                         <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 44c6 -7 14 -7 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
                                                     </div>
-                                                    <div class="triage-wb-num">10</div>
                                                 </div>
                                             </div>
                                             <div class="triage-wb-indicator" aria-hidden="true">
@@ -8625,10 +8615,6 @@
                     width: 10mm;
                     height: 10mm;
                 }
-                .triage-page2 .triage-wb-num {
-                    font-size: 8.5pt;
-                    font-weight: 900;
-                }
                 .triage-page2 .triage-wb-indicator {
                     margin-top: 1.4mm;
                 }
@@ -8669,11 +8655,24 @@
                 .triage-page2 .triage-wb-ind-10 { background: #ef4444; }
                 .triage-page2 .triage-wb-ind-labels {
                     display: grid;
-                    grid-template-columns: 1fr 1fr 1fr;
+                    grid-template-columns: repeat(11, 1fr);
                     margin-top: 1mm;
                     font-weight: 900;
                     font-size: 8.5pt;
                     text-align: center;
+                }
+                .triage-page2 .triage-wb-ind-label {
+                    border: 1.5px solid #111111;
+                    padding: 0.8mm 0.4mm;
+                }
+                .triage-page2 .triage-wb-ind-label-light {
+                    grid-column: 2 / 5;
+                }
+                .triage-page2 .triage-wb-ind-label-mid {
+                    grid-column: 5 / 8;
+                }
+                .triage-page2 .triage-wb-ind-label-high {
+                    grid-column: 8 / 11;
                 }
                 .triage-page2 .triage-wb-score {
                     font-size: 9pt;
