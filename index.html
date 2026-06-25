@@ -6551,19 +6551,14 @@
                         }
 
                         function mapFlaccToWongBakerScore(total) {
-                            const t = Math.max(0, Math.min(10, Number(total) || 0));
-                            if (t === 0) return 0;
-                            if (t <= 2) return 2;
-                            if (t <= 4) return 4;
-                            if (t <= 6) return 6;
-                            if (t <= 8) return 8;
-                            return 10;
+                            return Math.max(0, Math.min(10, Number(total) || 0));
                         }
 
                         function applyTriaseWongBakerSelection(score) {
                             const normalized = mapFlaccToWongBakerScore(score);
+                            const faceScore = Math.max(0, Math.min(10, Math.round(normalized / 2) * 2));
                             document.querySelectorAll('#triageUgdForm [data-wb-score]').forEach((el) => {
-                                el.classList.toggle('triage-wb-active', Number(el.dataset.wbScore) === normalized);
+                                el.classList.toggle('triage-wb-active', Number(el.dataset.wbScore) === faceScore);
                             });
                             document.querySelectorAll('#triageUgdForm [data-wb-ind]').forEach((el) => {
                                 el.classList.toggle('triage-wb-ind-active', Number(el.dataset.wbInd) === normalized);
