@@ -8077,6 +8077,9 @@
                 .triage-p1-sign {
                     margin-top: 2mm;
                     text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
                 }
                 .triage-p1-sign-title {
                     font-weight: 400;
@@ -8085,13 +8088,17 @@
                 }
                 .triage-p1-sign-input {
                     width: 60mm;
-                    margin: 0 auto 6mm;
+                    margin: 0 auto;
                     display: block;
+                    order: 2;
+                    text-align: center;
+                    padding-bottom: 0.8mm;
                 }
                 .triage-p1-sign-line {
                     width: 60mm;
-                    margin: 0 auto;
-                    border-bottom: 1.2px solid #111111;
+                    height: 10mm;
+                    margin: 0;
+                    order: 1;
                 }
                 .triage-sheet .gc-header-left {
                     grid-template-columns: 22mm 1fr;
@@ -8162,7 +8169,9 @@
                     height: 3.6mm;
                     border: 1.5px solid #111111;
                     background: #ffffff;
-                    display: inline-block;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
                     box-sizing: border-box;
                     position: relative;
                 }
@@ -8172,9 +8181,21 @@
                 .triage-radio {
                     border-radius: 999px;
                 }
+                .triage-check::after,
+                .triage-radio::after {
+                    content: '';
+                    display: block;
+                    line-height: 1;
+                }
                 .triage-check:checked {
-                    background: #111111;
-                    box-shadow: inset 0 0 0 1.3mm #ffffff;
+                    background: #ffffff;
+                    box-shadow: none;
+                }
+                .triage-check:checked::after {
+                    content: '✓';
+                    font-size: 3.1mm;
+                    font-weight: 700;
+                    color: #111111;
                 }
                 .triage-radio:checked {
                     background: #111111;
