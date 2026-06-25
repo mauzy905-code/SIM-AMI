@@ -2380,6 +2380,12 @@
                             return String(currentAdminRole || '').trim().toLowerCase() === 'perawat';
                         }
 
+                        const TRIAGE_UGD_ALLOWED_EMAIL = 'perawat2026@rsudami.com';
+
+                        function canAccessTriaseUgd() {
+                            return String(getCurrentAdminEmail() || '').trim().toLowerCase() === TRIAGE_UGD_ALLOWED_EMAIL;
+                        }
+
                         function isDokterRole() {
                             return String(currentAdminRole || '').trim().toLowerCase() === 'dokter';
                         }
@@ -5486,6 +5492,7 @@
                             const isIgd = isIgdRole();
                             const isPetugasPoli = isPetugasPoliScopedRekap();
                             const canManageDriveLink = canManagePatientDriveLink();
+                            const canTriase = canAccessTriaseUgd();
                             const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                             if (!items || items.length === 0) {
                                 const emptyColspan = isRme ? 20 : (isPetugasPoli ? 10 : (showSupervisorEditColumn ? 21 : 20));
@@ -5541,16 +5548,31 @@
                                         no_telepon: p.no_telepon
                                     }))}'>General Consent</button>`
                                     : '';
+                                const triaseBtnRekap = (canTriase && String(p.unit || '').toUpperCase() === 'UGD')
+                                    ? `<button type="button" class="triage-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-800 transition hover:bg-rose-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
+                                        nama_pasien: p.nama_pasien,
+                                        tanggal_lahir: p.tanggal_lahir,
+                                        jenis_kelamin: p.jenis_kelamin,
+                                        no_rm: p.no_rm,
+                                        no_registrasi: p.no_registrasi,
+                                        unit: p.unit,
+                                        no_antrian: p.no_antrian,
+                                        alamat: p.alamat,
+                                        no_telepon: p.no_telepon
+                                    }))}'>Triase UGD</button>`
+                                    : '';
                                 const riwayatLinkCell = normalizedLink
                                     ? `<div class="flex items-center gap-2 whitespace-nowrap">
                                         ${examBtn}
                                         ${gcBtnRekap}
+                                        ${triaseBtnRekap}
                                         <a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-[11px] font-extrabold text-orange-700 transition hover:bg-orange-100">Buka GDrive</a>
                                         <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>
                                     </div>`
                                     : `<div class="flex items-center gap-2 whitespace-nowrap">
                                         ${examBtn}
                                         ${gcBtnRekap}
+                                        ${triaseBtnRekap}
                                         <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${canManageDriveLink ? 'Input Link' : 'Lihat Riwayat'}</button>
                                     </div>`;
                                 if (isRme) {
@@ -6442,6 +6464,131 @@
                             window.setTimeout(() => window.print(), 30);
                         }
 
+                        let currentPatientForTriage = null;
+
+                        function fillTriaseUgdHeader(patientData) {
+                            currentPatientForTriage = patientData || null;
+                            const formattedBirthDate = formatGeneralConsentDate(patientData?.tanggal_lahir || '');
+                            document.getElementById('t_no_rm').textContent = patientData?.no_rm || '';
+                            document.getElementById('t_nama').textContent = patientData?.nama_pasien || '';
+                            document.getElementById('t_jk').textContent = patientData?.jenis_kelamin || '';
+                            document.getElementById('t_tgl_lahir').textContent = formattedBirthDate;
+                        }
+
+                        function resetTriaseUgdForm() {
+                            document.getElementById('t_tanggal_pemeriksaan').value = '';
+                            document.getElementById('t_jam_datang').value = '';
+                            document.querySelectorAll('#triageUgdForm input[type="checkbox"], #triageUgdForm input[type="radio"]').forEach((el) => {
+                                el.checked = false;
+                            });
+                            document.querySelectorAll('#triageUgdForm input[type="text"], #triageUgdForm input[type="number"], #triageUgdForm textarea').forEach((el) => {
+                                el.value = '';
+                            });
+                            document.getElementById('t_flacc_total').textContent = '0';
+                            document.getElementById('t_wb_score').textContent = '0';
+                            document.getElementById('t_morse_total').textContent = '0';
+                            const morseDup = document.getElementById('t_morse_total_dup');
+                            if (morseDup) morseDup.textContent = '0';
+                            applyTriaseMorseRisk(0);
+                            applyTriaseWongBakerSelection(0);
+                        }
+
+                        function getCheckedRadioValue(name) {
+                            const el = document.querySelector(`#triageUgdForm input[type="radio"][name="${CSS.escape(String(name || ''))}"]:checked`);
+                            return el ? Number(el.value) : 0;
+                        }
+
+                        function computeTriaseFlaccTotal() {
+                            const total = getCheckedRadioValue('flacc_face')
+                                + getCheckedRadioValue('flacc_legs')
+                                + getCheckedRadioValue('flacc_activity')
+                                + getCheckedRadioValue('flacc_cry')
+                                + getCheckedRadioValue('flacc_consolability');
+                            document.getElementById('t_flacc_total').textContent = String(total);
+                            applyTriaseWongBakerFromFlacc(total);
+                            return total;
+                        }
+
+                        function mapFlaccToWongBakerScore(total) {
+                            const t = Math.max(0, Math.min(10, Number(total) || 0));
+                            if (t === 0) return 0;
+                            if (t <= 2) return 2;
+                            if (t <= 4) return 4;
+                            if (t <= 6) return 6;
+                            if (t <= 8) return 8;
+                            return 10;
+                        }
+
+                        function applyTriaseWongBakerSelection(score) {
+                            const normalized = mapFlaccToWongBakerScore(score);
+                            document.querySelectorAll('#triageUgdForm [data-wb-score]').forEach((el) => {
+                                el.classList.toggle('triage-wb-active', Number(el.dataset.wbScore) === normalized);
+                            });
+                            document.getElementById('t_wb_score').textContent = String(normalized);
+                        }
+
+                        function applyTriaseWongBakerFromFlacc(total) {
+                            applyTriaseWongBakerSelection(mapFlaccToWongBakerScore(total));
+                        }
+
+                        function computeTriaseMorseTotal() {
+                            const total = getCheckedRadioValue('morse_fall_history')
+                                + getCheckedRadioValue('morse_secondary_dx')
+                                + getCheckedRadioValue('morse_ambulatory_aid')
+                                + getCheckedRadioValue('morse_iv')
+                                + getCheckedRadioValue('morse_gait')
+                                + getCheckedRadioValue('morse_mental');
+                            document.getElementById('t_morse_total').textContent = String(total);
+                            const morseDup = document.getElementById('t_morse_total_dup');
+                            if (morseDup) morseDup.textContent = String(total);
+                            applyTriaseMorseRisk(total);
+                            return total;
+                        }
+
+                        function applyTriaseMorseRisk(total) {
+                            const t = Math.max(0, Number(total) || 0);
+                            const low = document.getElementById('t_morse_risk_low');
+                            const med = document.getElementById('t_morse_risk_med');
+                            const high = document.getElementById('t_morse_risk_high');
+                            if (low) low.classList.remove('triage-risk-active');
+                            if (med) med.classList.remove('triage-risk-active');
+                            if (high) high.classList.remove('triage-risk-active');
+
+                            if (t >= 45) {
+                                if (high) high.classList.add('triage-risk-active');
+                                return 'tinggi';
+                            }
+                            if (t >= 25) {
+                                if (med) med.classList.add('triage-risk-active');
+                                return 'sedang';
+                            }
+                            if (low) low.classList.add('triage-risk-active');
+                            return 'rendah';
+                        }
+
+                        function openTriaseUgdModal(patientData) {
+                            if (!canAccessTriaseUgd()) {
+                                alert('Hanya akun perawat2026@rsudami.com yang dapat mengisi Triase UGD.');
+                                return;
+                            }
+                            fillTriaseUgdHeader(patientData);
+                            resetTriaseUgdForm();
+                            document.getElementById('triageUgdModal').classList.remove('hidden');
+                        }
+
+                        function closeTriaseUgdModal() {
+                            document.getElementById('triageUgdModal').classList.add('hidden');
+                            currentPatientForTriage = null;
+                        }
+
+                        function printTriaseUgd() {
+                            if (!canAccessTriaseUgd()) return;
+                            activePrintMode = 'triase-ugd';
+                            document.body.setAttribute('data-print-mode', 'triase-ugd');
+                            setPrintPageSize('210mm 330mm');
+                            window.setTimeout(() => window.print(), 30);
+                        }
+
                         // Event listeners for General Consent
                         document.getElementById('closeGeneralConsentModal').addEventListener('click', closeGeneralConsentModal);
                         document.getElementById('printGeneralConsentBtn').addEventListener('click', printGeneralConsent);
@@ -6480,19 +6627,42 @@
                                 closeGeneralConsentModal();
                             }
                         });
+                        document.getElementById('triageUgdModal')?.addEventListener('click', function(e) {
+                            if (e.target === this || e.target.classList.contains('bg-slate-900')) {
+                                closeTriaseUgdModal();
+                            }
+                        });
 
                         // Event listener for General Consent buttons in rekap table
                         document.getElementById('r_rows').addEventListener('click', function(e) {
-                            const btn = e.target.closest('.gc-btn');
-                            if (btn) {
+                            const gcBtn = e.target.closest('.gc-btn');
+                            if (gcBtn) {
                                 if (!isIgdRole()) return;
                                 try {
-                                    const patientData = JSON.parse(btn.dataset.patient);
+                                    const patientData = JSON.parse(gcBtn.dataset.patient);
                                     openGeneralConsentModal(patientData);
                                 } catch (err) {
                                     console.error('Error parsing patient data:', err);
                                 }
                             }
+                            const triageBtn = e.target.closest('.triage-btn');
+                            if (triageBtn) {
+                                try {
+                                    const patientData = JSON.parse(triageBtn.dataset.patient);
+                                    openTriaseUgdModal(patientData);
+                                } catch (err) {
+                                    console.error('Error parsing patient data:', err);
+                                }
+                            }
+                        });
+
+                        document.getElementById('closeTriaseUgdModal')?.addEventListener('click', closeTriaseUgdModal);
+                        document.getElementById('printTriaseUgdBtn')?.addEventListener('click', printTriaseUgd);
+                        document.querySelectorAll('#triageUgdForm input[name^="flacc_"]').forEach((el) => {
+                            el.addEventListener('change', computeTriaseFlaccTotal);
+                        });
+                        document.querySelectorAll('#triageUgdForm input[name^="morse_"]').forEach((el) => {
+                            el.addEventListener('change', computeTriaseMorseTotal);
                         });
 
                         // Store last saved patient data
@@ -6560,7 +6730,7 @@
                                                 <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>
                                                 <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>
                                                 <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>
-                                                <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris@gmail.com</div>
+                                                <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris1@gmail.com</div>
                                             </div>
                                         </div>
                                         <div class="gc-patient-col">
@@ -6724,6 +6894,355 @@
                                             <div class="gc-note-line"></div>
                                             <div class="gc-note-line"></div>
                                             <div class="gc-note-line"></div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="triageUgdModal" class="fixed inset-0 z-[110] hidden">
+                <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+                <div class="relative min-h-full flex items-center justify-center p-4">
+                    <div class="w-full max-w-5xl max-h-[90vh] overflow-auto bg-white rounded-[28px] shadow-2xl">
+                        <div class="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-extrabold uppercase tracking-[0.22em] text-rose-700">Triase UGD</div>
+                                <div class="text-lg font-black text-slate-900">Form Triase</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="printTriaseUgdBtn" type="button" class="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-rose-700">
+                                    🖨️ Cetak
+                                </button>
+                                <button id="closeTriaseUgdModal" type="button" class="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-slate-100">
+                            <div id="triageUgdForm" class="triage-document">
+                                <section class="triage-sheet">
+                                    <div class="gc-header-box">
+                                        <div class="gc-header-left">
+                                            <div class="gc-logo-wrap">
+                                                <img src="assets/image/logo-rsud.png" alt="Logo RSUD" class="gc-logo">
+                                            </div>
+                                            <div class="gc-header-center">
+                                                <div class="gc-header-line">PEMERINTAH KABUPATEN KUTAI KARTANEGARA</div>
+                                                <div class="gc-header-line gc-header-strong">DINAS KESEHATAN</div>
+                                                <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>
+                                                <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>
+                                                <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>
+                                                <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris@gmail.com</div>
+                                            </div>
+                                        </div>
+                                        <div class="gc-patient-col">
+                                            <div class="gc-patient-box">
+                                                <table class="gc-patient-meta">
+                                                    <tr><td>Nomor RM</td><td>:</td><td id="t_no_rm"></td></tr>
+                                                    <tr><td>Nama</td><td>:</td><td id="t_nama"></td></tr>
+                                                    <tr><td>Jenis Kelamin</td><td>:</td><td id="t_jk"></td></tr>
+                                                    <tr><td>Tanggal Lahir</td><td>:</td><td id="t_tgl_lahir"></td></tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="triage-title">TRIASE UGD</div>
+                                    <div class="triage-row triage-row-2">
+                                        <div class="triage-field">
+                                            <div class="triage-field-label">Tanggal Pemeriksaan</div>
+                                            <input id="t_tanggal_pemeriksaan" type="text" class="triage-input" placeholder="............................">
+                                        </div>
+                                        <div class="triage-field">
+                                            <div class="triage-field-label">Jam Datang (WITA)</div>
+                                            <input id="t_jam_datang" type="text" class="triage-input" placeholder="...............">
+                                        </div>
+                                    </div>
+                                    <div class="triage-note">Halaman 1 akan disesuaikan pada revisi berikutnya.</div>
+                                </section>
+
+                                <section class="triage-sheet triage-sheet-break">
+                                    <div class="triage-section-title">PSIKOLOGIS DAN EKONOMI</div>
+                                    <div class="triage-box">
+                                        <div class="triage-check-row">
+                                            <div class="triage-check-grid triage-check-grid-5">
+                                                <label class="triage-check-item"><input type="checkbox" class="triage-check"> Tenang</label>
+                                                <label class="triage-check-item"><input type="checkbox" class="triage-check"> Cemas</label>
+                                                <label class="triage-check-item"><input type="checkbox" class="triage-check"> Marah</label>
+                                                <label class="triage-check-item"><input type="checkbox" class="triage-check"> Sedih</label>
+                                                <label class="triage-check-item"><input type="checkbox" class="triage-check"> Takut</label>
+                                            </div>
+                                        </div>
+                                        <div class="triage-line-row">
+                                            <div class="triage-line-label">Kebutuhan khusus</div>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Ya</label>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Tidak</label>
+                                            <div class="triage-line-fill">Bila ya, sebutkan <input type="text" class="triage-input triage-input-inline" placeholder="................................."></div>
+                                        </div>
+                                        <div class="triage-line-row">
+                                            <div class="triage-line-label">Memerlukan rohaniawan</div>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Ya</label>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Tidak</label>
+                                            <div class="triage-line-fill">Bila ya, sebutkan <input type="text" class="triage-input triage-input-inline" placeholder="................................."></div>
+                                        </div>
+                                        <div class="triage-line-row">
+                                            <div class="triage-line-label">Tempat tinggal</div>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Rumah Pribadi</label>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kontrakan</label>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Rumah Keluarga</label>
+                                            <label class="triage-check-item"><input type="checkbox" class="triage-check"> Panti</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="triage-section-title">ASESMEN NYERI</div>
+                                    <div class="triage-pain-grid">
+                                        <div class="triage-pain-left">
+                                            <div class="triage-small-text">Bila pasien merasa nyeri, kaji dengan skala FLACC untuk pasien anak, pasien yang tidak bisa berkomunikasi, atau pasien tidak sadar; dan skala Wong Baker untuk pasien dewasa.</div>
+                                            <div class="triage-table-wrap">
+                                                <table class="triage-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="triage-th triage-th-left">FLACC SCALE (Faces, Legs, Activity, Cry, Consolability)</th>
+                                                            <th class="triage-th">0</th>
+                                                            <th class="triage-th">1</th>
+                                                            <th class="triage-th">2</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left"><span class="triage-flacc-tag">Face</span> Senyum/tidak ada ekspresi tertentu</td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_face" value="0"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_face" value="1"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_face" value="2"></label></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left"><span class="triage-flacc-tag">Legs</span> Posisi normal/relaks</td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_legs" value="0"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_legs" value="1"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_legs" value="2"></label></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left"><span class="triage-flacc-tag">Activity</span> Berbaring tenang/posisi normal/mudah bergerak</td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_activity" value="0"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_activity" value="1"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_activity" value="2"></label></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left"><span class="triage-flacc-tag">Cry</span> Tidak menangis (saat bangun/tidur)</td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_cry" value="0"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_cry" value="1"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_cry" value="2"></label></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left"><span class="triage-flacc-tag">Consolability</span> Rileks</td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_consolability" value="0"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_consolability" value="1"></label></td>
+                                                            <td class="triage-td triage-center"><label class="triage-radio-item"><input type="radio" class="triage-radio" name="flacc_consolability" value="2"></label></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="triage-td triage-td-left triage-strong">JUMLAH SKOR</td>
+                                                            <td class="triage-td triage-center triage-strong" colspan="3"><span id="t_flacc_total">0</span></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="triage-pain-right">
+                                            <div class="triage-wb-title">SKALA NYERI WONG BAKER</div>
+                                            <div class="triage-wb-sub">Nilai otomatis dari FLACC</div>
+                                            <div class="triage-wb-faces">
+                                                <div class="triage-wb-face" data-wb-score="0">
+                                                    <div class="triage-wb-svg triage-wb-color-0">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 39c6 7 14 7 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">0</div>
+                                                </div>
+                                                <div class="triage-wb-face" data-wb-score="2">
+                                                    <div class="triage-wb-svg triage-wb-color-2">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 40c6 6 14 6 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">2</div>
+                                                </div>
+                                                <div class="triage-wb-face" data-wb-score="4">
+                                                    <div class="triage-wb-svg triage-wb-color-4">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 41c6 4 14 4 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">4</div>
+                                                </div>
+                                                <div class="triage-wb-face" data-wb-score="6">
+                                                    <div class="triage-wb-svg triage-wb-color-6">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 42c6 0 14 0 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">6</div>
+                                                </div>
+                                                <div class="triage-wb-face" data-wb-score="8">
+                                                    <div class="triage-wb-svg triage-wb-color-8">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 43c6 -4 14 -4 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">8</div>
+                                                </div>
+                                                <div class="triage-wb-face" data-wb-score="10">
+                                                    <div class="triage-wb-svg triage-wb-color-10">
+                                                        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="currentColor"/><circle cx="24" cy="26" r="3.2" fill="#111"/><circle cx="40" cy="26" r="3.2" fill="#111"/><path d="M22 44c6 -7 14 -7 20 0" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></svg>
+                                                    </div>
+                                                    <div class="triage-wb-num">10</div>
+                                                </div>
+                                            </div>
+                                            <div class="triage-wb-scale">
+                                                <div class="triage-wb-scale-left">Ringan</div>
+                                                <div class="triage-wb-scale-mid">Sedang</div>
+                                                <div class="triage-wb-scale-right">Berat</div>
+                                            </div>
+                                            <div class="triage-wb-score">Skor: <span id="t_wb_score">0</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="triage-section-title">DESKRIPSI NYERI</div>
+                                    <div class="triage-check-grid triage-check-grid-3">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Terbakar</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Seperti ditusuk-tusuk</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Akut</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Tertindih Benda</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Berdenyut-denyut</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kronik</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Ngilu/Pegal</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Perih</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kram</label>
+                                    </div>
+
+                                    <div class="triage-section-title">TIPE NYERI</div>
+                                    <div class="triage-check-grid triage-check-grid-4">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Akut &lt; 3 Bulan</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kronik &gt; 3 Bulan</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Akut on kronik</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Lamanya</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kecepatan</label>
+                                    </div>
+
+                                    <div class="triage-section-title">NYERI MENINGKAT JIKA</div>
+                                    <div class="triage-check-grid triage-check-grid-3">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Bergerak</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Menarik nafas</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Duduk</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Batuk</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Bangun</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Lain-lain</label>
+                                        <input type="text" class="triage-input triage-input-full" placeholder="............................................................">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Berjalan</label>
+                                    </div>
+
+                                    <div class="triage-section-title">NYERI BERKURANG JIKA</div>
+                                    <div class="triage-check-grid triage-check-grid-3">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Istirahat</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Diberi obat: Injeksi</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kompres hangat</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Diberi obat: Oral</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Kompres dingin</label>
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Lain-lain</label>
+                                        <input type="text" class="triage-input triage-input-full" placeholder="............................................................">
+                                        <label class="triage-check-item"><input type="checkbox" class="triage-check"> Relaksasi</label>
+                                    </div>
+                                </section>
+
+                                <section class="triage-sheet triage-sheet-break">
+                                    <div class="triage-section-title">PENILAIAN RISIKO JATUH PASIEN DEWASA (MORSE)</div>
+                                    <div class="triage-morse-grid">
+                                        <div class="triage-morse-table">
+                                            <table class="triage-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="triage-th triage-th-left">PENILAIAN</th>
+                                                        <th class="triage-th">KONDISI</th>
+                                                        <th class="triage-th">SKOR</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Riwayat Jatuh (&lt; 1 tahun terakhir)</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_fall_history" value="25"> Ya</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_fall_history" value="0"> Tidak</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">25 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Diagnosa Sekunder (&gt; 1 Penyakit)</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_secondary_dx" value="15"> Ya</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_secondary_dx" value="0"> Tidak</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">15 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Menggunakan Alat Bantu Mobilisasi</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_ambulatory_aid" value="30"> Berpegangan Furnitur</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_ambulatory_aid" value="15"> Walker/alat penopang</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_ambulatory_aid" value="0"> Bedrest (dibantu perawat)</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">30 / 15 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Menggunakan IVFD atau Heparin</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_iv" value="20"> Ya</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_iv" value="0"> Tidak</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">20 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Gaya Berjalan</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_gait" value="20"> Gangguan Pergerakan (Pincang)</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_gait" value="10"> Lemah (tidak bertenaga)</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_gait" value="0"> Normal/bedrest/kursi roda</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">20 / 10 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left">Status Mental</td>
+                                                        <td class="triage-td">
+                                                            <div class="triage-radio-stack">
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_mental" value="15"> Disorientasi (mengalami keterbatasan/kekurangan daya ingat)</label>
+                                                                <label class="triage-check-item"><input type="radio" class="triage-radio" name="morse_mental" value="0"> Orientasi baik (menyadari kondisinya)</label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="triage-td triage-center">15 / 0</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="triage-td triage-td-left triage-strong">TOTAL SCORE</td>
+                                                        <td class="triage-td triage-center triage-strong" colspan="2"><span id="t_morse_total">0</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="triage-morse-indicator">
+                                            <div class="triage-risk-title">SKOR RISIKO JATUH</div>
+                                            <div id="t_morse_risk_high" class="triage-risk-box triage-risk-high">
+                                                <div class="triage-risk-label">Risiko Tinggi</div>
+                                                <div class="triage-risk-range">45</div>
+                                            </div>
+                                            <div id="t_morse_risk_med" class="triage-risk-box triage-risk-med">
+                                                <div class="triage-risk-label">Risiko Sedang</div>
+                                                <div class="triage-risk-range">25 – 44</div>
+                                            </div>
+                                            <div id="t_morse_risk_low" class="triage-risk-box triage-risk-low">
+                                                <div class="triage-risk-label">Risiko Rendah</div>
+                                                <div class="triage-risk-range">0 – 24</div>
+                                            </div>
+                                            <div class="triage-risk-score">Total: <span id="t_morse_total_dup">0</span></div>
                                         </div>
                                     </div>
                                 </section>
@@ -7039,6 +7558,311 @@
                     border-bottom: 1px dotted #111111;
                     min-height: 7mm;
                 }
+                .triage-document {
+                    font-family: Arial, sans-serif;
+                    color: #111111;
+                }
+                .triage-sheet {
+                    position: relative;
+                    width: 210mm;
+                    min-height: 330mm;
+                    margin: 0 auto 12mm;
+                    padding: 7.5mm 11mm 7mm;
+                    background: #ffffff;
+                    box-shadow: 0 18px 50px -24px rgba(15, 23, 42, 0.35);
+                    box-sizing: border-box;
+                }
+                .triage-sheet-break {
+                    padding-top: 10mm;
+                }
+                .triage-title {
+                    text-align: center;
+                    font-weight: 800;
+                    letter-spacing: 0.02em;
+                    border: 1.5px solid #111111;
+                    padding: 2.2mm 2mm;
+                    margin-top: 3mm;
+                    margin-bottom: 4mm;
+                    font-size: 14pt;
+                }
+                .triage-row {
+                    display: grid;
+                    gap: 4mm;
+                }
+                .triage-row-2 {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .triage-field-label {
+                    font-size: 10.5pt;
+                    font-weight: 700;
+                    margin-bottom: 1mm;
+                }
+                .triage-input {
+                    width: 100%;
+                    font: inherit;
+                    border: none;
+                    border-bottom: 1px dotted #111111;
+                    background: transparent;
+                    padding: 0 0 0.6mm;
+                    outline: none;
+                }
+                .triage-input-inline {
+                    width: 70mm;
+                }
+                .triage-input-full {
+                    grid-column: 1 / -1;
+                    margin-left: 5mm;
+                    margin-top: -1mm;
+                }
+                .triage-note {
+                    margin-top: 6mm;
+                    font-size: 10pt;
+                    color: #475569;
+                    border: 1px dashed #cbd5e1;
+                    padding: 3mm 3.2mm;
+                }
+                .triage-section-title {
+                    font-weight: 800;
+                    text-align: center;
+                    border: 1.5px solid #111111;
+                    padding: 2mm 2mm;
+                    margin-bottom: 3mm;
+                    font-size: 11.5pt;
+                }
+                .triage-box {
+                    border: 1.5px solid #111111;
+                    padding: 3mm 3mm;
+                    margin-bottom: 4mm;
+                }
+                .triage-check-row {
+                    margin-bottom: 3mm;
+                }
+                .triage-check-grid {
+                    display: grid;
+                    gap: 2mm 6mm;
+                    align-items: center;
+                }
+                .triage-check-grid-5 {
+                    grid-template-columns: repeat(5, max-content);
+                }
+                .triage-check-grid-4 {
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                }
+                .triage-check-grid-3 {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    margin-bottom: 2mm;
+                }
+                .triage-check-item {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 2mm;
+                    font-size: 10.5pt;
+                    font-weight: 600;
+                }
+                .triage-check,
+                .triage-radio {
+                    appearance: none;
+                    width: 3.6mm;
+                    height: 3.6mm;
+                    border: 1.5px solid #111111;
+                    background: #ffffff;
+                    display: inline-block;
+                    box-sizing: border-box;
+                    position: relative;
+                }
+                .triage-check {
+                    border-radius: 0.7mm;
+                }
+                .triage-radio {
+                    border-radius: 999px;
+                }
+                .triage-check:checked {
+                    background: #111111;
+                    box-shadow: inset 0 0 0 1.3mm #ffffff;
+                }
+                .triage-radio:checked {
+                    background: #111111;
+                    box-shadow: inset 0 0 0 1.2mm #ffffff;
+                }
+                .triage-line-row {
+                    display: grid;
+                    grid-template-columns: 44mm repeat(2, max-content) 1fr;
+                    gap: 3mm;
+                    align-items: center;
+                    margin-top: 2mm;
+                }
+                .triage-line-label {
+                    font-weight: 800;
+                    font-size: 10.5pt;
+                }
+                .triage-line-fill {
+                    font-size: 10.5pt;
+                    font-weight: 600;
+                }
+                .triage-pain-grid {
+                    display: grid;
+                    grid-template-columns: 1.6fr 1fr;
+                    gap: 4mm;
+                    align-items: start;
+                    border: 1.5px solid #111111;
+                    padding: 3mm 3mm;
+                    margin-bottom: 4mm;
+                }
+                .triage-small-text {
+                    font-size: 9.8pt;
+                    font-weight: 600;
+                    line-height: 1.35;
+                    margin-bottom: 2.6mm;
+                }
+                .triage-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 10pt;
+                }
+                .triage-th,
+                .triage-td {
+                    border: 1px solid #111111;
+                    padding: 1.8mm 2mm;
+                    vertical-align: middle;
+                }
+                .triage-th {
+                    font-weight: 800;
+                    background: #f1f5f9;
+                    text-align: center;
+                }
+                .triage-th-left {
+                    text-align: left;
+                }
+                .triage-td-left {
+                    text-align: left;
+                    font-weight: 600;
+                }
+                .triage-center {
+                    text-align: center;
+                }
+                .triage-strong {
+                    font-weight: 900;
+                }
+                .triage-flacc-tag {
+                    display: inline-block;
+                    min-width: 14mm;
+                    font-weight: 900;
+                }
+                .triage-radio-item {
+                    display: inline-flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                }
+                .triage-wb-title {
+                    font-weight: 900;
+                    text-align: center;
+                    font-size: 10.5pt;
+                }
+                .triage-wb-sub {
+                    text-align: center;
+                    font-size: 9.5pt;
+                    font-weight: 700;
+                    margin-top: 0.8mm;
+                    color: #334155;
+                }
+                .triage-wb-faces {
+                    display: grid;
+                    grid-template-columns: repeat(6, 1fr);
+                    gap: 1.6mm;
+                    margin-top: 2.6mm;
+                }
+                .triage-wb-face {
+                    border: 1.5px solid #111111;
+                    padding: 1.4mm 1mm 1mm;
+                    text-align: center;
+                    background: #ffffff;
+                }
+                .triage-wb-svg {
+                    width: 100%;
+                    height: 18mm;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: currentColor;
+                }
+                .triage-wb-svg svg {
+                    width: 18mm;
+                    height: 18mm;
+                    display: block;
+                }
+                .triage-wb-num {
+                    font-weight: 900;
+                    font-size: 10pt;
+                    margin-top: 0.6mm;
+                }
+                .triage-wb-color-0 { color: #22c55e; }
+                .triage-wb-color-2 { color: #84cc16; }
+                .triage-wb-color-4 { color: #facc15; }
+                .triage-wb-color-6 { color: #fb923c; }
+                .triage-wb-color-8 { color: #f97316; }
+                .triage-wb-color-10 { color: #ef4444; }
+                .triage-wb-active {
+                    outline: 2.5px solid #111111;
+                    outline-offset: -2px;
+                    box-shadow: 0 0 0 1px #111111 inset;
+                }
+                .triage-wb-scale {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    margin-top: 2mm;
+                    font-weight: 900;
+                    font-size: 9.5pt;
+                    text-align: center;
+                }
+                .triage-wb-score {
+                    margin-top: 2mm;
+                    font-weight: 900;
+                    text-align: center;
+                }
+                .triage-morse-grid {
+                    display: grid;
+                    grid-template-columns: 1.8fr 0.9fr;
+                    gap: 4mm;
+                    align-items: start;
+                }
+                .triage-radio-stack {
+                    display: grid;
+                    gap: 1.2mm;
+                }
+                .triage-risk-title {
+                    font-weight: 900;
+                    text-align: center;
+                    margin-bottom: 2mm;
+                }
+                .triage-risk-box {
+                    border: 1.5px solid #111111;
+                    padding: 3mm 3mm;
+                    margin-bottom: 2mm;
+                    text-align: center;
+                }
+                .triage-risk-label {
+                    font-weight: 900;
+                    font-size: 10.5pt;
+                }
+                .triage-risk-range {
+                    margin-top: 1mm;
+                    font-weight: 900;
+                    font-size: 14pt;
+                }
+                .triage-risk-high { background: #fee2e2; }
+                .triage-risk-med { background: #fef9c3; }
+                .triage-risk-low { background: #dcfce7; }
+                .triage-risk-active {
+                    outline: 3px solid #111111;
+                    outline-offset: -3px;
+                }
+                .triage-risk-score {
+                    font-weight: 900;
+                    text-align: center;
+                    margin-top: 2mm;
+                    font-size: 11pt;
+                }
                 @media print {
                     body[data-print-mode="general-consent"] * {
                         visibility: hidden;
@@ -7117,6 +7941,57 @@
                     }
                     body[data-print-mode="general-consent"] select.gc-input {
                         pointer-events: none;
+                    }
+                    body[data-print-mode="triase-ugd"] * {
+                        visibility: hidden;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal,
+                    body[data-print-mode="triase-ugd"] #triageUgdModal * {
+                        visibility: visible;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: auto;
+                        background: white !important;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:first-child {
+                        display: none;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:last-child,
+                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:last-child > div {
+                        display: block;
+                        min-height: auto;
+                        max-height: none;
+                        overflow: visible;
+                        box-shadow: none;
+                        border-radius: 0;
+                        background: white;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal .sticky {
+                        display: none !important;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdModal .p-6 {
+                        padding: 0 !important;
+                        background: white !important;
+                    }
+                    body[data-print-mode="triase-ugd"] .triage-sheet {
+                        margin: 0;
+                        width: auto;
+                        min-height: auto;
+                        padding: 5mm 8mm 5mm;
+                        box-shadow: none;
+                        break-after: auto;
+                        page-break-after: auto;
+                    }
+                    body[data-print-mode="triase-ugd"] .triage-sheet-break {
+                        padding-top: 4mm;
+                    }
+                    body[data-print-mode="triase-ugd"] .triage-sheet:not(:last-of-type) {
+                        break-after: page;
+                        page-break-after: always;
                     }
                 }
             </style>
