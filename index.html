@@ -6794,7 +6794,7 @@
 
                         async function loadTriaseUgdDraft(patientData = currentPatientForTriage) {
                             let payload = null;
-                            if (triageDraftColumnAvailable && String(patientData?.id || '').trim()) {
+                            if (triaseDraftColumnAvailable && String(patientData?.id || '').trim()) {
                                 const { data, error } = await withTimeout(
                                     supabaseClient
                                         .from('pasien')
@@ -6832,7 +6832,7 @@
                                 const savedInfo = savedAt && !Number.isNaN(savedAt.getTime())
                                     ? ` Draft terakhir dimuat (${formatTriaseDate(savedAt)} ${formatTriaseTime(savedAt)}).`
                                     : '';
-                                const sourceLabel = triageDraftColumnAvailable && String(patientData?.id || '').trim()
+                                const sourceLabel = triaseDraftColumnAvailable && String(patientData?.id || '').trim()
                                     ? 'Data triase tersimpan berhasil dimuat.'
                                     : 'Draft triase lokal berhasil dimuat.';
                                 showTriaseUgdMessage(sourceLabel + savedInfo, 'success');
@@ -6864,7 +6864,7 @@
                                     }
                                 }
 
-                                if (triageDraftColumnAvailable && String(currentPatientForTriage?.id || '').trim()) {
+                                if (triaseDraftColumnAvailable && String(currentPatientForTriage?.id || '').trim()) {
                                     let updatePayload = { triase_ugd_data: payload };
                                     let updateRes = await withTimeout(
                                         supabaseClient
