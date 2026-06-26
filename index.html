@@ -6434,9 +6434,17 @@
                             
                             // Header data
                             document.getElementById('gc_no_rm').textContent = patientData.no_rm || '';
+                            const noRegEl = document.getElementById('gc_no_reg');
+                            if (noRegEl) noRegEl.textContent = patientData.no_registrasi || '';
                             document.getElementById('gc_nama').textContent = patientData.nama_pasien || '';
                             document.getElementById('gc_jk').textContent = patientData.jenis_kelamin || '';
                             document.getElementById('gc_tgl_lahir').textContent = formattedBirthDate;
+                            const umurEl = document.getElementById('gc_umur');
+                            if (umurEl) {
+                                const rawUmur = patientData.umur;
+                                const umurText = (rawUmur ?? rawUmur === 0) ? String(rawUmur) : computeAgeYears(patientData.tanggal_lahir || '');
+                                umurEl.textContent = umurText || '';
+                            }
                             
                             const hubunganSelect = document.getElementById('gc_hubungan_select');
                             if (hubunganSelect) hubunganSelect.value = 'Pasien Sendiri';
@@ -7138,9 +7146,11 @@
                                             <div class="gc-patient-box">
                                                 <table class="gc-patient-meta">
                                                     <tr><td>Nomor RM</td><td>:</td><td id="gc_no_rm"></td></tr>
+                                                    <tr><td>Nomor REG</td><td>:</td><td id="gc_no_reg"></td></tr>
                                                     <tr><td>Nama</td><td>:</td><td id="gc_nama"></td></tr>
-                                                    <tr><td>Jenis Kelamin</td><td>:</td><td id="gc_jk"></td></tr>
-                                                    <tr><td>Tanggal Lahir</td><td>:</td><td id="gc_tgl_lahir"></td></tr>
+                                                    <tr><td>JK</td><td>:</td><td id="gc_jk"></td></tr>
+                                                    <tr><td>TL</td><td>:</td><td id="gc_tgl_lahir"></td></tr>
+                                                    <tr><td>Umur</td><td>:</td><td id="gc_umur"></td></tr>
                                                 </table>
                                             </div>
                                         </div>
@@ -8061,13 +8071,13 @@
                     grid-template-columns: 19mm 1fr;
                     gap: 3mm;
                     align-items: start;
-                    padding-top: 2.2mm;
+                    padding-top: 2.8mm;
                 }
                 .gc-logo-wrap {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    padding-top: 2.2mm;
+                    padding-top: 2.8mm;
                 }
                 .gc-logo {
                     width: 16.8mm;
@@ -8737,7 +8747,7 @@
                 }
                 .triage-sheet .gc-logo-wrap {
                     justify-content: flex-end;
-                    padding-top: 1.6mm;
+                    padding-top: 2.2mm;
                 }
                 .triage-sheet .gc-logo {
                     width: 19mm;
