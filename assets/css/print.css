@@ -1,4 +1,4 @@
-﻿@media print {
+@media print {
                     body[data-print-mode="barcode"],
                     body[data-print-mode="wristband"] {
                         margin: 0 !important;
@@ -161,6 +161,9 @@
                         background: white;
                     }
                     body[data-print-mode="triase-ugd"] #triageUgdModal .sticky {
+                        display: none !important;
+                    }
+                    body[data-print-mode="triase-ugd"] #triageUgdMessage {
                         display: none !important;
                     }
                     body[data-print-mode="triase-ugd"] #triageUgdModal .p-6 {
