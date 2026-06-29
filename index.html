@@ -5252,12 +5252,16 @@
 
                         function r_toISOStart(dateStr) {
                             if (!dateStr) return null;
-                            return dateStr + 'T00:00:00';
+                            const d = new Date(dateStr + 'T00:00:00');
+                            if (Number.isNaN(d.getTime())) return null;
+                            return d.toISOString();
                         }
 
                         function r_toISOEnd(dateStr) {
                             if (!dateStr) return null;
-                            return dateStr + 'T23:59:59.999';
+                            const d = new Date(dateStr + 'T23:59:59.999');
+                            if (Number.isNaN(d.getTime())) return null;
+                            return d.toISOString();
                         }
 
                         function r_formatDateTimeLocal(iso) {
@@ -6751,7 +6755,7 @@
                                     }
                                     showTriaseUgdMessage('Triase berhasil disimpan. Saat dibuka lagi, data terakhir akan otomatis dimuat.', 'success');
                                 } else {
-                                    showTriaseUgdMessage('Triase berhasil disimpan,tambah kolom `triase_ugd_data`.', 'info');
+                                    showTriaseUgdMessage('Triase berhasil disimpan, tambah kolom `triase_ugd_data`.', 'info');
                                 }
                             } catch (err) {
                                 showTriaseUgdMessage('Gagal menyimpan triase: ' + (err?.message || String(err)), 'error');
