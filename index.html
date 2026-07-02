@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿        <!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿        <!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -6602,6 +6602,8 @@
                                 if (Number.isFinite(n)) total += n;
                             });
                             document.getElementById('t_morse_total').textContent = String(total);
+                            const morseScoreEl = document.getElementById('t_morse_score_display');
+                            if (morseScoreEl) morseScoreEl.textContent = String(total);
                             applyTriaseMorseRisk(total);
                             return total;
                         }
@@ -6614,16 +6616,35 @@
                             });
                             const out = document.getElementById('t_hd_total');
                             if (out) out.textContent = String(total);
+                            const hdScoreEl = document.getElementById('t_hd_score_display');
+                            if (hdScoreEl) hdScoreEl.textContent = String(total);
                             const low = document.getElementById('t_hd_risk_low');
                             const high = document.getElementById('t_hd_risk_high');
                             if (low) low.classList.remove('triage-risk-active');
                             if (high) high.classList.remove('triage-risk-active');
+                            applyTriaseHdScoreRisk(total);
                             if (total > 12) {
                                 if (high) high.classList.add('triage-risk-active');
                             } else if (total >= 6) {
                                 if (low) low.classList.add('triage-risk-active');
                             }
                             return total;
+                        }
+
+                        function applyTriaseScoreBoxClass(target, risk) {
+                            if (!target) return;
+                            target.classList.remove('triage-score-low', 'triage-score-med', 'triage-score-high');
+                            if (risk === 'tinggi') target.classList.add('triage-score-high');
+                            else if (risk === 'sedang') target.classList.add('triage-score-med');
+                            else if (risk === 'rendah') target.classList.add('triage-score-low');
+                        }
+
+                        function applyTriaseHdScoreRisk(total) {
+                            const t = Math.max(0, Number(total) || 0);
+                            const el = document.getElementById('t_hd_score_display');
+                            if (t > 12) applyTriaseScoreBoxClass(el, 'tinggi');
+                            else if (t >= 6) applyTriaseScoreBoxClass(el, 'rendah');
+                            else applyTriaseScoreBoxClass(el, '');
                         }
 
                         function applyTriaseMorseRisk(total) {
@@ -6634,16 +6655,20 @@
                             if (low) low.classList.remove('triage-risk-active');
                             if (med) med.classList.remove('triage-risk-active');
                             if (high) high.classList.remove('triage-risk-active');
+                            const scoreBox = document.getElementById('t_morse_score_display');
 
                             if (t >= 45) {
                                 if (high) high.classList.add('triage-risk-active');
+                                applyTriaseScoreBoxClass(scoreBox, 'tinggi');
                                 return 'tinggi';
                             }
                             if (t >= 25) {
                                 if (med) med.classList.add('triage-risk-active');
+                                applyTriaseScoreBoxClass(scoreBox, 'sedang');
                                 return 'sedang';
                             }
                             if (low) low.classList.add('triage-risk-active');
+                            applyTriaseScoreBoxClass(scoreBox, 'rendah');
                             return 'rendah';
                         }
 
@@ -7624,7 +7649,10 @@
                                                                 <div class="triage-morse-risk-label">Risiko Rendah</div>
                                                                 <div class="triage-morse-risk-value">0 - 24</div>
                                                             </div>
-                                                            <div class="triage-morse-risk-note">Indikator Risiko Pasien</div>
+                                                            <div class="triage-morse-score">
+                                                                <div class="triage-morse-score-label">Skor</div>
+                                                                <div class="triage-morse-score-value"><span id="t_morse_score_display">0</span></div>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -7868,6 +7896,7 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                            <div class="triage-hd-score-line"><span class="triage-hd-score-label">Skor</span><span class="triage-hd-score-value" id="t_hd_score_display">0</span></div>
                                         </div>
                                     </div>
                                 </section>
