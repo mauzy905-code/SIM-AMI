@@ -494,11 +494,11 @@
                 .triage-radio::after {
                     content: '';
                     position: absolute;
-                    width: 1.1mm;
-                    height: 2.1mm;
-                    border-right: 0.45mm solid transparent;
-                    border-bottom: 0.45mm solid transparent;
-                    transform: translateY(-0.1mm) rotate(45deg);
+                    width: 1.45mm;
+                    height: 2.65mm;
+                    border-right: 0.6mm solid transparent;
+                    border-bottom: 0.6mm solid transparent;
+                    transform: translateY(-0.15mm) rotate(45deg);
                     color: transparent;
                 }
                 .triage-check:checked {
