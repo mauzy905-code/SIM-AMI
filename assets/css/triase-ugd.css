@@ -1,4 +1,4 @@
-﻿                .triage-document {
+                .triage-document {
                     font-family: Arial, sans-serif;
                     color: #111111;
                     -webkit-print-color-adjust: exact;
@@ -492,13 +492,13 @@
                 }
                 .triage-check::after,
                 .triage-radio::after {
-                    content: 'âœ“';
-                    display: block;
-                    width: 3.1mm;
-                    text-align: center;
-                    line-height: 1;
-                    font-size: 3.1mm;
-                    font-weight: 700;
+                    content: '';
+                    position: absolute;
+                    width: 1.1mm;
+                    height: 2.1mm;
+                    border-right: 0.45mm solid transparent;
+                    border-bottom: 0.45mm solid transparent;
+                    transform: translateY(-0.1mm) rotate(45deg);
                     color: transparent;
                 }
                 .triage-check:checked {
@@ -506,7 +506,8 @@
                     box-shadow: none;
                 }
                 .triage-check:checked::after {
-                    color: #111111;
+                    border-right-color: #111111;
+                    border-bottom-color: #111111;
                 }
                 .triage-radio:checked {
                     background: #111111;
