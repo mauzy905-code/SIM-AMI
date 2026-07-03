@@ -603,6 +603,16 @@
                         : '';
                 }
 
+                function isDisplayQueueActive(item) {
+                    const status = String(item?.status_norm || item?.status || '').trim().toLowerCase();
+                    return status === 'terdaftar' || status === 'menunggu';
+                }
+
+                function queueDisplayStatusLabel(item) {
+                    const status = String(item?.status_norm || item?.status || '').trim().toLowerCase();
+                    return status === 'terdaftar' ? 'Terdaftar' : 'Menunggu';
+                }
+
                 function loketTujuanLabel(loketTujuan) {
                     const value = String(loketTujuan || '').trim().toUpperCase();
                     if (!value) return '';
@@ -1163,15 +1173,21 @@
 
                 function poliklinikCalledByLoket(rows) {
                     const calledRows = (rows || []).filter((item) => item.status_norm === 'dipanggil');
+                    const registeredRows = (rows || []).filter((item) => item.status_norm === 'terdaftar');
                     const loket1 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'A') || null;
                     const loket2 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'B') || null;
                     const loket3 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'C') || null;
                     const fallbackRows = calledRows.filter((item) => !String(item.loket_tujuan || '').trim());
+                    const registeredLoket1 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'A') || null;
+                    const registeredLoket2 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'B') || null;
+                    const registeredLoket3 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'C') || null;
+                    const registeredFallbackRows = registeredRows.filter((item) => !String(item.loket_tujuan || '').trim());
                     let fallbackIndex = 0;
+                    let registeredFallbackIndex = 0;
                     return {
-                        loket1: loket1 || fallbackRows[fallbackIndex++] || null,
-                        loket2: loket2 || fallbackRows[fallbackIndex++] || null,
-                        loket3: loket3 || fallbackRows[fallbackIndex++] || null
+                        loket1: loket1 || fallbackRows[fallbackIndex++] || registeredLoket1 || registeredFallbackRows[registeredFallbackIndex++] || null,
+                        loket2: loket2 || fallbackRows[fallbackIndex++] || registeredLoket2 || registeredFallbackRows[registeredFallbackIndex++] || null,
+                        loket3: loket3 || fallbackRows[fallbackIndex++] || registeredLoket3 || registeredFallbackRows[registeredFallbackIndex++] || null
                     };
                 }
 
@@ -1186,8 +1202,9 @@
                 }
 
                 function renderPoliklinikDualSection(rows) {
-                    const waiting = (rows || []).filter((item) => item.status_norm === 'menunggu');
                     const currentByLoket = poliklinikCalledByLoket(rows);
+                    const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id, currentByLoket.loket3?.id].filter(Boolean));
+                    const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
 
                     renderLoketCard('poliklinikLoket1', currentByLoket.loket1, 'POLIKLINIK', 'Belum ada antrean');
                     renderLoketCard('poliklinikLoket2', currentByLoket.loket2, 'POLIKLINIK', 'Belum ada antrean');
@@ -1206,14 +1223,15 @@
                                 <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'POLIKLINIK')}</div>
                                 <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                             </div>
-                            <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">Menunggu</div>
+                            <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">${queueDisplayStatusLabel(item)}</div>
                         </div>
                     `).join('');
                 }
 
                 function renderFocusedPoliklinikDual(rows) {
-                    const waiting = (rows || []).filter((item) => item.status_norm === 'menunggu');
                     const currentByLoket = poliklinikCalledByLoket(rows);
+                    const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id, currentByLoket.loket3?.id].filter(Boolean));
+                    const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
                     const singleCurrent = document.getElementById('focusedSingleCurrent');
                     const dualCurrent = document.getElementById('focusedPoliklinikDual');
 
@@ -1241,7 +1259,7 @@
                                 <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'POLIKLINIK')}</div>
                                 <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                             </div>
-                            <div class="text-lg text-right font-semibold ${waitingStatusClass(item)}">Menunggu</div>
+                            <div class="text-lg text-right font-semibold ${waitingStatusClass(item)}">${queueDisplayStatusLabel(item)}</div>
                         </div>
                     `).join('');
                 }
@@ -1282,8 +1300,10 @@
                     document.getElementById('focusedSingleCurrent').classList.remove('hidden');
                     document.getElementById('focusedPoliklinikDual').classList.add('hidden');
                     const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
+                    const queued = (rows || []).filter(a => a.status_norm === 'terdaftar');
                     const waiting = (rows || []).filter(a => a.status_norm === 'menunggu');
-                    const current = called[0] || null;
+                    const current = called[0] || queued[0] || null;
+                    const nextList = (rows || []).filter((item) => isDisplayQueueActive(item) && item.id !== current?.id).slice(0, 5);
                     const isFarmasi = unit === 'FARMASI';
 
                     document.getElementById('focusedUnit').textContent = unitNames[unit] || unit;
@@ -1301,19 +1321,19 @@
                         document.getElementById('focusedJenisPasien').textContent = '';
                         document.getElementById('focusedPoli').textContent = '';
                         applyCardAccent('focusedSingleCurrent', 'focusedJenisPasien', 'focusedAntrian', 'focusedPoli', 'focusedNama', null, unit);
-                        if (waiting.length > 0) {
+                        if (nextList.length > 0) {
                             const listContainer = document.getElementById('focusedAntrianList');
                             const accentClass = isFarmasi
                                 ? 'from-emerald-900/55 to-emerald-800/35 border-emerald-700/50 text-emerald-100'
                                 : 'from-blue-900/55 to-slate-800/55 border-blue-700/50 text-blue-100';
-                            listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                            listContainer.innerHTML = nextList.map((item) => `
                                 <div class="bg-gradient-to-r ${accentClass} border rounded-xl p-4 flex justify-between items-center gap-4 shadow-lg">
                                     <div>
                                         <div class="text-3xl font-extrabold">${item.no_antrian || '-'}</div>
                                         <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
                                         <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                                     </div>
-                                    <div class="text-lg text-right font-semibold">Menunggu</div>
+                                    <div class="text-lg text-right font-semibold">${queueDisplayStatusLabel(item)}</div>
                                 </div>
                             `).join('');
                         } else {
@@ -1328,7 +1348,6 @@
                     document.getElementById('focusedPoli').textContent = currentMetaLabel(current, unit);
                     applyCardAccent('focusedSingleCurrent', 'focusedJenisPasien', 'focusedAntrian', 'focusedPoli', 'focusedNama', current, unit);
 
-                    const nextList = waiting.slice(0, 5);
                     const listContainer = document.getElementById('focusedAntrianList');
                     if (nextList.length === 0) {
                         listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
@@ -1345,7 +1364,7 @@
                                 <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
                                 <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                             </div>
-                            <div class="text-lg text-right font-semibold ${waitingStatusClass(item)}">Menunggu</div>
+                            <div class="text-lg text-right font-semibold ${waitingStatusClass(item)}">${queueDisplayStatusLabel(item)}</div>
                         `;
                         listContainer.appendChild(div);
                     });
@@ -1359,8 +1378,10 @@
 
                     const prefix = sectionPrefix(unit);
                     const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
+                    const queued = (rows || []).filter(a => a.status_norm === 'terdaftar');
                     const waiting = (rows || []).filter(a => a.status_norm === 'menunggu');
-                    const current = called[0] || null;
+                    const current = called[0] || queued[0] || null;
+                    const nextList = (rows || []).filter((item) => isDisplayQueueActive(item) && item.id !== current?.id).slice(0, 5);
 
                     if (!current) {
                         document.getElementById(prefix + 'CurrentAntrian').textContent = '';
@@ -1369,15 +1390,15 @@
                         document.getElementById(prefix + 'CurrentPoli').textContent = '';
                         applyCardAccent(prefix + 'CurrentCard', prefix + 'CurrentJenisPasien', prefix + 'CurrentAntrian', prefix + 'CurrentPoli', prefix + 'CurrentNama', null, unit);
                         const listContainer = document.getElementById(prefix + 'AntrianList');
-                        if (waiting.length > 0) {
-                            listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                        if (nextList.length > 0) {
+                            listContainer.innerHTML = nextList.map((item) => `
                                 <div class="${waitingCardClass(item, unit)} border rounded-2xl p-4 flex justify-between items-center gap-4 shadow-lg">
                                     <div>
                                         <div class="text-2xl font-extrabold">${item.no_antrian || '-'}</div>
                                         <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
                                         <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                                     </div>
-                                    <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">Menunggu</div>
+                                    <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">${queueDisplayStatusLabel(item)}</div>
                                 </div>
                             `).join('');
                         } else {
@@ -1392,7 +1413,6 @@
                     document.getElementById(prefix + 'CurrentPoli').textContent = currentMetaLabel(current, unit);
                     applyCardAccent(prefix + 'CurrentCard', prefix + 'CurrentJenisPasien', prefix + 'CurrentAntrian', prefix + 'CurrentPoli', prefix + 'CurrentNama', current, unit);
 
-                    const nextList = waiting.slice(0, 5);
                     const listContainer = document.getElementById(prefix + 'AntrianList');
                     if (nextList.length === 0) {
                         listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
@@ -1409,7 +1429,7 @@
                                 <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, unit)}</div>
                                 <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
                             </div>
-                            <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">Menunggu</div>
+                            <div class="text-right text-base font-semibold ${waitingStatusClass(item)}">${queueDisplayStatusLabel(item)}</div>
                         `;
                         listContainer.appendChild(div);
                     });
