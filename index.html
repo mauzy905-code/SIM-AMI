@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿        <!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿        <!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -2015,6 +2015,10 @@
                                 if (gcBtn) {
                                     gcBtn.parentElement.style.display = 'block';
                                 }
+                                const wristbandBtn = document.getElementById('printWristbandBtn');
+                                if (wristbandBtn) {
+                                    wristbandBtn.style.display = '';
+                                }
                             } else {
                                 supervisorMenuLinks.classList.add('hidden');
                                 drawerRoleEyebrow.textContent = 'SIM-AMI';
@@ -2036,10 +2040,14 @@
                                 registrationSectionDescription.textContent = 'Lengkapi jenis pasien, poli tujuan, nomor antrean Poliklinik, lalu isi identitas pasien dengan cepat.';
                                 statsSectionTitle.textContent = 'Ringkasan Aktivitas Poliklinik';
                                 statsSectionDescription.textContent = 'Pantau status antrean Poliklinik dan jumlah pasien yang sudah masuk pada hari ini.';
-                                // Hide General Consent button for non-UGD
+                                // Show General Consent button for Poliklinik registration
                                 const gcBtnNonUgd = document.getElementById('printGeneralConsentFromFormBtn');
                                 if (gcBtnNonUgd) {
-                                    gcBtnNonUgd.parentElement.style.display = 'none';
+                                    gcBtnNonUgd.parentElement.style.display = 'block';
+                                }
+                                const wristbandBtn = document.getElementById('printWristbandBtn');
+                                if (wristbandBtn) {
+                                    wristbandBtn.style.display = 'none';
                                 }
                             }
                             applyRekapRolePresentation();
@@ -5378,6 +5386,7 @@
                         function r_renderRows(items) {
                             const isRme = isRmeRole();
                             const isIgd = isIgdRole();
+                            const isPendaftaran = isPendaftaranRole();
                             const isPetugasPoli = isPetugasPoliScopedRekap();
                             const canManageDriveLink = canManagePatientDriveLink();
                             const canTriase = canAccessTriaseUgd();
@@ -5423,7 +5432,7 @@
                                     ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
                                     : '';
                                 const editIdentityCell = patientEditBtn || `<span class="text-xs font-semibold text-slate-400">-</span>`;
-                                const gcBtnRekap = (isIgd && String(p.unit || '').toUpperCase() === 'UGD')
+                                const gcBtnRekap = ((isIgd && String(p.unit || '').toUpperCase() === 'UGD') || (isPendaftaran && String(p.unit || '').toUpperCase() === 'POLIKLINIK'))
                                     ? `<button type="button" class="gc-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
                                         nama_pasien: p.nama_pasien,
                                         tanggal_lahir: p.tanggal_lahir,
@@ -6869,7 +6878,7 @@
 
                         // Button from form
                         document.getElementById('printGeneralConsentFromFormBtn').addEventListener('click', function() {
-                            if (!isIgdRole()) return;
+                            if (!isRegistrationWorkflowRole()) return;
                             if (currentSavedPatientData) {
                                 openGeneralConsentModal(currentSavedPatientData);
                             }
@@ -6891,7 +6900,7 @@
                         document.getElementById('r_rows').addEventListener('click', function(e) {
                             const gcBtn = e.target.closest('.gc-btn');
                             if (gcBtn) {
-                                if (!isIgdRole()) return;
+                                if (!isRegistrationWorkflowRole()) return;
                                 try {
                                     const patientData = JSON.parse(gcBtn.dataset.patient);
                                     openGeneralConsentModal(patientData);
