@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿        <!DOCTYPE html>
+<!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -123,6 +123,9 @@
                     </button>
                     <button id="menuRekap" type="button" class="w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
                         Rekap Pasien
+                    </button>
+                    <button id="menuDraftTriase" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
+                        Draft Triase
                     </button>
                     <button id="menuRekapAll" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
                         Rekap Semua Pasien
@@ -759,6 +762,75 @@
                         </div>
                     </div>
                 </section>
+
+                <section id="viewDraftTriase" class="hidden">
+                    <div class="overflow-hidden rounded-[30px] border border-white/70 bg-white/90 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                        <div class="border-b border-emerald-100 bg-[linear-gradient(135deg,_#fff7ed_0%,_#eff6ff_100%)] px-5 py-5">
+                            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+                                <div>
+                                    <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-rose-700">Draft Triase</div>
+                                    <div class="mt-1.5 text-xl md:text-2xl font-black tracking-tight text-slate-900">Draft Triase UGD (Sebelum Terdaftar)</div>
+                                    <div class="mt-1.5 text-sm font-semibold text-slate-500">Buat draft triase, lanjutkan kapan saja, lalu tautkan ke pasien setelah registrasi selesai.</div>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span id="draftTriaseMeta" class="inline-flex items-center rounded-full border border-rose-100 bg-white px-3 py-1 text-xs md:text-sm font-semibold text-slate-600 shadow-sm">Memuat...</span>
+                                    <button id="draftTriaseRefreshBtn" type="button" class="rounded-xl border border-rose-200 bg-white px-3.5 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50">
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5 md:p-6 space-y-4">
+                            <div class="rounded-[28px] border border-rose-100 bg-[linear-gradient(135deg,_#ffffff_0%,_#fff7ed_100%)] p-4 md:p-5 shadow-sm">
+                                <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+                                    <div class="md:col-span-5">
+                                        <label class="block text-slate-700 font-semibold mb-2">Nama Pasien</label>
+                                        <input id="draftTriaseNamaInput" type="text" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500" placeholder="Contoh: Siti Aisyah">
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <label class="block text-slate-700 font-semibold mb-2">Jenis Kelamin</label>
+                                        <select id="draftTriaseJkInput" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500">
+                                            <option value="">Pilih</option>
+                                            <option value="L">Laki-laki</option>
+                                            <option value="P">Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-slate-700 font-semibold mb-2">Umur</label>
+                                        <input id="draftTriaseUmurInput" type="number" min="0" max="150" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500" placeholder="Tahun">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-slate-700 font-semibold mb-2">Tanggal Lahir</label>
+                                        <input id="draftTriaseTglLahirInput" type="date" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500">
+                                    </div>
+                                    <div class="md:col-span-12">
+                                        <label class="block text-slate-700 font-semibold mb-2">Keluhan Utama (Ringkas)</label>
+                                        <input id="draftTriaseKuInput" type="text" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500" placeholder="Contoh: Sesak napas, nyeri dada">
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <button id="draftTriaseOpenBtn" type="button" class="rounded-2xl bg-[linear-gradient(135deg,_#e11d48_0%,_#f97316_58%,_#2563eb_100%)] px-4 py-3 text-sm font-black text-white shadow-[0_14px_24px_-12px_rgba(225,29,72,0.4)] transition hover:brightness-105">
+                                        Isi Draft Triase
+                                    </button>
+                                    <button id="draftTriaseClearBtn" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                        Reset Identitas
+                                    </button>
+                                    <div id="draftTriaseMessage" class="hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[28px] border border-rose-100 bg-white shadow-sm">
+                                <div class="border-b border-rose-100 bg-[linear-gradient(135deg,_#fff7ed_0%,_#ffffff_100%)] px-5 py-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                    <div>
+                                        <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-rose-700">Daftar Draft</div>
+                                        <div class="mt-1 text-lg font-black tracking-tight text-slate-900">Draft Triase Aktif</div>
+                                    </div>
+                                </div>
+                                <div id="draftTriaseList" class="divide-y divide-slate-100 max-h-[70vh] overflow-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </main>
 
             <div id="historyModal" class="fixed inset-0 z-50 hidden">
@@ -806,6 +878,37 @@
                                     <div id="historyVisitList" class="max-h-[60vh] overflow-auto divide-y divide-slate-100"></div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="linkDraftTriaseModal" class="fixed inset-0 z-[120] hidden">
+                <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+                <div class="relative min-h-full flex items-center justify-center p-4">
+                    <div class="w-full max-w-4xl overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-2xl">
+                        <div class="border-b border-slate-200 p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-rose-700">Tautkan Draft</div>
+                                <div class="mt-1 text-lg font-black tracking-tight text-slate-900">Pilih Pasien (Hari Ini - UGD)</div>
+                                <div id="linkDraftTriaseMeta" class="mt-1 text-sm font-semibold text-slate-500">-</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="linkDraftTriaseRefreshBtn" type="button" class="rounded-xl border border-rose-200 bg-white px-3.5 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50">
+                                    Refresh
+                                </button>
+                                <button id="closeLinkDraftTriaseModal" type="button" class="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-5 space-y-4">
+                            <div>
+                                <label class="block text-slate-700 font-semibold mb-2">Cari (Nama / No RM / No REG)</label>
+                                <input id="linkDraftTriaseSearchInput" type="text" class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-rose-100 focus:border-rose-500" placeholder="Ketik untuk mencari...">
+                            </div>
+                            <div id="linkDraftTriaseMessage" class="hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
+                            <div id="linkDraftTriaseList" class="rounded-[20px] border border-slate-200 divide-y divide-slate-100 max-h-[65vh] overflow-auto"></div>
                         </div>
                     </div>
                 </div>
@@ -955,6 +1058,7 @@
             </div>
 
             <script src="assets/js/utils.js"></script>
+            <script src="assets/js/app-helpers.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const globalLoadingShell = document.getElementById('globalLoadingShell');
@@ -1059,6 +1163,7 @@
 
                         const viewPendaftaran = document.getElementById('viewPendaftaran');
                         const viewRekap = document.getElementById('viewRekap');
+                        const viewDraftTriase = document.getElementById('viewDraftTriase');
 
                         const loginOverlay = document.getElementById('loginOverlay');
                         const loginEmail = document.getElementById('loginEmail');
@@ -1077,6 +1182,7 @@
                         const drawerOverlay = document.getElementById('drawerOverlay');
                         const menuPendaftaran = document.getElementById('menuPendaftaran');
                         const menuRekap = document.getElementById('menuRekap');
+                        const menuDraftTriase = document.getElementById('menuDraftTriase');
                         const menuRekapAll = document.getElementById('menuRekapAll');
                         const changeStaffBtn = document.getElementById('changeStaffBtn');
                         const logoutBtnTop = document.getElementById('logoutBtnTop');
@@ -1222,6 +1328,24 @@
                         const supervisorLoketAStatus = document.getElementById('supervisorLoketAStatus');
                         const supervisorLoketBStatus = document.getElementById('supervisorLoketBStatus');
                         const supervisorLoketCStatus = document.getElementById('supervisorLoketCStatus');
+                        const draftTriaseMeta = document.getElementById('draftTriaseMeta');
+                        const draftTriaseRefreshBtn = document.getElementById('draftTriaseRefreshBtn');
+                        const draftTriaseNamaInput = document.getElementById('draftTriaseNamaInput');
+                        const draftTriaseJkInput = document.getElementById('draftTriaseJkInput');
+                        const draftTriaseUmurInput = document.getElementById('draftTriaseUmurInput');
+                        const draftTriaseTglLahirInput = document.getElementById('draftTriaseTglLahirInput');
+                        const draftTriaseKuInput = document.getElementById('draftTriaseKuInput');
+                        const draftTriaseOpenBtn = document.getElementById('draftTriaseOpenBtn');
+                        const draftTriaseClearBtn = document.getElementById('draftTriaseClearBtn');
+                        const draftTriaseMessage = document.getElementById('draftTriaseMessage');
+                        const draftTriaseList = document.getElementById('draftTriaseList');
+                        const linkDraftTriaseModal = document.getElementById('linkDraftTriaseModal');
+                        const closeLinkDraftTriaseModal = document.getElementById('closeLinkDraftTriaseModal');
+                        const linkDraftTriaseRefreshBtn = document.getElementById('linkDraftTriaseRefreshBtn');
+                        const linkDraftTriaseSearchInput = document.getElementById('linkDraftTriaseSearchInput');
+                        const linkDraftTriaseMeta = document.getElementById('linkDraftTriaseMeta');
+                        const linkDraftTriaseMessage = document.getElementById('linkDraftTriaseMessage');
+                        const linkDraftTriaseList = document.getElementById('linkDraftTriaseList');
 
                         let patientMode = 'baru';
                         let loadedOldPatient = null;
@@ -1237,6 +1361,7 @@
                         let petugasInputColumnAvailable = true;
                         let petugasPoliColumnAvailable = true;
                         let triaseDraftColumnAvailable = true;
+                        let triaseUgdDraftsTableAvailable = true;
                         let queueRoutingColumnsAvailable = true;
                         let queueProcessingColumnsAvailable = true;
                         let poliExamColumnsAvailable = true;
@@ -1257,12 +1382,87 @@
                         let pendingStaffResolver = null;
                         let lastRegisteredPrintPayload = null;
                         let activePrintMode = '';
+                        let triaseUgdMode = 'patient';
+                        let currentTriaseUgdDraftId = '';
+                        let currentTriaseUgdDraftMeta = null;
+                        let pendingDraftTriaseLink = null;
+                        let draftTriasePatientsCache = [];
 
                         const STAFF_NAME_STORAGE_PREFIX = 'simami-staff-name:';
                         const STAFF_ACTIVITY_LOG_KEY = 'simami-staff-activity-log';
 
                         const printPageStyleEl = document.createElement('style');
                         document.head.appendChild(printPageStyleEl);
+
+                        const draftTriaseHelpers = window.createDraftTriaseHelpers({
+                            supabaseClient,
+                            withTimeout,
+                            withPageLoading,
+                            escapeHtml,
+                            canAccessDraftTriaseView,
+                            r_formatDateTimeLocal,
+                            r_toISOStart,
+                            r_toISOEnd,
+                            fillTriaseUgdHeader,
+                            resetTriaseUgdForm,
+                            clearTriaseUgdMessage,
+                            showTriaseUgdMessage,
+                            applyTriaseDraftPayload,
+                            buildTriaseDraftPayload,
+                            getCurrentStaffName: () => currentStaffName,
+                            getTriaseDraftColumnAvailable: () => triaseDraftColumnAvailable,
+                            getTriaseUgdDraftsTableAvailable: () => triaseUgdDraftsTableAvailable,
+                            setTriaseUgdDraftsTableAvailable: (value) => { triaseUgdDraftsTableAvailable = !!value; },
+                            setTriaseUgdMode: (value) => { triaseUgdMode = value; },
+                            getCurrentTriaseUgdDraftId: () => currentTriaseUgdDraftId,
+                            setCurrentTriaseUgdDraftId: (value) => { currentTriaseUgdDraftId = String(value || ''); },
+                            getCurrentTriaseUgdDraftMeta: () => currentTriaseUgdDraftMeta,
+                            setCurrentTriaseUgdDraftMeta: (value) => { currentTriaseUgdDraftMeta = value || null; },
+                            getPendingDraftTriaseLink: () => pendingDraftTriaseLink,
+                            setPendingDraftTriaseLink: (value) => { pendingDraftTriaseLink = value || null; },
+                            getDraftTriasePatientsCache: () => draftTriasePatientsCache,
+                            setDraftTriasePatientsCache: (items) => { draftTriasePatientsCache = Array.isArray(items) ? items : []; },
+                            elements: {
+                                draftTriaseMeta,
+                                draftTriaseNamaInput,
+                                draftTriaseJkInput,
+                                draftTriaseUmurInput,
+                                draftTriaseTglLahirInput,
+                                draftTriaseKuInput,
+                                draftTriaseRefreshBtn,
+                                draftTriaseClearBtn,
+                                draftTriaseOpenBtn,
+                                draftTriaseMessage,
+                                draftTriaseList,
+                                linkDraftTriaseModal,
+                                closeLinkDraftTriaseModal,
+                                linkDraftTriaseRefreshBtn,
+                                linkDraftTriaseSearchInput,
+                                linkDraftTriaseMeta,
+                                linkDraftTriaseMessage,
+                                linkDraftTriaseList
+                            }
+                        });
+
+                        const {
+                            detectTriaseUgdDraftsTable,
+                            dt_showDraftMessage,
+                            dt_clearDraftMessage,
+                            dt_buildDraftIdentityFromInputs,
+                            dt_getLocalDraftStore,
+                            dt_reloadDraftTriaseList,
+                            dt_resetDraftIdentityInputs,
+                            dt_openTriaseDraftModal,
+                            dt_saveTriaseDraftFromModal,
+                            dt_deleteDraftById,
+                            dt_closeLinkDraftTriaseModal,
+                            dt_showLinkDraftMessage,
+                            dt_renderLinkPatients,
+                            dt_loadTodayUgdPatients,
+                            dt_openLinkDraftTriaseModal,
+                            dt_attachDraftToPatient,
+                            bindDraftTriaseEvents
+                        } = draftTriaseHelpers;
 
                         function openDrawer() {
                             drawer.classList.remove('-translate-x-full');
@@ -1303,26 +1503,29 @@
                         function syncRoleMenuVisibility() {
                             menuPendaftaran.classList.toggle('hidden', !canAccessPendaftaranView());
                             menuRekap.classList.toggle('hidden', !canAccessRekapView());
+                            if (menuDraftTriase) {
+                                menuDraftTriase.classList.toggle('hidden', !canAccessDraftTriaseView());
+                            }
                             if (menuRekapAll) {
                                 menuRekapAll.classList.toggle('hidden', !isPetugasPoliRole());
                             }
                         }
 
                         function setActiveMenu(view) {
-                            if (view === 'pendaftaran') {
-                                menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
-                                menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
-                                if (menuRekapAll) {
-                                    menuRekapAll.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
-                                }
-                            } else {
-                                const isAll = view === 'rekap_all';
-                                menuRekap.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
-                                if (menuRekapAll) {
-                                    menuRekapAll.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
-                                }
-                                (isAll ? (menuRekapAll || menuRekap) : menuRekap).className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
-                                menuPendaftaran.className = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+                            const activeClass = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 transition';
+                            const inactiveClass = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
+
+                            const isRekapView = view === 'rekap' || view === 'rekap_all';
+                            const isRekapAll = view === 'rekap_all';
+                            const isDraft = view === 'draft_triase';
+
+                            menuPendaftaran.className = view === 'pendaftaran' ? activeClass : inactiveClass;
+                            menuRekap.className = (isRekapView && !isRekapAll) ? activeClass : inactiveClass;
+                            if (menuRekapAll) {
+                                menuRekapAll.className = (isRekapAll ? activeClass : inactiveClass);
+                            }
+                            if (menuDraftTriase) {
+                                menuDraftTriase.className = isDraft ? activeClass : inactiveClass;
                             }
                             syncRoleMenuVisibility();
                         }
@@ -1808,18 +2011,6 @@
                             closeStaffIdentityOverlay();
                         }
 
-                        function formatLoketLabel(loket) {
-                            const value = String(loket || '').trim().toUpperCase();
-                            if (value === 'A' || value === 'LOKET_A') return 'Loket A';
-                            if (value === 'B' || value === 'LOKET_B') return 'Loket B';
-                            if (value === 'C' || value === 'LOKET_C') return 'Loket C';
-                            if (value === 'LOKET_1') return 'Loket A';
-                            if (value === 'LOKET_2') return 'Loket B';
-                            if (value === 'LOKET_3') return 'Loket C';
-                            if (value === 'SUPERVISOR') return 'Supervisor';
-                            return value ? value.replace(/_/g, ' ') : '-';
-                        }
-
                         wireSupervisorExternalLinks();
 
                         function syncUmurFromTanggalLahir() {
@@ -2218,29 +2409,6 @@
                             return String(currentAdminProfile?.email || loginEmail.value || '').trim();
                         }
 
-                        function normalizeLoketCode(value) {
-                            const raw = String(value || '').trim().toUpperCase();
-                            if (!raw) return '';
-                            if (raw === 'SUPERVISOR') return 'SUPERVISOR';
-                            if (raw === 'A' || raw === 'LOKET_A' || raw === 'LOKETA' || raw === 'LOKET-A') return 'A';
-                            if (raw === 'B' || raw === 'LOKET_B' || raw === 'LOKETB' || raw === 'LOKET-B') return 'B';
-                            if (raw === 'C' || raw === 'LOKET_C' || raw === 'LOKETC' || raw === 'LOKET-C') return 'C';
-                            if (raw === 'LOKET_1' || raw === 'LOKET1') return 'A';
-                            if (raw === 'LOKET_2' || raw === 'LOKET2') return 'B';
-                            if (raw === 'LOKET_3' || raw === 'LOKET3') return 'C';
-                            const match = raw.match(/\b([ABC])\b/);
-                            return match ? match[1] : raw;
-                        }
-
-                        function getLoketAliases(loketCode) {
-                            const code = normalizeLoketCode(loketCode);
-                            if (!code || code === 'SUPERVISOR') return [];
-                            if (code === 'A') return ['A', 'LOKET_1', 'LOKET_A'];
-                            if (code === 'B') return ['B', 'LOKET_2', 'LOKET_B'];
-                            if (code === 'C') return ['C', 'LOKET_3', 'LOKET_C'];
-                            return [code];
-                        }
-
                         function getCurrentLoketValue() {
                             return normalizeLoketCode(currentLoket);
                         }
@@ -2289,6 +2457,10 @@
                             return String(getCurrentAdminEmail() || '').trim().toLowerCase() === TRIAGE_UGD_ALLOWED_EMAIL;
                         }
 
+                        function canAccessDraftTriaseView() {
+                            return isPerawatRole();
+                        }
+
                         function isDokterRole() {
                             return String(currentAdminRole || '').trim().toLowerCase() === 'dokter';
                         }
@@ -2303,33 +2475,6 @@
                             if (email.startsWith('poli.pd@')) return 'SPESIALIS_PENYAKIT_DALAM';
                             if (email.startsWith('poli.umum@')) return 'DOKTER_UMUM';
                             return '';
-                        }
-
-                        // Keep these in the main script because they depend on local session state.
-                        function getPetugasPoliAccountLabel() {
-                            const poli = getPetugasPoliDefaultPoli();
-                            if (poli === 'DOKTER_UMUM') return 'POLIKLINIK UMUM';
-                            if (poli === 'SPESIALIS_ANAK') return 'POLIKLINIK ANAK';
-                            if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'POLIKLINIK PENYAKIT DALAM';
-                            return 'POLIKLINIK';
-                        }
-
-                        function formatAdminRoleLabel(role) {
-                            const value = String(role || '').trim().toLowerCase();
-                            if (value === 'supervisor') return 'Supervisor';
-                            if (value === 'admin_rme') return 'Admin RME';
-                            if (value === 'admin_pendaftaran') return 'Petugas Pendaftaran';
-                            if (value === 'admin_igd') return 'Petugas UGD';
-                            if (value === 'bidan') return 'Bidan';
-                            if (value === 'perawat') return 'Perawat';
-                            if (value === 'dokter') return 'Dokter';
-                            if (value === 'admin_farmasi' || value === 'petugas_farmasi' || value === 'petugas farmasi') return 'Petugas Farmasi';
-                            if (value === 'petugas_poli' || value === 'petugas poli') return getPetugasPoliAccountLabel();
-                            return value ? value.replace(/_/g, ' ') : 'Belum Diatur';
-                        }
-
-                        function normalizeStaffName(value) {
-                            return String(value || '').replace(/\s+/g, ' ').trim();
                         }
 
                         function isPetugasPoliScopedRekap() {
@@ -2348,11 +2493,6 @@
                             return isRegistrationWorkflowRole() || isFarmasiControlRole() || isSupervisorRole();
                         }
 
-                        function isUgdValue(value) {
-                            const normalized = String(value || '').trim().toUpperCase();
-                            return normalized === 'UGD' || normalized === 'IGD';
-                        }
-
                         function getCurrentRegistrationUnit() {
                             if (isFarmasiControlRole()) return 'FARMASI';
                             return isIgdRole() ? 'UGD' : 'POLIKLINIK';
@@ -2360,20 +2500,6 @@
 
                         function usesAutomaticQueueControls() {
                             return isPendaftaranRole() || isFarmasiControlRole();
-                        }
-
-                        function queueControlPrefix(unit) {
-                            if (unit === 'POLIKLINIK') return 'Poliklinik';
-                            if (unit === 'FARMASI') return 'Farmasi';
-                            return String(unit || '');
-                        }
-
-                        function isPrioritasNoAntrian(noAntrian) {
-                            return /^B-/i.test(String(noAntrian || '').trim());
-                        }
-
-                        function isPoliklinikRegulerNoAntrian(noAntrian) {
-                            return /^A-/i.test(String(noAntrian || '').trim());
                         }
 
                         function canManagePatientDriveLink() {
@@ -2777,6 +2903,18 @@
                             if ((view === 'rekap' || view === 'rekap_all') && !canAccessRekapView()) {
                                 view = 'pendaftaran';
                             }
+                            if (view === 'draft_triase' && !canAccessDraftTriaseView()) {
+                                view = canAccessPendaftaranView() ? 'pendaftaran' : 'rekap';
+                            }
+
+                            if (view === 'draft_triase') {
+                                viewPendaftaran.classList.add('hidden');
+                                viewRekap.classList.add('hidden');
+                                viewDraftTriase.classList.remove('hidden');
+                                setActiveMenu('draft_triase');
+                                return;
+                            }
+                            viewDraftTriase.classList.add('hidden');
                             if (view === 'rekap' || view === 'rekap_all') {
                                 viewPendaftaran.classList.add('hidden');
                                 viewRekap.classList.remove('hidden');
@@ -2796,6 +2934,7 @@
                                 loginOverlay.classList.remove('hidden');
                                 viewPendaftaran.classList.add('hidden');
                                 viewRekap.classList.add('hidden');
+                                viewDraftTriase.classList.add('hidden');
                                 logoutBtnTop.classList.add('hidden');
                                 closeStaffIdentityOverlay();
                                 return null;
@@ -2830,11 +2969,15 @@
                                 await detectRiwayatLinkColumn();
                                 await detectNoRegistrasiColumn();
                                 await detectTriaseDraftColumn();
-                                showView(canAccessPendaftaranView() ? 'pendaftaran' : 'rekap');
+                                await detectTriaseUgdDraftsTable();
+                                showView(canAccessDraftTriaseView() ? 'draft_triase' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap'));
                                 await initForm();
                                 await loadQueueControls();
                                 await refreshStats();
                                 await r_reloadToFirstPage();
+                                if (canAccessDraftTriaseView()) {
+                                    await dt_reloadDraftTriaseList();
+                                }
                                 appendStaffActivity('login_dashboard', { session: 'login' });
                             });
                         }
@@ -2848,6 +2991,7 @@
                             loginOverlay.classList.remove('hidden');
                             viewPendaftaran.classList.add('hidden');
                             viewRekap.classList.add('hidden');
+                            viewDraftTriase.classList.add('hidden');
                             closeDrawer();
                         }
 
@@ -2873,6 +3017,15 @@
                                 await r_reloadToFirstPage();
                             });
                         });
+                        if (menuDraftTriase) {
+                            menuDraftTriase.addEventListener('click', async () => {
+                                closeDrawer();
+                                await withPageLoading('Memuat Draft Triase...', async () => {
+                                    showView('draft_triase');
+                                    await dt_reloadDraftTriaseList();
+                                });
+                            });
+                        }
                         if (menuRekapAll) {
                             menuRekapAll.addEventListener('click', async () => {
                                 closeDrawer();
@@ -5285,32 +5438,6 @@
                             return `${dd}-${mm}-${yyyy}`;
                         }
 
-                        function r_unitLabel(unit) {
-                            if (!unit) return '-';
-                            if (unit === 'FARMASI') return 'Farmasi';
-                            if (unit === 'POLIKLINIK') return 'Poliklinik';
-                            if (isUgdValue(unit)) return 'UGD';
-                            return unit;
-                        }
-
-                        function r_jenisPasienLabel(jenisPasien) {
-                            if (!jenisPasien) return '-';
-                            if (jenisPasien === 'BELUM_DITENTUKAN') return '-';
-                            if (jenisPasien === 'BPJS') return 'BPJS';
-                            if (jenisPasien === 'UMUM') return 'Umum';
-                            return jenisPasien;
-                        }
-
-                        function r_poliLabel(poli) {
-                            if (!poli) return '';
-                            if (poli === 'FARMASI') return '';
-                            if (isUgdValue(poli)) return 'UGD';
-                            if (poli === 'SPESIALIS_ANAK') return 'Poli Anak';
-                            if (poli === 'SPESIALIS_PENYAKIT_DALAM') return 'Poli Penyakit Dalam';
-                            if (poli === 'DOKTER_UMUM') return 'Poli Umum';
-                            return poli;
-                        }
-
                         function r_setLoading(isLoading) {
                             document.getElementById('r_refresh').disabled = isLoading;
                             document.getElementById('r_refresh').textContent = isLoading ? 'Memuat...' : 'Refresh';
@@ -6798,6 +6925,13 @@
                                 alert('Hanya akun perawat2026@rsudami.com yang dapat mengisi Triase UGD.');
                                 return;
                             }
+                            triaseUgdMode = 'patient';
+                            currentTriaseUgdDraftId = '';
+                            currentTriaseUgdDraftMeta = null;
+                            const saveBtn = document.getElementById('saveTriaseUgdBtn');
+                            const printBtn = document.getElementById('printTriaseUgdBtn');
+                            if (saveBtn) saveBtn.textContent = 'Simpan Triase';
+                            if (printBtn) printBtn.classList.remove('hidden');
                             fillTriaseUgdHeader(patientData);
                             resetTriaseUgdForm();
                             clearTriaseUgdMessage();
@@ -6813,6 +6947,13 @@
                             document.getElementById('triageUgdModal').classList.add('hidden');
                             currentPatientForTriage = null;
                             clearTriaseUgdMessage();
+                            triaseUgdMode = 'patient';
+                            currentTriaseUgdDraftId = '';
+                            currentTriaseUgdDraftMeta = null;
+                            const saveBtn = document.getElementById('saveTriaseUgdBtn');
+                            const printBtn = document.getElementById('printTriaseUgdBtn');
+                            if (saveBtn) saveBtn.textContent = 'Simpan Triase';
+                            if (printBtn) printBtn.classList.remove('hidden');
                         }
 
                         function printTriaseUgd() {
@@ -6920,7 +7061,13 @@
                         });
 
                         document.getElementById('closeTriaseUgdModal')?.addEventListener('click', closeTriaseUgdModal);
-                        document.getElementById('saveTriaseUgdBtn')?.addEventListener('click', saveTriaseUgdDraft);
+                        document.getElementById('saveTriaseUgdBtn')?.addEventListener('click', async () => {
+                            if (triaseUgdMode === 'draft') {
+                                await dt_saveTriaseDraftFromModal();
+                                return;
+                            }
+                            await saveTriaseUgdDraft();
+                        });
                         document.getElementById('printTriaseUgdBtn')?.addEventListener('click', printTriaseUgd);
                         document.querySelectorAll('#triageUgdForm input[name^="flacc_"]').forEach((el) => {
                             el.addEventListener('change', computeTriaseFlaccTotal);
@@ -6944,6 +7091,7 @@
                         initTriaseToggleableRadios();
                         initTriaseExclusiveChecks();
                         initTriaseWongBakerPicker();
+                        bindDraftTriaseEvents();
 
                         // Store last saved patient data
                         let currentSavedPatientData = null;
