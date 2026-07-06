@@ -2344,6 +2344,10 @@
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
+                                        <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Pendidikan</th>
+                                        <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Pekerjaan</th>
+                                        <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Status Kawin</th>
+                                        <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Suku</th>
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No BPJS</th>
                                         <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Alamat</th>
@@ -2380,6 +2384,10 @@
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
+                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Pendidikan</th>
+                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Pekerjaan</th>
+                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Status Kawin</th>
+                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Suku</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">NIK</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No BPJS</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Alamat</th>
@@ -6188,7 +6196,7 @@
                             const canTriase = canAccessTriaseUgd();
                             const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                             if (!items || items.length === 0) {
-                                const emptyColspan = isRme ? 20 : (isPetugasPoli ? 10 : (showSupervisorEditColumn ? 21 : 20));
+                                const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : (showSupervisorEditColumn ? 25 : 24));
                                 rEls.rows.innerHTML = `<tr><td class="px-4 py-6 text-slate-500" colspan="${emptyColspan}">Tidak ada data.</td></tr>`;
                                 return;
                             }
@@ -6211,6 +6219,10 @@
                                 const jk = p.jenis_kelamin ?? '-';
                                 const tglLahir = r_formatDateOnly(p.tanggal_lahir);
                                 const umur = (p.umur ?? p.umur === 0) ? String(p.umur) : '-';
+                                const pendidikan = p.pendidikan ?? '-';
+                                const pekerjaan = p.pekerjaan ?? '-';
+                                const statusPerkawinan = p.status_perkawinan ?? '-';
+                                const suku = p.suku ?? '-';
                                 const alamat = p.alamat ?? '-';
                                 const normalizedLink = normalizeExternalUrl(p.riwayat_pasien_link || '');
                                 const namaButton = noRm !== '-'
@@ -6281,6 +6293,10 @@
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jk}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${tglLahir}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${umur}</td>
+                                        <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(pendidikan))}</td>
+                                        <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(pekerjaan))}</td>
+                                        <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(statusPerkawinan))}</td>
+                                        <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(suku))}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${nik}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${noBpjs}</td>
                                         <td class="px-4 py-2 text-slate-800 min-w-[220px] max-w-[320px] whitespace-normal break-words">${escapeHtml(alamat)}</td>
@@ -6321,6 +6337,10 @@
                                     <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jk}</td>
                                     <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${tglLahir}</td>
                                     <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${umur}</td>
+                                    <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(pendidikan))}</td>
+                                    <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(pekerjaan))}</td>
+                                    <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(statusPerkawinan))}</td>
+                                    <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(suku))}</td>
                                     <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${nik}</td>
                                     <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${noBpjs}</td>
                                     <td class="px-4 py-2 text-slate-800 min-w-[220px] max-w-[320px] whitespace-normal break-words">${escapeHtml(alamat)}</td>
@@ -6414,6 +6434,10 @@
                                     'No RM': p.no_rm ?? '',
                                     'Jenis Kelamin': p.jenis_kelamin ?? '',
                                     'Tanggal Lahir': r_formatDateOnly(p.tanggal_lahir),
+                                    'Pendidikan': p.pendidikan ?? '',
+                                    'Pekerjaan': p.pekerjaan ?? '',
+                                    'Status Perkawinan': p.status_perkawinan ?? '',
+                                    'Suku': p.suku ?? '',
                                     'NIK': p.nik ?? '',
                                     'No BPJS': p.no_bpjs ?? '',
                                     'Alamat': p.alamat ?? '',
