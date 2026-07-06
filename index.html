@@ -537,6 +537,83 @@
                                             <input type="number" id="umur" class="w-full cursor-not-allowed rounded-2xl border border-emerald-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Otomatis dari tanggal lahir" required readonly>
                                         </div>
 
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-slate-700 font-semibold mb-2">Pendidikan Terakhir</label>
+                                                <input type="text" id="pendidikan" list="pendidikanOptions" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari pendidikan">
+                                                <datalist id="pendidikanOptions">
+                                                    <option value="Tidak Sekolah / Tidak Tamat SD"></option>
+                                                    <option value="SD / Sederajat"></option>
+                                                    <option value="SMP / Sederajat"></option>
+                                                    <option value="SMA / SMK / Sederajat"></option>
+                                                    <option value="Diploma I (D1)"></option>
+                                                    <option value="Diploma II (D2)"></option>
+                                                    <option value="Diploma III (D3)"></option>
+                                                    <option value="Diploma IV (D4)"></option>
+                                                    <option value="Strata I (S1)"></option>
+                                                    <option value="Strata II (S2)"></option>
+                                                    <option value="Strata III (S3)"></option>
+                                                </datalist>
+                                            </div>
+                                            <div>
+                                                <label class="block text-slate-700 font-semibold mb-2">Pekerjaan</label>
+                                                <input type="text" id="pekerjaan" list="pekerjaanOptions" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari pekerjaan">
+                                                <datalist id="pekerjaanOptions">
+                                                    <option value="Belum / Tidak Bekerja"></option>
+                                                    <option value="Mengurus Rumah Tangga (IRT)"></option>
+                                                    <option value="Pelajar / Mahasiswa"></option>
+                                                    <option value="Pegawai Negeri Sipil (PNS)"></option>
+                                                    <option value="PPPK (Pegawai Pemerintah dengan Perjanjian Kerja)"></option>
+                                                    <option value="TNI"></option>
+                                                    <option value="POLRI"></option>
+                                                    <option value="Karyawan Swasta"></option>
+                                                    <option value="Karyawan BUMN / BUMD"></option>
+                                                    <option value="Buruh Harian Lepas / Pabrik"></option>
+                                                    <option value="Wiraswasta / Pedagang / Usaha Mandiri"></option>
+                                                    <option value="Petani / Pekebun"></option>
+                                                    <option value="Nelayan"></option>
+                                                    <option value="Tenaga Kesehatan (Dokter / Perawat / Bidan)"></option>
+                                                    <option value="Pensiunan"></option>
+                                                    <option value="Lainnya"></option>
+                                                </datalist>
+                                            </div>
+                                            <div>
+                                                <label class="block text-slate-700 font-semibold mb-2">Status Perkawinan</label>
+                                                <input type="text" id="status_perkawinan" list="statusPerkawinanOptions" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari status">
+                                                <datalist id="statusPerkawinanOptions">
+                                                    <option value="Belum Kawin"></option>
+                                                    <option value="Kawin / Menikah"></option>
+                                                    <option value="Cerai Hidup"></option>
+                                                    <option value="Cerai Mati"></option>
+                                                </datalist>
+                                            </div>
+                                            <div>
+                                                <label class="block text-slate-700 font-semibold mb-2">Suku Bangsa</label>
+                                                <input type="text" id="suku" list="sukuOptions" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Ketik untuk mencari suku">
+                                                <datalist id="sukuOptions">
+                                                    <option value="Kutai"></option>
+                                                    <option value="Bugis"></option>
+                                                    <option value="Jawa"></option>
+                                                    <option value="Banjar"></option>
+                                                    <option value="Dayak"></option>
+                                                    <option value="Toraja"></option>
+                                                    <option value="Mandar"></option>
+                                                    <option value="Madura"></option>
+                                                    <option value="Sunda"></option>
+                                                    <option value="Minang / Padang"></option>
+                                                    <option value="Batak"></option>
+                                                    <option value="Betawi"></option>
+                                                    <option value="Makassar"></option>
+                                                    <option value="Bali"></option>
+                                                    <option value="Sasak"></option>
+                                                    <option value="Ambon / Maluku"></option>
+                                                    <option value="Papua"></option>
+                                                    <option value="Tionghoa"></option>
+                                                    <option value="Suku Lainnya"></option>
+                                                </datalist>
+                                            </div>
+                                        </div>
+
                                         <div>
                                             <label class="block text-slate-700 font-semibold mb-2">Alamat</label>
                                             <textarea id="alamat" rows="3" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Masukkan alamat pasien"></textarea>
@@ -1355,6 +1432,10 @@
                         let supervisorAutoRefreshTimer = null;
                         let alamatColumnAvailable = true;
                         let teleponColumnAvailable = true;
+                        let pendidikanColumnAvailable = true;
+                        let pekerjaanColumnAvailable = true;
+                        let statusPerkawinanColumnAvailable = true;
+                        let sukuColumnAvailable = true;
                         let riwayatLinkColumnAvailable = true;
                         let noRegistrasiColumnAvailable = true;
                         let petugasInputColumnAvailable = true;
@@ -2974,6 +3055,10 @@
                                 await detectPoliExamColumns();
                                 await detectAlamatColumn();
                                 await detectTeleponColumn();
+                                await detectPendidikanColumn();
+                                await detectPekerjaanColumn();
+                                await detectStatusPerkawinanColumn();
+                                await detectSukuColumn();
                                 await detectPetugasInputColumn();
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
@@ -3318,6 +3403,66 @@
                                 if (telInput) {
                                     telInput.placeholder = 'Kolom no_telepon belum ada di database Supabase';
                                     telInput.required = false;
+                                }
+                            }
+                        }
+
+                        async function detectPendidikanColumn() {
+                            const { error } = await supabaseClient
+                                .from('pasien')
+                                .select('pendidikan')
+                                .limit(1);
+
+                            if (error && /pendidikan/i.test(error.message)) {
+                                pendidikanColumnAvailable = false;
+                                const input = document.getElementById('pendidikan');
+                                if (input) {
+                                    input.placeholder = 'Kolom pendidikan belum ada di database Supabase';
+                                }
+                            }
+                        }
+
+                        async function detectPekerjaanColumn() {
+                            const { error } = await supabaseClient
+                                .from('pasien')
+                                .select('pekerjaan')
+                                .limit(1);
+
+                            if (error && /pekerjaan/i.test(error.message)) {
+                                pekerjaanColumnAvailable = false;
+                                const input = document.getElementById('pekerjaan');
+                                if (input) {
+                                    input.placeholder = 'Kolom pekerjaan belum ada di database Supabase';
+                                }
+                            }
+                        }
+
+                        async function detectStatusPerkawinanColumn() {
+                            const { error } = await supabaseClient
+                                .from('pasien')
+                                .select('status_perkawinan')
+                                .limit(1);
+
+                            if (error && /status_perkawinan/i.test(error.message)) {
+                                statusPerkawinanColumnAvailable = false;
+                                const input = document.getElementById('status_perkawinan');
+                                if (input) {
+                                    input.placeholder = 'Kolom status_perkawinan belum ada di database Supabase';
+                                }
+                            }
+                        }
+
+                        async function detectSukuColumn() {
+                            const { error } = await supabaseClient
+                                .from('pasien')
+                                .select('suku')
+                                .limit(1);
+
+                            if (error && /suku/i.test(error.message)) {
+                                sukuColumnAvailable = false;
+                                const input = document.getElementById('suku');
+                                if (input) {
+                                    input.placeholder = 'Kolom suku belum ada di database Supabase';
                                 }
                             }
                         }
@@ -4250,6 +4395,10 @@
                             document.getElementById('jenis_kelamin').value = '';
                             tanggalLahirInput.value = '';
                             umurInput.value = '';
+                            document.getElementById('pendidikan').value = '';
+                            document.getElementById('pekerjaan').value = '';
+                            document.getElementById('status_perkawinan').value = '';
+                            document.getElementById('suku').value = '';
                             document.getElementById('alamat').value = '';
                         }
 
@@ -4262,6 +4411,10 @@
                             tanggalLahirInput.value = patient?.tanggal_lahir || '';
                             const computedAge = computeAgeYears(tanggalLahirInput.value);
                             umurInput.value = computedAge ? computedAge : (patient?.umur ?? '');
+                            document.getElementById('pendidikan').value = patient?.pendidikan || '';
+                            document.getElementById('pekerjaan').value = patient?.pekerjaan || '';
+                            document.getElementById('status_perkawinan').value = patient?.status_perkawinan || '';
+                            document.getElementById('suku').value = patient?.suku || '';
                             document.getElementById('alamat').value = patient?.alamat || '';
                         }
 
@@ -4308,7 +4461,7 @@
                                 const { data, error } = await withTimeout(
                                     supabaseClient
                                         .from('pasien')
-                                        .select(`${alamatColumnAvailable ? 'alamat,' : ''}${teleponColumnAvailable ? 'no_telepon,' : ''}no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur${riwayatLinkColumnAvailable ? ',riwayat_pasien_link' : ''}`)
+                                        .select(`${alamatColumnAvailable ? 'alamat,' : ''}${teleponColumnAvailable ? 'no_telepon,' : ''}${pendidikanColumnAvailable ? 'pendidikan,' : ''}${pekerjaanColumnAvailable ? 'pekerjaan,' : ''}${statusPerkawinanColumnAvailable ? 'status_perkawinan,' : ''}${sukuColumnAvailable ? 'suku,' : ''}no_rm,nama_pasien,nik,no_bpjs,jenis_kelamin,tanggal_lahir,umur${riwayatLinkColumnAvailable ? ',riwayat_pasien_link' : ''}`)
                                         .eq('nik', nikLookup)
                                         .order('created_at', { ascending: false })
                                         .limit(1),
@@ -5458,6 +5611,10 @@
                             const jenis_kelamin = document.getElementById('jenis_kelamin').value;
                             const tanggal_lahir = document.getElementById('tanggal_lahir').value;
                             const umur = document.getElementById('umur').value;
+                            const pendidikan = document.getElementById('pendidikan').value.trim();
+                            const pekerjaan = document.getElementById('pekerjaan').value.trim();
+                            const status_perkawinan = document.getElementById('status_perkawinan').value.trim();
+                            const suku = document.getElementById('suku').value.trim();
                             const alamat = document.getElementById('alamat').value.trim();
                             const waktu_daftar = new Date();
 
@@ -5634,6 +5791,22 @@
 
                                 if (alamatColumnAvailable) {
                                     pasienPayload.alamat = alamat || null;
+                                }
+
+                                if (pendidikanColumnAvailable) {
+                                    pasienPayload.pendidikan = pendidikan || null;
+                                }
+
+                                if (pekerjaanColumnAvailable) {
+                                    pasienPayload.pekerjaan = pekerjaan || null;
+                                }
+
+                                if (statusPerkawinanColumnAvailable) {
+                                    pasienPayload.status_perkawinan = status_perkawinan || null;
+                                }
+
+                                if (sukuColumnAvailable) {
+                                    pasienPayload.suku = suku || null;
                                 }
 
                                 if (!teleponColumnAvailable) {
@@ -6705,7 +6878,9 @@
                         'Meri Andani',
                         'Ivadra Friesta Sondakh',
                         'El Ghoiena Nadhifa Futri',
-                        'Andi Heppi Wahyuni'
+                        'Andi Heppi Wahyuni',
+                        'Safirna Zurianti',
+                        'Ema Riskayani'
                     ];
 
                         function isGeneralConsentPatientSelfRelation(value) {
@@ -7752,6 +7927,10 @@
                                 await detectPoliExamColumns();
                                 await detectAlamatColumn();
                                 await detectTeleponColumn();
+                                await detectPendidikanColumn();
+                                await detectPekerjaanColumn();
+                                await detectStatusPerkawinanColumn();
+                                await detectSukuColumn();
                                 await detectPetugasInputColumn();
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
