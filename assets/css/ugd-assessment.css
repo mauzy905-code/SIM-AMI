@@ -380,6 +380,18 @@
     max-height: 92px;
 }
 
+.assessment-ugd-body-figure.is-clickable {
+    cursor: crosshair;
+}
+
+.assessment-ugd-marker {
+    fill: rgba(220, 38, 38, 0.1);
+    stroke: #dc2626;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
 .assessment-ugd-body-note {
     margin-top: 8px;
 }
