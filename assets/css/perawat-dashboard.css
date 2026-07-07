@@ -1,0 +1,96 @@
+ .perawat-dashboard-inline-pill {
+     display: inline-flex;
+     align-items: center;
+     border-radius: 999px;
+     padding: 2px 10px;
+     border: 1px solid rgba(255, 255, 255, 0.22);
+     background: rgba(255, 255, 255, 0.14);
+     color: #ffffff;
+     font-size: 11px;
+     font-weight: 900;
+     letter-spacing: 0.12em;
+     text-transform: uppercase;
+     white-space: nowrap;
+ }
+
+ .perawat-dashboard-tile {
+     display: flex;
+     gap: 14px;
+     align-items: flex-start;
+     text-align: left;
+     border-radius: 28px;
+     border: 1px solid rgba(255, 255, 255, 0.75);
+     background: rgba(255, 255, 255, 0.9);
+     padding: 18px 18px;
+     box-shadow: 0 24px 60px -28px rgba(15, 23, 42, 0.25);
+     transition: 0.18s ease;
+ }
+
+ .perawat-dashboard-tile:hover {
+     transform: translateY(-1px);
+     box-shadow: 0 28px 70px -30px rgba(15, 23, 42, 0.3);
+ }
+
+ .perawat-dashboard-tile.is-note {
+     background: rgba(248, 250, 252, 0.92);
+     border-style: dashed;
+ }
+
+ .perawat-dashboard-tile.is-rekap {
+     border-color: rgba(16, 185, 129, 0.25);
+ }
+ 
+ .perawat-dashboard-tile.is-draft {
+     border-color: rgba(234, 179, 8, 0.25);
+ }
+ 
+ .perawat-dashboard-tile.is-asses {
+     border-color: rgba(99, 102, 241, 0.22);
+ }
+ 
+ .perawat-dashboard-icon {
+     width: 46px;
+     height: 46px;
+     border-radius: 18px;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     color: #ffffff;
+     flex: 0 0 auto;
+     box-shadow: 0 14px 28px -18px rgba(15, 23, 42, 0.55);
+ }
+ 
+ .perawat-dashboard-icon svg {
+     width: 22px;
+     height: 22px;
+ }
+ 
+ .perawat-dashboard-icon.is-rekap {
+     background: linear-gradient(135deg, #059669 0%, #0f766e 38%, #2563eb 100%);
+ }
+ 
+ .perawat-dashboard-icon.is-draft {
+     background: linear-gradient(135deg, #f59e0b 0%, #f97316 42%, #ef4444 100%);
+ }
+ 
+ .perawat-dashboard-icon.is-asses {
+     background: linear-gradient(135deg, #7c3aed 0%, #6366f1 55%, #2563eb 100%);
+ }
+ 
+ .perawat-dashboard-tile-content {
+     min-width: 0;
+ }
+ 
+ .perawat-dashboard-tile-title {
+     font-size: 14px;
+     font-weight: 900;
+     color: #0f172a;
+ }
+
+ .perawat-dashboard-tile-desc {
+     margin-top: 6px;
+     font-size: 12px;
+     font-weight: 600;
+     line-height: 1.55;
+     color: #475569;
+ }
