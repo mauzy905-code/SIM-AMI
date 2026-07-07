@@ -9,6 +9,13 @@
 
         let mounted = false;
         let els = {};
+        let modalState = {
+            open: false,
+            loading: false,
+            query: '',
+            debounceTimer: null,
+            lastRequestId: 0
+        };
 
         function getStaffNameValue() {
             const name = String(config?.getCurrentOperatorName?.() || '').trim();
@@ -94,7 +101,7 @@
                 '        <div class="perawat-dashboard-tile-desc">Buat draft triase pasien sebelum ditautkan ke registrasi UGD.</div>',
                 '      </div>',
                 '    </button>',
-                '    <div class="perawat-dashboard-tile is-note is-asses">',
+                '    <button id="perawatDashMenuAssessment" type="button" class="perawat-dashboard-tile is-note is-asses">',
                 '      <div class="perawat-dashboard-icon is-asses" aria-hidden="true">',
                 '        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">',
                 '          <path d="M12 21s-7-4.35-7-11a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 6.65-7 11-7 11z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
@@ -104,7 +111,30 @@
                 '      </div>',
                 '      <div class="perawat-dashboard-tile-content">',
                 '        <div class="perawat-dashboard-tile-title">Asesmen UGD</div>',
-                '        <div class="perawat-dashboard-tile-desc">Asesmen UGD dibuka dari rekap pasien UGD, lalu klik tombol Asesmen pada pasien.</div>',
+                '        <div class="perawat-dashboard-tile-desc">Cari pasien UGD dan buka asesmen tanpa harus masuk menu rekap.</div>',
+                '      </div>',
+                '    </button>',
+                '  </div>',
+                '  <div id="perawatDashAssessmentModal" class="perawat-dashboard-modal hidden" aria-hidden="true">',
+                '    <div class="perawat-dashboard-modal-overlay"></div>',
+                '    <div class="perawat-dashboard-modal-panel" role="dialog" aria-modal="true">',
+                '      <div class="perawat-dashboard-modal-head">',
+                '        <div>',
+                '          <div class="perawat-dashboard-modal-title">Cari Pasien UGD</div>',
+                '          <div class="perawat-dashboard-modal-subtitle">Ketik No RM, No Registrasi, atau Nama pasien.</div>',
+                '        </div>',
+                '        <button id="perawatDashAssessmentClose" type="button" class="perawat-dashboard-modal-close">Tutup</button>',
+                '      </div>',
+                '      <div class="perawat-dashboard-modal-body">',
+                '        <div class="perawat-dashboard-search-row">',
+                '          <input id="perawatDashAssessmentQuery" type="text" class="perawat-dashboard-search-input" placeholder="Contoh: 000123 / REG-000114 / Jihan">',
+                '          <button id="perawatDashAssessmentRefresh" type="button" class="perawat-dashboard-search-btn">Terbaru</button>',
+                '        </div>',
+                '        <div id="perawatDashAssessmentStatus" class="perawat-dashboard-search-status hidden"></div>',
+                '        <div class="perawat-dashboard-results">',
+                '          <div class="perawat-dashboard-results-head">Hasil</div>',
+                '          <div id="perawatDashAssessmentResults" class="perawat-dashboard-results-list"></div>',
+                '        </div>',
                 '      </div>',
                 '    </div>',
                 '  </div>',
@@ -117,7 +147,15 @@
                 accessLabel: containerEl.querySelector('#perawatDashAccessLabel'),
                 email: containerEl.querySelector('#perawatDashEmail'),
                 menuRekapBtn: containerEl.querySelector('#perawatDashMenuRekap'),
-                menuDraftBtn: containerEl.querySelector('#perawatDashMenuDraftTriase')
+                menuDraftBtn: containerEl.querySelector('#perawatDashMenuDraftTriase'),
+                menuAssessmentBtn: containerEl.querySelector('#perawatDashMenuAssessment'),
+                modal: containerEl.querySelector('#perawatDashAssessmentModal'),
+                modalOverlay: containerEl.querySelector('.perawat-dashboard-modal-overlay'),
+                modalCloseBtn: containerEl.querySelector('#perawatDashAssessmentClose'),
+                queryInput: containerEl.querySelector('#perawatDashAssessmentQuery'),
+                refreshBtn: containerEl.querySelector('#perawatDashAssessmentRefresh'),
+                statusEl: containerEl.querySelector('#perawatDashAssessmentStatus'),
+                resultsEl: containerEl.querySelector('#perawatDashAssessmentResults')
             };
 
             els.menuRekapBtn?.addEventListener('click', async () => {
@@ -128,7 +166,201 @@
                 await Promise.resolve(config?.openDraftTriase?.());
             });
 
+            els.menuAssessmentBtn?.addEventListener('click', () => {
+                openAssessmentSearch();
+            });
+
+            els.modalOverlay?.addEventListener('click', () => closeAssessmentSearch());
+            els.modalCloseBtn?.addEventListener('click', () => closeAssessmentSearch());
+            els.refreshBtn?.addEventListener('click', () => loadLatestUgdPatients());
+            els.queryInput?.addEventListener('input', () => onSearchQueryChanged());
+            els.queryInput?.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    closeAssessmentSearch();
+                }
+            });
+
             mounted = true;
+        }
+
+        function setSearchStatus(message) {
+            if (!els.statusEl) return;
+            const text = String(message || '').trim();
+            els.statusEl.textContent = text;
+            els.statusEl.classList.toggle('hidden', !text);
+        }
+
+        function setResultsHtml(html) {
+            if (!els.resultsEl) return;
+            els.resultsEl.innerHTML = html || '';
+        }
+
+        function formatPatientRow(row) {
+            return {
+                id: row?.id,
+                no_rm: row?.no_rm || '',
+                no_registrasi: row?.no_registrasi || '',
+                nama_pasien: row?.nama_pasien || '',
+                jenis_kelamin: row?.jenis_kelamin || '',
+                tanggal_lahir: row?.tanggal_lahir || '',
+                umur: row?.umur || '',
+                unit: row?.unit || '',
+                no_antrian: row?.no_antrian || ''
+            };
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderResults(rows) {
+            const list = Array.isArray(rows) ? rows : [];
+            if (!list.length) {
+                setResultsHtml('<div class="perawat-dashboard-results-empty">Tidak ada hasil.</div>');
+                return;
+            }
+
+            const html = list.map((row) => {
+                const payload = formatPatientRow(row);
+                const subtitleParts = [
+                    payload.no_registrasi ? `REG ${payload.no_registrasi}` : '',
+                    payload.no_antrian ? `Antrian ${payload.no_antrian}` : '',
+                    payload.umur ? `Umur ${payload.umur}` : ''
+                ].filter(Boolean);
+                return [
+                    '<button type="button" class="perawat-dashboard-result-item" data-payload="',
+                    escapeHtml(JSON.stringify(payload)),
+                    '">',
+                    '<div class="perawat-dashboard-result-main">',
+                    '<div class="perawat-dashboard-result-title">',
+                    escapeHtml(payload.nama_pasien || '-'),
+                    '</div>',
+                    '<div class="perawat-dashboard-result-subtitle">',
+                    escapeHtml(subtitleParts.join(' • ') || '-'),
+                    '</div>',
+                    '</div>',
+                    '<div class="perawat-dashboard-result-meta">',
+                    '<div class="perawat-dashboard-result-rm">RM ',
+                    escapeHtml(payload.no_rm || '-'),
+                    '</div>',
+                    '<div class="perawat-dashboard-result-action">Buka</div>',
+                    '</div>',
+                    '</button>'
+                ].join('');
+            }).join('');
+            setResultsHtml(html);
+
+            els.resultsEl.querySelectorAll('.perawat-dashboard-result-item').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const raw = btn.getAttribute('data-payload') || '';
+                    try {
+                        const payload = JSON.parse(raw);
+                        closeAssessmentSearch();
+                        await Promise.resolve(config?.openAssessment?.(payload));
+                    } catch (_err) {
+                        setSearchStatus('Gagal membuka asesmen. Payload pasien tidak valid.');
+                    }
+                });
+            });
+        }
+
+        function openAssessmentSearch() {
+            if (!config?.isPerawatRole?.()) return;
+            ensureMounted();
+            modalState.open = true;
+            els.modal?.classList.remove('hidden');
+            els.modal?.setAttribute('aria-hidden', 'false');
+            setSearchStatus('');
+            if (els.queryInput) {
+                els.queryInput.value = '';
+                window.setTimeout(() => els.queryInput?.focus(), 40);
+            }
+            loadLatestUgdPatients();
+        }
+
+        function closeAssessmentSearch() {
+            modalState.open = false;
+            window.clearTimeout(modalState.debounceTimer);
+            modalState.debounceTimer = null;
+            els.modal?.classList.add('hidden');
+            els.modal?.setAttribute('aria-hidden', 'true');
+        }
+
+        function onSearchQueryChanged() {
+            const value = String(els.queryInput?.value || '').trim();
+            modalState.query = value;
+            window.clearTimeout(modalState.debounceTimer);
+            modalState.debounceTimer = window.setTimeout(() => {
+                if (!modalState.open) return;
+                if (!value) {
+                    loadLatestUgdPatients();
+                    return;
+                }
+                searchPatients(value);
+            }, 450);
+        }
+
+        async function loadLatestUgdPatients() {
+            if (!config?.supabaseClient) {
+                setSearchStatus('Supabase belum siap.');
+                return;
+            }
+            const requestId = ++modalState.lastRequestId;
+            setSearchStatus('Memuat pasien UGD terbaru...');
+            try {
+                const result = await config.supabaseClient
+                    .from('pasien')
+                    .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian,created_at')
+                    .eq('unit', 'UGD')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                if (requestId !== modalState.lastRequestId) return;
+                if (result?.error) throw new Error(result.error.message);
+                setSearchStatus('');
+                renderResults(result?.data || []);
+            } catch (err) {
+                if (requestId !== modalState.lastRequestId) return;
+                setSearchStatus('Gagal memuat data: ' + (err?.message || String(err)));
+                renderResults([]);
+            }
+        }
+
+        async function searchPatients(query) {
+            if (!config?.supabaseClient) {
+                setSearchStatus('Supabase belum siap.');
+                return;
+            }
+            const cleaned = String(query || '').trim().replace(/%/g, '');
+            if (!cleaned) {
+                loadLatestUgdPatients();
+                return;
+            }
+            const requestId = ++modalState.lastRequestId;
+            setSearchStatus('Mencari...');
+            try {
+                const filter = `no_rm.ilike.%${cleaned}%,no_registrasi.ilike.%${cleaned}%,nama_pasien.ilike.%${cleaned}%`;
+                const result = await config.supabaseClient
+                    .from('pasien')
+                    .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian,created_at')
+                    .eq('unit', 'UGD')
+                    .or(filter)
+                    .order('created_at', { ascending: false })
+                    .limit(30);
+                if (requestId !== modalState.lastRequestId) return;
+                if (result?.error) throw new Error(result.error.message);
+                setSearchStatus('');
+                renderResults(result?.data || []);
+            } catch (err) {
+                if (requestId !== modalState.lastRequestId) return;
+                setSearchStatus('Gagal mencari: ' + (err?.message || String(err)));
+                renderResults([]);
+            }
         }
 
         function render() {
