@@ -2596,12 +2596,17 @@
                             perawatDashboardModule = window.createPerawatDashboardModule({
                                 containerEl: viewPerawatDashboard,
                                 isPerawatRole,
+                                supabaseClient,
                                 getCurrentOperatorName,
                                 getCurrentAdminEmail,
                                 getRoleLabel: () => formatAdminRoleLabel(currentAdminRole),
                                 getStoredStaffName,
                                 openStaffOverlay: () => openStaffIdentityOverlay({ allowLogout: false, prefill: currentStaffName || getStoredStaffName() }),
                                 setStaffName: (name) => applyStaffName(name, { reason: currentStaffName ? 'ganti_petugas' : 'set_petugas_aktif' }),
+                                openAssessment: async (patient) => {
+                                    if (!ugdAssessmentModule?.openAssessmentFromPayload) return;
+                                    await ugdAssessmentModule.openAssessmentFromPayload(patient);
+                                },
                                 openRekap: async () => {
                                     showView('rekap');
                                     await r_reloadToFirstPage();
