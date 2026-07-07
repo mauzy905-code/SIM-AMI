@@ -184,7 +184,7 @@
                 '                  <div class="assessment-ugd-lokalis-grid">',
                 '                    <div class="assessment-ugd-body-card" aria-label="Tampak Depan">',
                 '                      <div class="assessment-ugd-body-figure-title">Tampak Depan</div>',
-                '                      <svg class="assessment-ugd-body-figure" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak depan">',
+                '                      <svg id="assessment_body_svg_front" class="assessment-ugd-body-figure" data-view="front" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak depan">',
                 '                        <g fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
                 '                          <circle cx="60" cy="18" r="12" />',
                 '                          <path d="M60 30 L60 86" />',
@@ -199,7 +199,7 @@
                 '                    </div>',
                 '                    <div class="assessment-ugd-body-card" aria-label="Tampak Belakang">',
                 '                      <div class="assessment-ugd-body-figure-title">Tampak Belakang</div>',
-                '                      <svg class="assessment-ugd-body-figure" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak belakang">',
+                '                      <svg id="assessment_body_svg_back" class="assessment-ugd-body-figure" data-view="back" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak belakang">',
                 '                        <g fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
                 '                          <circle cx="60" cy="18" r="12" />',
                 '                          <path d="M60 30 L60 90" />',
@@ -215,7 +215,7 @@
                 '                    </div>',
                 '                    <div class="assessment-ugd-body-card" aria-label="Tampak Samping Kiri">',
                 '                      <div class="assessment-ugd-body-figure-title">Tampak Samping Kiri</div>',
-                '                      <svg class="assessment-ugd-body-figure" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak samping kiri">',
+                '                      <svg id="assessment_body_svg_left" class="assessment-ugd-body-figure" data-view="left" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak samping kiri">',
                 '                        <g fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
                 '                          <circle cx="64" cy="18" r="12" />',
                 '                          <path d="M64 30 C56 44 56 72 64 92" />',
@@ -229,7 +229,7 @@
                 '                    </div>',
                 '                    <div class="assessment-ugd-body-card" aria-label="Tampak Samping Kanan">',
                 '                      <div class="assessment-ugd-body-figure-title">Tampak Samping Kanan</div>',
-                '                      <svg class="assessment-ugd-body-figure" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak samping kanan">',
+                '                      <svg id="assessment_body_svg_right" class="assessment-ugd-body-figure" data-view="right" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sketsa tubuh tampak samping kanan">',
                 '                        <g fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
                 '                          <circle cx="56" cy="18" r="12" />',
                 '                          <path d="M56 30 C64 44 64 72 56 92" />',
@@ -348,6 +348,12 @@
             dom.jk = document.getElementById('assessment_jk');
             dom.tanggalLahir = document.getElementById('assessment_tanggal_lahir');
             dom.umur = document.getElementById('assessment_umur');
+            dom.bodySvgs = {
+                front: document.getElementById('assessment_body_svg_front'),
+                back: document.getElementById('assessment_body_svg_back'),
+                left: document.getElementById('assessment_body_svg_left'),
+                right: document.getElementById('assessment_body_svg_right')
+            };
 
             dom.doctorReadonlyNote = document.getElementById('assessmentDoctorReadonlyNote');
             dom.diagnosisReadonlyNote = document.getElementById('assessmentDiagnosisReadonlyNote');
@@ -438,6 +444,14 @@
             });
             dom.nurseAddBtn.addEventListener('click', function() {
                 addEntry('nurse');
+            });
+
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.addEventListener('click', function(event) {
+                    onLokalisFigureClick(event, view);
+                });
             });
 
             window.addEventListener('afterprint', function() {
@@ -643,7 +657,8 @@
                     rencana_rujuk: Boolean(doctor.rencana_rujuk),
                     sign_date: String(doctor.sign_date || ''),
                     sign_time: String(doctor.sign_time || ''),
-                    sign_name: String(doctor.sign_name || '')
+                    sign_name: String(doctor.sign_name || ''),
+                    lokalis_markers: Array.isArray(doctor.lokalis_markers) ? doctor.lokalis_markers : []
                 },
                 nurse: {
                     keputusan_preventif: Boolean(nurse.keputusan_preventif),
@@ -765,7 +780,106 @@
             dom.inputs.tanggal.readOnly = true;
             dom.inputs.jam.readOnly = true;
 
+            applyLokalisInteractivity(isDoctor);
+            renderLokalisMarkers(data.doctor.lokalis_markers);
             renderCombinedRows(data.doctorInstructions, data.nurseActions);
+        }
+
+        function applyLokalisInteractivity(isDoctor) {
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.classList.toggle('is-clickable', Boolean(isDoctor));
+            });
+        }
+
+        function normalizeRatio(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+            return Math.max(0, Math.min(1, value));
+        }
+
+        function renderLokalisMarkers(markers) {
+            const list = Array.isArray(markers) ? markers : [];
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.querySelectorAll('circle.assessment-ugd-marker').forEach(function(el) {
+                    el.remove();
+                });
+
+                const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : null;
+                const vbW = vb ? vb.width : 120;
+                const vbH = vb ? vb.height : 180;
+
+                list.filter(function(item) {
+                    return String(item?.view || '') === view;
+                }).forEach(function(item) {
+                    const cx = normalizeRatio(Number(item?.x)) * vbW;
+                    const cy = normalizeRatio(Number(item?.y)) * vbH;
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('class', 'assessment-ugd-marker');
+                    circle.setAttribute('cx', String(cx));
+                    circle.setAttribute('cy', String(cy));
+                    circle.setAttribute('r', '6.5');
+                    svg.appendChild(circle);
+                });
+            });
+        }
+
+        function onLokalisFigureClick(event, view) {
+            if (!isDoctorRole()) return;
+            const svg = dom.bodySvgs?.[view];
+            if (!svg) return;
+            if (!state.currentPatient?.id) return;
+
+            const rect = svg.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const xRatio = normalizeRatio((event.clientX - rect.left) / rect.width);
+            const yRatio = normalizeRatio((event.clientY - rect.top) / rect.height);
+
+            addLokalisMarker({
+                view,
+                x: xRatio,
+                y: yRatio
+            });
+        }
+
+        async function addLokalisMarker(marker) {
+            const patientId = state.currentPatient?.id;
+            if (!patientId) return;
+            const entry = {
+                id: 'lokalis-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                view: String(marker?.view || ''),
+                x: normalizeRatio(Number(marker?.x)),
+                y: normalizeRatio(Number(marker?.y)),
+                created_at: new Date().toISOString(),
+                created_by_name: String(getCurrentOperatorName() || '').trim(),
+                created_by_email: String(getCurrentOperatorEmail() || '').trim(),
+                created_by_role: 'dokter'
+            };
+
+            try {
+                await persistAssessment(function(root) {
+                    const nextDoctor = root.doctor && typeof root.doctor === 'object' ? { ...root.doctor } : {};
+                    const nextMarkers = Array.isArray(nextDoctor.lokalis_markers) ? nextDoctor.lokalis_markers.slice() : [];
+                    nextMarkers.push(entry);
+                    nextDoctor.lokalis_markers = nextMarkers;
+                    root.doctor = nextDoctor;
+                    return root;
+                }, 'Menyimpan marker lokalis...');
+
+                const current = state.currentAssessment || readAssessment(state.currentPatient);
+                const updatedDoctor = current.doctor && typeof current.doctor === 'object' ? { ...current.doctor } : {};
+                const list = Array.isArray(updatedDoctor.lokalis_markers) ? updatedDoctor.lokalis_markers.slice() : [];
+                list.push(entry);
+                updatedDoctor.lokalis_markers = list;
+                current.doctor = updatedDoctor;
+                state.currentAssessment = current;
+                renderLokalisMarkers(list);
+                setStatus('Marker lokalis ditambahkan.', 'success');
+            } catch (err) {
+                setStatus('Gagal menambah marker: ' + (err?.message || String(err)), 'error');
+            }
         }
 
         function ensureAutomaticDoctorStamp() {
@@ -894,7 +1008,10 @@
                 rencana_rujuk: dom.inputs.rencanaRujuk.checked,
                 sign_date: dom.inputs.doctorSignDate.value.trim(),
                 sign_time: dom.inputs.doctorSignTime.value.trim(),
-                sign_name: dom.inputs.doctorSignName.value.trim()
+                sign_name: dom.inputs.doctorSignName.value.trim(),
+                lokalis_markers: Array.isArray(state.currentAssessment?.doctor?.lokalis_markers)
+                    ? state.currentAssessment.doctor.lokalis_markers
+                    : []
             };
         }
 
