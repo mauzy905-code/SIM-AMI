@@ -342,20 +342,20 @@
 }
 
 .assessment-ugd-lokalis {
-    min-height: 52mm;
+    min-height: 60mm;
 }
 
 .assessment-ugd-lokalis-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .assessment-ugd-body-card {
     border: 1px solid #cbd5e1;
     background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-    min-height: 118px;
+    min-height: 168px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -372,16 +372,13 @@
     text-transform: uppercase;
     color: #475569;
     text-align: center;
+    white-space: nowrap;
 }
 
 .assessment-ugd-body-figure {
     width: 100%;
     height: 100%;
-    max-height: 92px;
-}
-
-.assessment-ugd-body-figure image {
-    image-rendering: auto;
+    max-height: 142px;
 }
 
 .assessment-ugd-body-figure.is-clickable {
@@ -396,10 +393,6 @@
     pointer-events: none;
 }
 
-.assessment-ugd-body-note {
-    margin-top: 8px;
-}
-
 .assessment-ugd-diagnosis {
     min-height: 18mm;
 }
@@ -411,41 +404,87 @@
     font-size: 9pt;
 }
 
+.assessment-ugd-log-col-time {
+    width: 10%;
+}
+
+.assessment-ugd-log-col-text {
+    width: 40%;
+}
+
 .assessment-ugd-log-table th,
 .assessment-ugd-log-table td {
     border: 1px solid #111111;
-    padding: 1.1mm 1.5mm;
+    padding: 0.9mm 1.1mm;
     vertical-align: top;
 }
 
 .assessment-ugd-log-table th {
-    background: #f3f4f6;
-    font-weight: 800;
+    background: #ffffff;
+    font-weight: 500;
     text-align: center;
+    white-space: nowrap;
+    word-break: normal;
 }
 
-.assessment-ugd-log-table td:first-child,
-.assessment-ugd-log-table th:first-child {
-    width: 16mm;
+.assessment-ugd-log-table thead tr:first-child th {
+    font-size: 10pt;
+    font-weight: 500;
+    padding-top: 0.7mm;
+    padding-bottom: 0.7mm;
 }
 
-.assessment-ugd-log-table td:nth-child(3),
-.assessment-ugd-log-table th:nth-child(3) {
-    width: 16mm;
+.assessment-ugd-log-table thead tr:nth-child(2) th {
+    font-size: 9pt;
+    font-weight: 500;
+    padding-top: 0.6mm;
+    padding-bottom: 0.6mm;
 }
 
-.assessment-ugd-log-text {
-    min-height: 10mm;
+.assessment-ugd-log-mainrow td {
+    height: 72mm;
+    padding: 0;
+}
+
+.assessment-ugd-log-cell {
+    vertical-align: top;
+}
+
+.assessment-ugd-log-stack {
+    display: flex;
+    flex-direction: column;
+    min-height: 72mm;
+}
+
+.assessment-ugd-log-entry {
+    min-height: 6.8mm;
+    padding: 0.9mm 1.1mm;
+    border-bottom: 1px solid transparent;
+    line-height: 1.2;
+}
+
+.assessment-ugd-log-entry:last-child {
+    border-bottom: none;
+}
+
+.assessment-ugd-log-entry-time {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.assessment-ugd-log-entry-text {
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-.assessment-ugd-log-meta {
-    display: block;
-    margin-top: 4px;
-    color: #64748b;
-    font-size: 8pt;
-    font-weight: 700;
+.assessment-ugd-log-entry-empty {
+    flex: 1 1 auto;
+}
+
+.assessment-ugd-log-text {
+    min-height: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .assessment-ugd-entry-form {
@@ -464,11 +503,16 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
+    align-items: stretch;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 .assessment-ugd-sign-col {
     border: 1.5px solid #111111;
     border-right: none;
+    display: flex;
+    flex-direction: column;
 }
 
 .assessment-ugd-sign-col:last-child {
@@ -483,13 +527,41 @@
 }
 
 .assessment-ugd-sign-body {
-    min-height: 34mm;
+    min-height: 28mm;
     padding: 1.4mm 2mm;
     font-size: 9pt;
+    display: flex;
+    flex-direction: column;
 }
 
 .assessment-ugd-sign-space {
-    height: 18mm;
+    flex: 1 1 auto;
+    min-height: 6mm;
+}
+
+.assessment-ugd-sign-meta {
+    margin-top: 8px;
+    white-space: nowrap;
+}
+
+.assessment-ugd-sign-label {
+    margin-top: 3px;
+}
+
+.assessment-ugd-sign-name {
+    margin-top: auto;
+}
+
+.assessment-ugd-sign-date-input {
+    width: 29mm;
+}
+
+.assessment-ugd-sign-time-input {
+    width: 20mm;
+}
+
+.assessment-ugd-sign-name-input {
+    width: 32mm;
 }
 
 .assessment-ugd-role-pill {
@@ -703,20 +775,146 @@
         display: none !important;
     }
 
+    body.assessment-ugd-print .assessment-ugd-log-table th,
+    body.assessment-ugd-print .assessment-ugd-log-table td {
+        border-width: 1px;
+        padding: 0.5mm 0.8mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-col-time {
+        width: 10%;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-col-text {
+        width: 40%;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-table thead tr:first-child th {
+        font-size: 8.8pt;
+        padding-top: 0.4mm;
+        padding-bottom: 0.4mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-table thead tr:nth-child(2) th {
+        font-size: 8.4pt;
+        padding-top: 0.35mm;
+        padding-bottom: 0.35mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-mainrow td {
+        height: 84mm;
+        padding: 0;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-stack {
+        min-height: 84mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-log-entry {
+        min-height: 7.4mm;
+        padding: 0.55mm 0.85mm;
+        font-size: 8.2pt;
+        line-height: 1.15;
+    }
+
     body.assessment-ugd-print .assessment-ugd-body-card {
         border-color: #111111;
         background: #ffffff;
         border-radius: 0;
-        padding: 4px;
+        padding: 2px;
+        min-height: 128px;
+        min-width: 0;
+        gap: 2px;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-lokalis {
+        min-height: 54mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-lokalis-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 2mm;
+        margin-top: 0.8mm;
     }
 
     body.assessment-ugd-print .assessment-ugd-body-figure-title {
-        font-size: 8pt;
-        letter-spacing: 0.06em;
+        font-size: 6.2pt;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        white-space: nowrap;
     }
 
     body.assessment-ugd-print .assessment-ugd-body-figure {
-        max-height: 84px;
+        max-height: 112px;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-signatures {
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-head {
+        padding: 0.9mm 1.4mm;
+        font-size: 8.8pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-body {
+        min-height: 31mm;
+        padding: 1mm 1.4mm;
+        font-size: 8.2pt;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-checkline {
+        gap: 4px 8px;
+        align-items: flex-start;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-checkitem {
+        gap: 3px;
+        white-space: nowrap;
+        font-size: 8.1pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-meta {
+        margin-top: 7px;
+        white-space: nowrap;
+        font-size: 8pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-label {
+        margin-top: 3px;
+        font-size: 8pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-space {
+        min-height: 10mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-name {
+        margin-top: auto;
+        font-size: 8pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-date-input {
+        width: 24mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-time-input {
+        width: 17mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sign-name-input {
+        width: 28mm;
     }
 
     body.assessment-ugd-print .assessment-ugd-sheet {
