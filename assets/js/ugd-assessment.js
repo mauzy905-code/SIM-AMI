@@ -109,9 +109,11 @@
                 '                  <div class="gc-patient-box">',
                 '                    <table class="gc-patient-meta">',
                 '                      <tr><td>Nomor RM</td><td>:</td><td id="assessment_no_rm"></td></tr>',
+                '                      <tr><td>Nomor Registrasi</td><td>:</td><td id="assessment_no_registrasi"></td></tr>',
                 '                      <tr><td>Nama</td><td>:</td><td id="assessment_nama_pasien"></td></tr>',
                 '                      <tr><td>Jenis Kelamin</td><td>:</td><td id="assessment_jk"></td></tr>',
                 '                      <tr><td>Tanggal Lahir</td><td>:</td><td id="assessment_tanggal_lahir"></td></tr>',
+                '                      <tr><td>Umur</td><td>:</td><td id="assessment_umur"></td></tr>',
                 '                    </table>',
                 '                  </div>',
                 '                </div>',
@@ -122,9 +124,12 @@
                 '                <div class="assessment-ugd-section-body">',
                 '                  <div id="assessmentDoctorReadonlyNote" class="assessment-ugd-readonly-note hidden">Bagian ini hanya dapat diubah oleh dokter. Akun Anda tetap dapat melihat perubahan secara realtime.</div>',
                 '                  <div class="assessment-ugd-role-pill is-doctor">Halaman Dokter</div>',
-                '                  <div class="assessment-ugd-datetime">',
-                '                    <div class="assessment-ugd-inline-row"><span>Tanggal :</span><input id="assessment_tanggal" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-date" placeholder="dd-mm-yyyy"></div>',
-                '                    <div class="assessment-ugd-inline-row"><span>Jam</span><input id="assessment_jam" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-time" placeholder="manual"><span>Wita</span></div>',
+                '                  <div class="assessment-ugd-datetime assessment-ugd-datetime-single">',
+                '                    <div class="assessment-ugd-inline-row assessment-ugd-datetime-row">',
+                '                      <span>Tanggal :</span><input id="assessment_tanggal" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-date" placeholder="">',
+                '                      <span class="assessment-ugd-datetime-sep">Jam :</span><input id="assessment_jam" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-time" placeholder="">',
+                '                      <span>Wita</span>',
+                '                    </div>',
                 '                  </div>',
                 '                  <div class="assessment-ugd-field-block">',
                 '                    <label class="assessment-ugd-field-label">Survey Primer</label>',
@@ -283,9 +288,11 @@
             dom.printBtn = document.getElementById('assessmentUgdPrintBtn');
             dom.logRows = document.getElementById('assessmentLogRows');
             dom.noRm = document.getElementById('assessment_no_rm');
+            dom.noRegistrasi = document.getElementById('assessment_no_registrasi');
             dom.nama = document.getElementById('assessment_nama_pasien');
             dom.jk = document.getElementById('assessment_jk');
             dom.tanggalLahir = document.getElementById('assessment_tanggal_lahir');
+            dom.umur = document.getElementById('assessment_umur');
 
             dom.doctorReadonlyNote = document.getElementById('assessmentDoctorReadonlyNote');
             dom.diagnosisReadonlyNote = document.getElementById('assessmentDiagnosisReadonlyNote');
@@ -474,11 +481,7 @@
                 renderPatientHeader();
                 renderAssessment();
                 subscribeToPatientRow(state.currentPatient.id);
-                if (state.columnAvailable) {
-                    setStatus('Data asesmen sinkron.', 'success');
-                } else {
-                    setStatus('Kolom asesmen belum ada di database, sementara memakai simpan lokal browser.', 'success');
-                }
+                setStatus('Siap', 'success');
             } catch (err) {
                 setStatus('Gagal memuat asesmen: ' + (err?.message || String(err)), 'error');
             }
@@ -607,16 +610,20 @@
         function renderPatientHeader() {
             const patient = state.currentPatient || {};
             dom.noRm.textContent = patient.no_rm || '-';
+            if (dom.noRegistrasi) {
+                dom.noRegistrasi.textContent = patient.no_registrasi || '-';
+            }
             dom.nama.textContent = patient.nama_pasien || '-';
             dom.jk.textContent = patient.jenis_kelamin || '-';
             dom.tanggalLahir.textContent = formatBirthDate(patient.tanggal_lahir || '') || '-';
+            if (dom.umur) {
+                dom.umur.textContent = (patient.umur ?? patient.umur === 0) ? String(patient.umur) : '-';
+            }
             dom.subtitle.textContent = 'Pasien ' + (patient.nama_pasien || '-') + ' - No REG ' + (patient.no_registrasi || '-');
             dom.roleText.textContent = isDoctorRole()
                 ? 'Dokter dapat mengisi halaman 1, diagnosis, instruksi dokter, dan tanda tangan dokter.'
                 : 'Perawat dapat melihat halaman dokter dan menambah tindakan keperawatan serta tanda tangan perawat.';
-            dom.realtimeText.textContent = state.columnAvailable
-                ? 'Data disimpan ke kolom triase UGD pada kunjungan pasien yang sama. Perubahan baru akan dimuat ulang saat ada update pada data pasien.'
-                : 'Mode sementara aktif: data asesmen disimpan lokal di browser ini sampai kolom database ditambahkan.';
+            dom.realtimeText.textContent = 'Perubahan akan tersimpan sesuai mode sistem (database atau lokal) dan dapat dimuat ulang dengan tombol Refresh.';
         }
 
         function renderAssessment() {
