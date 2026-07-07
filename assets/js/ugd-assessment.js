@@ -108,11 +108,11 @@
                 '                <div class="gc-patient-col">',
                 '                  <div class="gc-patient-box">',
                 '                    <table class="gc-patient-meta">',
-                '                      <tr><td>Nomor RM</td><td>:</td><td id="assessment_no_rm"></td></tr>',
-                '                      <tr><td>Nomor Registrasi</td><td>:</td><td id="assessment_no_registrasi"></td></tr>',
+                '                      <tr><td>No RM</td><td>:</td><td id="assessment_no_rm"></td></tr>',
+                '                      <tr><td>No REG</td><td>:</td><td id="assessment_no_registrasi"></td></tr>',
                 '                      <tr><td>Nama</td><td>:</td><td id="assessment_nama_pasien"></td></tr>',
-                '                      <tr><td>Jenis Kelamin</td><td>:</td><td id="assessment_jk"></td></tr>',
-                '                      <tr><td>Tanggal Lahir</td><td>:</td><td id="assessment_tanggal_lahir"></td></tr>',
+                '                      <tr><td>JK</td><td>:</td><td id="assessment_jk"></td></tr>',
+                '                      <tr><td>TL</td><td>:</td><td id="assessment_tanggal_lahir"></td></tr>',
                 '                      <tr><td>Umur</td><td>:</td><td id="assessment_umur"></td></tr>',
                 '                    </table>',
                 '                  </div>',
@@ -207,9 +207,6 @@
                 '                      </svg>',
                 '                    </div>',
                 '                  </div>',
-                '                  <div class="assessment-ugd-body-note">',
-                '                    <textarea id="assessment_status_lokalis" class="assessment-ugd-textarea is-tall" placeholder="Catatan status lokalis / lokasi yang tidak normal"></textarea>',
-                '                  </div>',
                 '                </div>',
                 '              </div>',
                 '              <div class="assessment-ugd-section-box">',
@@ -221,6 +218,12 @@
                 '                    <textarea id="assessment_diagnosis" class="assessment-ugd-textarea assessment-ugd-diagnosis"></textarea>',
                 '                  </div>',
                 '                  <table class="assessment-ugd-log-table">',
+                '                    <colgroup>',
+                '                      <col class="assessment-ugd-log-col-time">',
+                '                      <col class="assessment-ugd-log-col-text">',
+                '                      <col class="assessment-ugd-log-col-time">',
+                '                      <col class="assessment-ugd-log-col-text">',
+                '                    </colgroup>',
                 '                    <thead>',
                 '                      <tr>',
                 '                        <th colspan="2">Instruksi Dokter</th>',
@@ -263,10 +266,10 @@
                 '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_permintaan_sendiri" type="checkbox"> Pulang atas permintaan sendiri</label>',
                 '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_rujuk" type="checkbox"> Rujuk</label>',
                 '                    </div>',
-                '                    <div style="margin-top: 12px;">Muara Badak, Tgl <input id="assessment_doctor_sign_date" type="text" class="assessment-ugd-line-input" placeholder="manual"> Jam <input id="assessment_doctor_sign_time" type="text" class="assessment-ugd-line-input" placeholder="manual"> Wita</div>',
-                '                    <div style="margin-top: 4px;">Tanda Tangan dokter Jaga</div>',
+                '                    <div class="assessment-ugd-sign-meta">Muara Badak, Tgl <input id="assessment_doctor_sign_date" type="text" class="assessment-ugd-line-input assessment-ugd-sign-date-input" placeholder="manual"> Jam <input id="assessment_doctor_sign_time" type="text" class="assessment-ugd-line-input assessment-ugd-sign-time-input" placeholder="manual"> Wita</div>',
+                '                    <div class="assessment-ugd-sign-label">Tanda Tangan dokter Jaga</div>',
                 '                    <div class="assessment-ugd-sign-space"></div>',
-                '                    <div>Nama : <input id="assessment_doctor_sign_name" type="text" class="assessment-ugd-line-input" placeholder="Nama dokter"></div>',
+                '                    <div class="assessment-ugd-sign-name">Nama : <input id="assessment_doctor_sign_name" type="text" class="assessment-ugd-line-input assessment-ugd-sign-name-input" placeholder="Nama dokter"></div>',
                 '                  </div>',
                 '                </div>',
                 '                <div class="assessment-ugd-sign-col">',
@@ -279,10 +282,10 @@
                 '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_paliatif" type="checkbox"> Paliatif</label>',
                 '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_rehabilitatif" type="checkbox"> Rehabilitatif</label>',
                 '                    </div>',
-                '                    <div style="margin-top: 12px;">Muara Badak, Tgl <input id="assessment_nurse_sign_date" type="text" class="assessment-ugd-line-input" placeholder="manual"> Jam <input id="assessment_nurse_sign_time" type="text" class="assessment-ugd-line-input" placeholder="manual"> Wita</div>',
-                '                    <div style="margin-top: 4px;">Tanda Tangan Perawat</div>',
+                '                    <div class="assessment-ugd-sign-meta">Muara Badak, Tgl <input id="assessment_nurse_sign_date" type="text" class="assessment-ugd-line-input assessment-ugd-sign-date-input" placeholder="manual"> Jam <input id="assessment_nurse_sign_time" type="text" class="assessment-ugd-line-input assessment-ugd-sign-time-input" placeholder="manual"> Wita</div>',
+                '                    <div class="assessment-ugd-sign-label">Tanda Tangan Perawat</div>',
                 '                    <div class="assessment-ugd-sign-space"></div>',
-                '                    <div>Nama : <input id="assessment_nurse_sign_name" type="text" class="assessment-ugd-line-input" placeholder="Nama perawat"></div>',
+                '                    <div class="assessment-ugd-sign-name">Nama : <input id="assessment_nurse_sign_name" type="text" class="assessment-ugd-line-input assessment-ugd-sign-name-input" placeholder="Nama perawat"></div>',
                 '                  </div>',
                 '                </div>',
                 '              </div>',
@@ -359,7 +362,6 @@
                 statusLemah: document.getElementById('assessment_status_lemah'),
                 statusKejang: document.getElementById('assessment_status_kejang'),
                 statusLainnya: document.getElementById('assessment_status_lainnya'),
-                statusLokalis: document.getElementById('assessment_status_lokalis'),
                 diagnosis: document.getElementById('assessment_diagnosis'),
                 rencanaPulang: document.getElementById('assessment_rencana_pulang'),
                 rencanaRawatInap: document.getElementById('assessment_rencana_rawat_inap'),
@@ -614,7 +616,6 @@
                     status_lemah: Boolean(doctor.status_lemah),
                     status_kejang: Boolean(doctor.status_kejang),
                     status_lainnya: String(doctor.status_lainnya || ''),
-                    status_lokalis: String(doctor.status_lokalis || ''),
                     diagnosis: String(doctor.diagnosis || ''),
                     rencana_pulang: Boolean(doctor.rencana_pulang),
                     rencana_rawat_inap: Boolean(doctor.rencana_rawat_inap),
@@ -690,7 +691,6 @@
             setChecked(dom.inputs.statusLemah, data.doctor.status_lemah);
             setChecked(dom.inputs.statusKejang, data.doctor.status_kejang);
             setInputValue(dom.inputs.statusLainnya, data.doctor.status_lainnya);
-            setInputValue(dom.inputs.statusLokalis, data.doctor.status_lokalis);
             setInputValue(dom.inputs.diagnosis, data.doctor.diagnosis);
             setChecked(dom.inputs.rencanaPulang, data.doctor.rencana_pulang);
             setChecked(dom.inputs.rencanaRawatInap, data.doctor.rencana_rawat_inap);
@@ -867,27 +867,42 @@
         }
 
         function renderCombinedRows(doctorInstructions, nurseActions) {
-            const maxLength = Math.max(doctorInstructions.length, nurseActions.length, 1);
-            const rows = [];
+            const doctorList = Array.isArray(doctorInstructions) ? doctorInstructions : [];
+            const nurseList = Array.isArray(nurseActions) ? nurseActions : [];
 
-            for (let index = 0; index < maxLength; index += 1) {
-                const doctorEntry = doctorInstructions[index];
-                const nurseEntry = nurseActions[index];
-                rows.push(
-                    '<tr>' +
-                    '<td>' + escapeHtml(doctorEntry?.jam_manual || '') + '</td>' +
-                    '<td><div class="assessment-ugd-log-text">' + escapeHtml(doctorEntry?.text || '') + '</div>' +
-                    (doctorEntry ? '<span class="assessment-ugd-log-meta">' + escapeHtml(formatLogMeta(doctorEntry)) + '</span>' : '') +
-                    '</td>' +
-                    '<td>' + escapeHtml(nurseEntry?.jam_manual || '') + '</td>' +
-                    '<td><div class="assessment-ugd-log-text">' + escapeHtml(nurseEntry?.text || '') + '</div>' +
-                    (nurseEntry ? '<span class="assessment-ugd-log-meta">' + escapeHtml(formatLogMeta(nurseEntry)) + '</span>' : '') +
-                    '</td>' +
-                    '</tr>'
-                );
+            dom.logRows.innerHTML =
+                '<tr class="assessment-ugd-log-mainrow">' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-time">' + renderLogJamColumn(doctorList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-text">' + renderLogTextColumn(doctorList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-time">' + renderLogJamColumn(nurseList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-text">' + renderLogTextColumn(nurseList) + '</td>' +
+                '</tr>';
+        }
+
+        function renderLogJamColumn(entries) {
+            const list = Array.isArray(entries) ? entries : [];
+            if (!list.length) {
+                return '<div class="assessment-ugd-log-stack"><div class="assessment-ugd-log-entry assessment-ugd-log-entry-empty"></div></div>';
             }
 
-            dom.logRows.innerHTML = rows.join('');
+            return '<div class="assessment-ugd-log-stack">' + list.map(function(entry) {
+                return '<div class="assessment-ugd-log-entry assessment-ugd-log-entry-time">' +
+                    escapeHtml(entry?.jam_manual || '') +
+                    '</div>';
+            }).join('') + '</div>';
+        }
+
+        function renderLogTextColumn(entries) {
+            const list = Array.isArray(entries) ? entries : [];
+            if (!list.length) {
+                return '<div class="assessment-ugd-log-stack"><div class="assessment-ugd-log-entry assessment-ugd-log-entry-empty"></div></div>';
+            }
+
+            return '<div class="assessment-ugd-log-stack">' + list.map(function(entry) {
+                return '<div class="assessment-ugd-log-entry assessment-ugd-log-entry-text">' +
+                    '<div class="assessment-ugd-log-text">' + escapeHtml(entry?.text || '') + '</div>' +
+                    '</div>';
+            }).join('') + '</div>';
         }
 
         function formatLogMeta(entry) {
@@ -965,7 +980,6 @@
                 status_lemah: dom.inputs.statusLemah.checked,
                 status_kejang: dom.inputs.statusKejang.checked,
                 status_lainnya: dom.inputs.statusLainnya.value.trim(),
-                status_lokalis: dom.inputs.statusLokalis.value.trim(),
                 diagnosis: dom.inputs.diagnosis.value.trim(),
                 rencana_pulang: dom.inputs.rencanaPulang.checked,
                 rencana_rawat_inap: dom.inputs.rencanaRawatInap.checked,
@@ -1082,11 +1096,9 @@
                 }, 'Menyimpan catatan baru...');
 
                 if (isDoctor) {
-                    state.currentAssessment.doctorInstructions = state.currentAssessment.doctorInstructions.concat([entry]);
                     dom.doctorEntryTime.value = '';
                     dom.doctorEntryText.value = '';
                 } else {
-                    state.currentAssessment.nurseActions = state.currentAssessment.nurseActions.concat([entry]);
                     dom.nurseEntryTime.value = '';
                     dom.nurseEntryText.value = '';
                 }
