@@ -232,6 +232,19 @@
     margin-bottom: 2mm;
 }
 
+.assessment-ugd-datetime-single {
+    display: block;
+}
+
+.assessment-ugd-datetime-row {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.assessment-ugd-datetime-sep {
+    margin-left: 6mm;
+}
+
 .assessment-ugd-inline-row {
     display: inline-flex;
     align-items: center;
@@ -601,6 +614,64 @@
         background: #ffffff;
         box-shadow: none;
         border: none;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-role-pill,
+    body.assessment-ugd-print .assessment-ugd-readonly-note {
+        display: none !important;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-sheet {
+        padding: 4mm 5mm 4mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-title-box {
+        padding: 2.6mm 2mm;
+        margin-bottom: 1.4mm;
+        font-size: 13pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-section-body {
+        padding: 1.6mm 1.6mm;
+        font-size: 8.6pt;
+        line-height: 1.28;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-field-block {
+        margin-bottom: 1.6mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-textarea {
+        min-height: 9mm;
+        padding-bottom: 0.5mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-textarea.is-tall {
+        min-height: 16mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-datetime {
+        margin-bottom: 1.4mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-datetime-row {
+        font-size: 9pt;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-line-input-date {
+        width: 52mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-line-input-time {
+        width: 22mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-grid-2 {
+        gap: 3mm;
+    }
+
+    body.assessment-ugd-print .assessment-ugd-entry-form {
+        display: none !important;
     }
 
     body.assessment-ugd-print .assessment-ugd-sheet {
