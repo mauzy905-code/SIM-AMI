@@ -14,6 +14,7 @@
             <link rel="stylesheet" href="assets/css/app.css">
             <link rel="stylesheet" href="assets/css/general-consent.css">
             <link rel="stylesheet" href="assets/css/triase-ugd.css">
+            <link rel="stylesheet" href="assets/css/ugd-assessment.css">
             <link rel="stylesheet" href="assets/css/print.css">
         </head>
         <body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
@@ -1135,6 +1136,7 @@
             </div>
 
             <script src="assets/js/utils.js"></script>
+            <script src="assets/js/ugd-assessment.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const globalLoadingShell = document.getElementById('globalLoadingShell');
@@ -1467,6 +1469,7 @@
                         let currentTriaseUgdDraftMeta = null;
                         let pendingDraftTriaseLink = null;
                         let draftTriasePatientsCache = [];
+                        let ugdAssessmentModule = null;
 
                         const STAFF_NAME_STORAGE_PREFIX = 'simami-staff-name:';
                         const STAFF_ACTIVITY_LOG_KEY = 'simami-staff-activity-log';
@@ -2504,10 +2507,8 @@
                             return String(currentAdminRole || '').trim().toLowerCase() === 'perawat';
                         }
 
-                        const TRIAGE_UGD_ALLOWED_EMAIL = 'perawat2026@rsudami.com';
-
                         function canAccessTriaseUgd() {
-                            return String(getCurrentAdminEmail() || '').trim().toLowerCase() === TRIAGE_UGD_ALLOWED_EMAIL;
+                            return isPerawatRole();
                         }
 
                         function canAccessDraftTriaseView() {
@@ -2520,6 +2521,10 @@
 
                         function isReadOnlyPatientViewerRole() {
                             return isBidanRole() || isPerawatRole() || isDokterRole();
+                        }
+
+                        function canAccessAssessmentUgd() {
+                            return isPerawatRole() || isDokterRole();
                         }
 
                         function getPetugasPoliDefaultPoli() {
@@ -2551,6 +2556,21 @@
                             if (value === 'admin_farmasi' || value === 'petugas_farmasi' || value === 'petugas farmasi') return 'Petugas Farmasi';
                             if (value === 'petugas_poli' || value === 'petugas poli') return getPetugasPoliAccountLabel();
                             return value ? value.replace(/_/g, ' ') : 'Belum Diatur';
+                        }
+
+                        if (typeof window.createUgdAssessmentModule === 'function') {
+                            ugdAssessmentModule = window.createUgdAssessmentModule({
+                                supabaseClient,
+                                withTimeout,
+                                withPageLoading,
+                                escapeHtml,
+                                formatGeneralConsentDate,
+                                getCurrentOperatorName,
+                                getCurrentOperatorEmail: getCurrentAdminEmail,
+                                canAccessAssessment: canAccessAssessmentUgd,
+                                isDoctorRole: isDokterRole,
+                                isPerawatRole
+                            });
                         }
 
                         function normalizeStaffName(value) {
@@ -6194,6 +6214,7 @@
                             const isPetugasPoli = isPetugasPoliScopedRekap();
                             const canManageDriveLink = canManagePatientDriveLink();
                             const canTriase = canAccessTriaseUgd();
+                            const canAssessment = canAccessAssessmentUgd();
                             const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                             if (!items || items.length === 0) {
                                 const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : (showSupervisorEditColumn ? 25 : 24));
@@ -6268,11 +6289,15 @@
                                         no_telepon: p.no_telepon
                                     }))}'>Triase UGD</button>`
                                     : '';
+                                const assessmentBtnRekap = (ugdAssessmentModule && canAssessment && String(p.unit || '').toUpperCase() === 'UGD')
+                                    ? ugdAssessmentModule.renderRekapButton(p)
+                                    : '';
                                 const riwayatLinkCell = normalizedLink
                                     ? `<div class="flex items-center gap-2 whitespace-nowrap">
                                         ${examBtn}
                                         ${gcBtnRekap}
                                         ${triaseBtnRekap}
+                                        ${assessmentBtnRekap}
                                         <a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-[11px] font-extrabold text-orange-700 transition hover:bg-orange-100">Buka GDrive</a>
                                         <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>
                                     </div>`
@@ -6280,6 +6305,7 @@
                                         ${examBtn}
                                         ${gcBtnRekap}
                                         ${triaseBtnRekap}
+                                        ${assessmentBtnRekap}
                                         <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${canManageDriveLink ? 'Input Link' : 'Lihat Riwayat'}</button>
                                     </div>`;
                                 if (isRme) {
@@ -6518,6 +6544,12 @@
                             });
                         }
                         rEls.rows.addEventListener('click', (event) => {
+                            const assessmentBtn = event.target.closest('.assessment-ugd-btn-trigger');
+                            if (assessmentBtn) {
+                                ugdAssessmentModule?.handleRekapButtonClick(assessmentBtn);
+                                return;
+                            }
+
                             const poliExamBtn = event.target.closest('.poli-exam-btn');
                             if (poliExamBtn) {
                                 openPoliExamModalPanel({
@@ -7617,7 +7649,7 @@
 
                         async function openTriaseUgdModal(patientData) {
                             if (!canAccessTriaseUgd()) {
-                                alert('Hanya akun perawat2026@rsudami.com yang dapat mengisi Triase UGD.');
+                                alert('Hanya akun perawat yang dapat mengisi Triase UGD.');
                                 return;
                             }
                             triaseUgdMode = 'patient';
