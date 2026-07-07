@@ -15,6 +15,7 @@
             <link rel="stylesheet" href="assets/css/general-consent.css">
             <link rel="stylesheet" href="assets/css/triase-ugd.css">
             <link rel="stylesheet" href="assets/css/ugd-assessment.css">
+            <link rel="stylesheet" href="assets/css/perawat-dashboard.css">
             <link rel="stylesheet" href="assets/css/print.css">
         </head>
         <body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
@@ -119,6 +120,9 @@
                     <div id="drawerDescription" class="text-emerald-50/90 text-sm font-semibold mt-2">Navigasi cepat untuk input pasien dan rekap data.</div>
                 </div>
                 <div class="p-5 space-y-3">
+                    <button id="menuPerawatDashboard" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
+                        Dashboard Perawat
+                    </button>
                     <button id="menuPendaftaran" type="button" class="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 text-left font-bold text-emerald-900 transition hover:bg-emerald-100">
                         Input Pasien
                     </button>
@@ -184,6 +188,7 @@
             </header>
 
             <main class="max-w-7xl mx-auto p-4 md:p-5 lg:p-6">
+                <section id="viewPerawatDashboard" class="hidden"></section>
                 <section id="viewPendaftaran" class="hidden">
                     <div class="space-y-5">
                         <div class="overflow-hidden rounded-[32px] border border-white/70 bg-white/85 shadow-[0_28px_80px_-28px_rgba(15,23,42,0.28)] backdrop-blur-xl">
@@ -1137,6 +1142,7 @@
 
             <script src="assets/js/utils.js"></script>
             <script src="assets/js/ugd-assessment.js"></script>
+            <script src="assets/js/perawat-dashboard.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const globalLoadingShell = document.getElementById('globalLoadingShell');
@@ -1239,6 +1245,7 @@
                             fetch: trackedFetch
                         });
 
+                        const viewPerawatDashboard = document.getElementById('viewPerawatDashboard');
                         const viewPendaftaran = document.getElementById('viewPendaftaran');
                         const viewRekap = document.getElementById('viewRekap');
                         const viewDraftTriase = document.getElementById('viewDraftTriase');
@@ -1258,6 +1265,7 @@
                         const burgerBtn = document.getElementById('burgerBtn');
                         const drawer = document.getElementById('drawer');
                         const drawerOverlay = document.getElementById('drawerOverlay');
+                        const menuPerawatDashboard = document.getElementById('menuPerawatDashboard');
                         const menuPendaftaran = document.getElementById('menuPendaftaran');
                         const menuRekap = document.getElementById('menuRekap');
                         const menuDraftTriase = document.getElementById('menuDraftTriase');
@@ -1470,6 +1478,7 @@
                         let pendingDraftTriaseLink = null;
                         let draftTriasePatientsCache = [];
                         let ugdAssessmentModule = null;
+                        let perawatDashboardModule = null;
 
                         const STAFF_NAME_STORAGE_PREFIX = 'simami-staff-name:';
                         const STAFF_ACTIVITY_LOG_KEY = 'simami-staff-activity-log';
@@ -1514,6 +1523,9 @@
                         }
 
                         function syncRoleMenuVisibility() {
+                            if (menuPerawatDashboard) {
+                                menuPerawatDashboard.classList.toggle('hidden', !isPerawatRole());
+                            }
                             menuPendaftaran.classList.toggle('hidden', !canAccessPendaftaranView());
                             menuRekap.classList.toggle('hidden', !canAccessRekapView());
                             if (menuDraftTriase) {
@@ -1531,7 +1543,11 @@
                             const isRekapView = view === 'rekap' || view === 'rekap_all';
                             const isRekapAll = view === 'rekap_all';
                             const isDraft = view === 'draft_triase';
+                            const isPerawatDashboard = view === 'perawat_dashboard';
 
+                            if (menuPerawatDashboard) {
+                                menuPerawatDashboard.className = isPerawatDashboard ? activeClass : inactiveClass;
+                            }
                             menuPendaftaran.className = view === 'pendaftaran' ? activeClass : inactiveClass;
                             menuRekap.className = (isRekapView && !isRekapAll) ? activeClass : inactiveClass;
                             if (menuRekapAll) {
@@ -2419,8 +2435,11 @@
                             adminLoketDisplay.textContent = loketLabel;
                             adminIdentityBadge.textContent = `${roleLabel}${loketLabel !== '-' ? ' • ' + loketLabel : ''}`;
                             applyRolePresentation();
-                            changeStaffBtn.classList.toggle('hidden', !isStaffIdentityRequired());
+                            changeStaffBtn.classList.toggle('hidden', !canChangeStaffIdentity());
                             adminIdentityBadge.classList.remove('hidden');
+                            if (perawatDashboardModule?.render) {
+                                perawatDashboardModule.render();
+                            }
                         }
 
                         function resetAdminIdentity() {
@@ -2573,6 +2592,27 @@
                             });
                         }
 
+                        if (typeof window.createPerawatDashboardModule === 'function') {
+                            perawatDashboardModule = window.createPerawatDashboardModule({
+                                containerEl: viewPerawatDashboard,
+                                isPerawatRole,
+                                getCurrentOperatorName,
+                                getCurrentAdminEmail,
+                                getRoleLabel: () => formatAdminRoleLabel(currentAdminRole),
+                                getStoredStaffName,
+                                openStaffOverlay: () => openStaffIdentityOverlay({ allowLogout: false, prefill: currentStaffName || getStoredStaffName() }),
+                                setStaffName: (name) => applyStaffName(name, { reason: currentStaffName ? 'ganti_petugas' : 'set_petugas_aktif' }),
+                                openRekap: async () => {
+                                    showView('rekap');
+                                    await r_reloadToFirstPage();
+                                },
+                                openDraftTriase: async () => {
+                                    showView('draft_triase');
+                                    await dt_reloadDraftTriaseList();
+                                }
+                            });
+                        }
+
                         function normalizeStaffName(value) {
                             return String(value || '').replace(/\s+/g, ' ').trim();
                         }
@@ -2583,6 +2623,10 @@
 
                         function isStaffIdentityRequired() {
                             return isRegistrationWorkflowRole();
+                        }
+
+                        function canChangeStaffIdentity() {
+                            return isStaffIdentityRequired() || isPerawatRole() || isDokterRole();
                         }
 
                         function canAccessRekapView() {
@@ -3025,7 +3069,24 @@
                             if (view === 'draft_triase' && !canAccessDraftTriaseView()) {
                                 view = canAccessPendaftaranView() ? 'pendaftaran' : 'rekap';
                             }
+                            if (view === 'perawat_dashboard' && !isPerawatRole()) {
+                                view = canAccessDraftTriaseView()
+                                    ? 'draft_triase'
+                                    : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap');
+                            }
 
+                            if (view === 'perawat_dashboard') {
+                                viewPendaftaran.classList.add('hidden');
+                                viewRekap.classList.add('hidden');
+                                viewDraftTriase.classList.add('hidden');
+                                viewPerawatDashboard.classList.remove('hidden');
+                                setActiveMenu('perawat_dashboard');
+                                if (perawatDashboardModule?.render) {
+                                    perawatDashboardModule.render();
+                                }
+                                return;
+                            }
+                            viewPerawatDashboard.classList.add('hidden');
                             if (view === 'draft_triase') {
                                 viewPendaftaran.classList.add('hidden');
                                 viewRekap.classList.add('hidden');
@@ -3054,6 +3115,7 @@
                                 viewPendaftaran.classList.add('hidden');
                                 viewRekap.classList.add('hidden');
                                 viewDraftTriase.classList.add('hidden');
+                                viewPerawatDashboard.classList.add('hidden');
                                 logoutBtnTop.classList.add('hidden');
                                 closeStaffIdentityOverlay();
                                 return null;
@@ -3093,7 +3155,7 @@
                                 await detectNoRegistrasiColumn();
                                 await detectTriaseDraftColumn();
                                 await detectTriaseUgdDraftsTable();
-                                showView(canAccessDraftTriaseView() ? 'draft_triase' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap'));
+                                showView(isPerawatRole() ? 'perawat_dashboard' : (canAccessDraftTriaseView() ? 'draft_triase' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap')));
                                 await initForm();
                                 await loadQueueControls();
                                 await refreshStats();
@@ -3115,11 +3177,18 @@
                             viewPendaftaran.classList.add('hidden');
                             viewRekap.classList.add('hidden');
                             viewDraftTriase.classList.add('hidden');
+                            viewPerawatDashboard.classList.add('hidden');
                             closeDrawer();
                         }
 
                         burgerBtn.addEventListener('click', () => openDrawer());
                         drawerOverlay.addEventListener('click', () => closeDrawer());
+                        if (menuPerawatDashboard) {
+                            menuPerawatDashboard.addEventListener('click', () => {
+                                closeDrawer();
+                                showView('perawat_dashboard');
+                            });
+                        }
                         menuPendaftaran.addEventListener('click', async () => {
                             closeDrawer();
                             showView('pendaftaran');
