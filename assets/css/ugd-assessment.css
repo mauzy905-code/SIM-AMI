@@ -184,12 +184,14 @@
 .assessment-ugd-sheet {
     position: relative;
     width: 210mm;
-    min-height: 330mm;
+    height: 330mm;
     margin: 0 auto 10mm;
     padding: 5mm 6mm 5mm;
     background: #ffffff;
     box-shadow: 0 18px 50px -24px rgba(15, 23, 42, 0.35);
     box-sizing: border-box;
+    overflow: hidden;
+    page-break-inside: avoid;
 }
 
 .assessment-ugd-title-box {
@@ -288,7 +290,7 @@
     border-bottom: 1px dotted #111111;
     background: transparent;
     font: inherit;
-    resize: vertical;
+    resize: none;
     outline: none;
     padding: 0 0 0.7mm;
     box-sizing: border-box;
@@ -566,6 +568,11 @@
 }
 
 @media print {
+    @page {
+        size: 210mm 330mm;
+        margin: 0;
+    }
+
     body.assessment-ugd-print > *:not(#assessmentUgdModal) {
         display: none !important;
     }
@@ -598,7 +605,9 @@
 
     body.assessment-ugd-print .assessment-ugd-sheet {
         box-shadow: none;
-        margin: 0 auto 6mm;
+        width: 210mm;
+        height: 330mm;
+        margin: 0 auto;
         page-break-after: always;
     }
 
