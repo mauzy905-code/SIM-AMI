@@ -380,6 +380,10 @@
     max-height: 92px;
 }
 
+.assessment-ugd-body-figure image {
+    image-rendering: auto;
+}
+
 .assessment-ugd-body-figure.is-clickable {
     cursor: crosshair;
 }
