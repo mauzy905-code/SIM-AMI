@@ -25,8 +25,7 @@
             saveTimer: null,
             lastWriteAt: 0,
             subscription: null,
-            broadcastChannel: null,
-            columnAvailable: null
+            broadcastChannel: null
         };
 
         const dom = {};
@@ -86,7 +85,7 @@
                 '            </div>',
                 '            <div class="assessment-ugd-help-card">',
                 '              <div class="assessment-ugd-help-title">Sinkronisasi</div>',
-                '              <div id="assessmentUgdRealtimeText" class="assessment-ugd-help-text">Perubahan akan disimpan ke data pasien UGD dan disinkronkan dari tabel pasien.</div>',
+                '              <div id="assessmentUgdRealtimeText" class="assessment-ugd-help-text">Perubahan akan disimpan ke tabel asesmen UGD dan disinkronkan realtime antar dokter dan perawat.</div>',
                 '            </div>',
                 '          </div>',
                 '          <div id="assessmentUgdForm" class="assessment-ugd-document">',
@@ -444,28 +443,6 @@
             };
         }
 
-        async function ensureColumnAvailability() {
-            if (typeof state.columnAvailable === 'boolean') {
-                return state.columnAvailable;
-            }
-
-            try {
-                const probe = await withTimeout(
-                    supabaseClient
-                        .from('pasien')
-                        .select('triase_ugd_data')
-                        .limit(1),
-                    12000,
-                    'Cek kolom asesmen UGD'
-                );
-                state.columnAvailable = !probe?.error || !/triase_ugd_data/i.test(String(probe.error?.message || ''));
-            } catch (_err) {
-                state.columnAvailable = false;
-            }
-
-            return state.columnAvailable;
-        }
-
         function renderRekapButton(patient) {
             const patientData = buildPatientSnapshot(patient);
             return '<button type="button" class="assessment-ugd-btn-trigger assessment-ugd-trigger" data-assessment-patient="' +
@@ -509,7 +486,6 @@
             }
 
             try {
-                await ensureColumnAvailability();
                 const patientRow = await fetchPatientRow(state.currentPatient.id);
                 state.currentPatient = buildPatientSnapshot(patientRow);
                 state.currentAssessment = readAssessment(patientRow);
@@ -524,39 +500,37 @@
         }
 
         async function fetchPatientRow(patientId) {
-            if (!state.columnAvailable) {
-                const fallback = await withTimeout(
-                    supabaseClient
-                        .from('pasien')
-                        .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian')
-                        .eq('id', patientId)
-                        .limit(1)
-                        .maybeSingle(),
-                    15000,
-                    'Muat asesmen UGD lokal'
-                );
-                if (fallback?.error) throw new Error(fallback.error.message);
-                if (!fallback?.data) throw new Error('Pasien tidak ditemukan.');
-                return {
-                    ...fallback.data,
-                    triase_ugd_data: safeParseJson(window.localStorage.getItem(getAssessmentStorageKey(patientId)))
-                };
-            }
-
-            const result = await withTimeout(
+            const patientResult = await withTimeout(
                 supabaseClient
                     .from('pasien')
-                    .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian,triase_ugd_data')
+                    .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian')
                     .eq('id', patientId)
                     .limit(1)
                     .maybeSingle(),
                 15000,
-                'Muat asesmen UGD'
+                'Muat data pasien asesmen UGD'
             );
 
-            if (result?.error) throw new Error(result.error.message);
-            if (!result?.data) throw new Error('Pasien tidak ditemukan.');
-            return result.data;
+            if (patientResult?.error) throw new Error(patientResult.error.message);
+            if (!patientResult?.data) throw new Error('Pasien tidak ditemukan.');
+
+            const assessmentResult = await withTimeout(
+                supabaseClient
+                    .from('asesmen_ugd')
+                    .select('pasien_id,doctor_form,nurse_form,doctor_instructions,nurse_actions')
+                    .eq('pasien_id', patientId)
+                    .limit(1)
+                    .maybeSingle(),
+                15000,
+                'Muat data asesmen UGD'
+            );
+
+            if (assessmentResult?.error) throw new Error(assessmentResult.error.message);
+
+            return {
+                ...patientResult.data,
+                assessment_row: assessmentResult?.data || null
+            };
         }
 
         function buildPatientSnapshot(patient) {
@@ -570,7 +544,7 @@
                 umur: patient?.umur ?? '',
                 unit: String(patient?.unit || '').trim(),
                 no_antrian: patient?.no_antrian ?? '',
-                triase_ugd_data: patient?.triase_ugd_data ?? null
+                assessment_row: patient?.assessment_row ?? null
             };
         }
 
@@ -585,11 +559,29 @@
             }
         }
 
+        function normalizeEntryList(entries) {
+            if (!Array.isArray(entries)) return [];
+            return entries.filter(function(entry) {
+                return entry && typeof entry === 'object';
+            }).map(function(entry) {
+                return {
+                    id: String(entry.id || ''),
+                    jam_manual: String(entry.jam_manual || ''),
+                    text: String(entry.text || ''),
+                    created_at: String(entry.created_at || ''),
+                    created_by_name: String(entry.created_by_name || ''),
+                    created_by_email: String(entry.created_by_email || ''),
+                    created_by_role: String(entry.created_by_role || '')
+                };
+            });
+        }
+
         function readAssessment(patientRow) {
-            const root = safeParseJson(patientRow?.triase_ugd_data);
-            const base = root.assessment_ugd && typeof root.assessment_ugd === 'object' ? root.assessment_ugd : {};
-            const doctor = base.doctor && typeof base.doctor === 'object' ? base.doctor : {};
-            const nurse = base.nurse && typeof base.nurse === 'object' ? base.nurse : {};
+            const row = patientRow?.assessment_row && typeof patientRow.assessment_row === 'object'
+                ? patientRow.assessment_row
+                : {};
+            const doctor = safeParseJson(row.doctor_form);
+            const nurse = safeParseJson(row.nurse_form);
             return {
                 doctor: {
                     tanggal: String(doctor.tanggal || ''),
@@ -635,11 +627,11 @@
                     sign_time: String(nurse.sign_time || ''),
                     sign_name: String(nurse.sign_name || '')
                 },
-                doctorInstructions: Array.isArray(base.doctor_instructions) ? base.doctor_instructions : [],
-                nurseActions: Array.isArray(base.nurse_actions) ? base.nurse_actions : [],
-                updated_at: String(base.updated_at || ''),
-                updated_by_role: String(base.updated_by_role || ''),
-                updated_by_name: String(base.updated_by_name || '')
+                doctorInstructions: normalizeEntryList(row.doctor_instructions),
+                nurseActions: normalizeEntryList(row.nurse_actions),
+                updated_at: '',
+                updated_by_role: '',
+                updated_by_name: ''
             };
         }
 
@@ -659,7 +651,7 @@
             dom.roleText.textContent = isDoctorRole()
                 ? 'Dokter dapat mengisi halaman 1, diagnosis, instruksi dokter, dan tanda tangan dokter.'
                 : 'Perawat dapat melihat halaman dokter dan menambah tindakan keperawatan serta tanda tangan perawat.';
-            dom.realtimeText.textContent = 'Perubahan akan tersimpan sesuai mode sistem (database atau lokal) dan dapat dimuat ulang dengan tombol Refresh.';
+            dom.realtimeText.textContent = 'Perubahan tersimpan ke tabel asesmen UGD dan akan tersinkron realtime saat dokter atau perawat membuka pasien yang sama.';
         }
 
         function renderAssessment() {
@@ -833,13 +825,9 @@
                     return root;
                 }, 'Menyimpan marker lokalis...');
 
-                const current = state.currentAssessment || readAssessment(state.currentPatient);
-                const updatedDoctor = current.doctor && typeof current.doctor === 'object' ? { ...current.doctor } : {};
-                const list = Array.isArray(updatedDoctor.lokalis_markers) ? updatedDoctor.lokalis_markers.slice() : [];
-                list.push(entry);
-                updatedDoctor.lokalis_markers = list;
-                current.doctor = updatedDoctor;
-                state.currentAssessment = current;
+                const list = Array.isArray(state.currentAssessment?.doctor?.lokalis_markers)
+                    ? state.currentAssessment.doctor.lokalis_markers
+                    : [];
                 renderLokalisMarkers(list);
                 setStatus('Marker lokalis ditambahkan.', 'success');
             } catch (err) {
@@ -1117,72 +1105,46 @@
             state.lastWriteAt = Date.now();
             setStatus(loadingLabel || 'Menyimpan...', 'info');
 
-            await ensureColumnAvailability();
             const latestPatient = await fetchPatientRow(patientId);
-            const latestRoot = safeParseJson(latestPatient.triase_ugd_data);
             const latestAssessment = readAssessment(latestPatient);
             const nextAssessment = {
                 doctor: latestAssessment.doctor,
                 nurse: latestAssessment.nurse,
                 doctor_instructions: latestAssessment.doctorInstructions.slice(),
-                nurse_actions: latestAssessment.nurseActions.slice(),
-                updated_at: new Date().toISOString(),
-                updated_by_role: isDoctorRole() ? 'dokter' : (isPerawatRole() ? 'perawat' : ''),
-                updated_by_name: String(getCurrentOperatorName() || '').trim()
+                nurse_actions: latestAssessment.nurseActions.slice()
             };
 
             const mutated = mutator(nextAssessment) || nextAssessment;
-            latestRoot.assessment_ugd = mutated;
+            const upsertPayload = {
+                pasien_id: patientId,
+                doctor_form: mutated.doctor || latestAssessment.doctor,
+                nurse_form: mutated.nurse || latestAssessment.nurse,
+                doctor_instructions: Array.isArray(mutated.doctor_instructions) ? mutated.doctor_instructions : latestAssessment.doctorInstructions,
+                nurse_actions: Array.isArray(mutated.nurse_actions) ? mutated.nurse_actions : latestAssessment.nurseActions
+            };
 
-            if (!state.columnAvailable) {
-                window.localStorage.setItem(getAssessmentStorageKey(patientId), JSON.stringify(latestRoot));
-                state.currentAssessment = {
-                    doctor: mutated.doctor || latestAssessment.doctor,
-                    nurse: mutated.nurse || latestAssessment.nurse,
-                    doctorInstructions: Array.isArray(mutated.doctor_instructions) ? mutated.doctor_instructions : latestAssessment.doctorInstructions,
-                    nurseActions: Array.isArray(mutated.nurse_actions) ? mutated.nurse_actions : latestAssessment.nurseActions,
-                    updated_at: mutated.updated_at || '',
-                    updated_by_role: mutated.updated_by_role || '',
-                    updated_by_name: mutated.updated_by_name || ''
-                };
-                if (state.broadcastChannel) {
-                    state.broadcastChannel.postMessage({ patientId: patientId });
-                }
-                return;
-            }
-
-            let updateResult = await withTimeout(
+            const updateResult = await withTimeout(
                 supabaseClient
-                    .from('pasien')
-                    .update({ triase_ugd_data: latestRoot })
-                    .eq('id', patientId),
+                    .from('asesmen_ugd')
+                    .upsert(upsertPayload, {
+                        onConflict: 'pasien_id'
+                    }),
                 15000,
                 'Simpan asesmen UGD'
             );
-
-            if (updateResult?.error) {
-                updateResult = await withTimeout(
-                    supabaseClient
-                        .from('pasien')
-                        .update({ triase_ugd_data: JSON.stringify(latestRoot) })
-                        .eq('id', patientId),
-                    15000,
-                    'Simpan asesmen UGD fallback'
-                );
-            }
 
             if (updateResult?.error) {
                 throw new Error(updateResult.error.message);
             }
 
             state.currentAssessment = {
-                doctor: mutated.doctor || latestAssessment.doctor,
-                nurse: mutated.nurse || latestAssessment.nurse,
-                doctorInstructions: Array.isArray(mutated.doctor_instructions) ? mutated.doctor_instructions : latestAssessment.doctorInstructions,
-                nurseActions: Array.isArray(mutated.nurse_actions) ? mutated.nurse_actions : latestAssessment.nurseActions,
-                updated_at: mutated.updated_at || '',
-                updated_by_role: mutated.updated_by_role || '',
-                updated_by_name: mutated.updated_by_name || ''
+                doctor: upsertPayload.doctor_form,
+                nurse: upsertPayload.nurse_form,
+                doctorInstructions: normalizeEntryList(upsertPayload.doctor_instructions),
+                nurseActions: normalizeEntryList(upsertPayload.nurse_actions),
+                updated_at: '',
+                updated_by_role: '',
+                updated_by_name: ''
             };
 
             if (state.broadcastChannel) {
@@ -1192,15 +1154,14 @@
 
         function subscribeToPatientRow(patientId) {
             unsubscribe();
-            if (!state.columnAvailable) return;
             const channelName = 'assessment-ugd-patient-' + String(patientId);
             state.subscription = supabaseClient
                 .channel(channelName)
                 .on('postgres_changes', {
-                    event: 'UPDATE',
+                    event: '*',
                     schema: 'public',
-                    table: 'pasien',
-                    filter: 'id=eq.' + String(patientId)
+                    table: 'asesmen_ugd',
+                    filter: 'pasien_id=eq.' + String(patientId)
                 }, function() {
                     if (!dom.modal.classList.contains('is-open')) return;
                     if (Date.now() - state.lastWriteAt < 1000) return;
