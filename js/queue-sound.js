@@ -338,15 +338,16 @@ class QueueSoundSystem {
         return Number.isFinite(value) ? value : null;
     }
 
-    getLoketLetters(loketTujuan) {
+    getLoketTokens(loketTujuan, unit) {
+        if (window.queueLoketUtils && typeof window.queueLoketUtils.getAudioTokens === 'function') {
+            const tokens = window.queueLoketUtils.getAudioTokens(loketTujuan, { unit: unit || '' });
+            if (Array.isArray(tokens) && tokens.length > 0) {
+                return tokens;
+            }
+        }
+
         const raw = String(loketTujuan || '').trim().toUpperCase();
         if (!raw) return [];
-        if (raw === 'A' || raw === 'LOKET_A') return ['A'];
-        if (raw === 'B' || raw === 'LOKET_B') return ['B'];
-        if (raw === 'C' || raw === 'LOKET_C') return ['C'];
-        if (raw === 'LOKET_1') return ['A'];
-        if (raw === 'LOKET_2') return ['B'];
-        if (raw === 'LOKET_3') return ['C'];
         const match = raw.match(/[A-Z]+$/);
         return match ? match[0].split('') : [];
     }
@@ -380,7 +381,7 @@ class QueueSoundSystem {
      * @returns {string[]} Daftar path file suara
      */
     buildQueueSequence(queueData) {
-        const { noAntrian, jenisPasien, loketTujuan } = queueData;
+        const { noAntrian, jenisPasien, loketTujuan, unit } = queueData;
         const sequence = [];
 
         // 1. Nada pembuka
@@ -415,10 +416,14 @@ class QueueSoundSystem {
         // 5. Menuju loket
         if (loketTujuan) {
             sequence.push(this.getWordSound(this.soundFiles.menujuLoket));
-            const loketLetters = this.getLoketLetters(loketTujuan);
-            for (let i = 0; i < loketLetters.length; i++) {
-                const letterPath = this.getLetterSound(loketLetters[i]);
-                if (letterPath.length) sequence.push(letterPath);
+            const loketTokens = this.getLoketTokens(loketTujuan, unit);
+            for (let i = 0; i < loketTokens.length; i++) {
+                const token = String(loketTokens[i] || '').trim();
+                if (!token) continue;
+                const soundPath = /^\d+$/.test(token)
+                    ? this.getNumberSound(token)
+                    : this.getLetterSound(token);
+                if (soundPath.length) sequence.push(soundPath);
             }
         }
 
