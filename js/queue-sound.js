@@ -20,6 +20,7 @@ class QueueSoundSystem {
             opening: 'nada.mp3',
             attention: 'Perhatian.mp3',
             queueNumber: 'Nomor Antrian.mp3',
+            farmasi: 'Farmasi.mp3',
             umum: 'Umum.mp3',
             prioritas: 'Prioritas.mp3',
             menujuLoket: 'Menuju Loket.mp3',
@@ -384,20 +385,16 @@ class QueueSoundSystem {
         const { noAntrian, jenisPasien, loketTujuan, unit } = queueData;
         const sequence = [];
 
-        // 1. Nada pembuka
         sequence.push(this.getOpeningSound(this.soundFiles.opening));
         sequence.push(this.getWordSound(this.soundFiles.attention));
         sequence.push(this.getWordSound(this.soundFiles.queueNumber));
 
-        // 2. Huruf awal nomor antrian (A/B/dst)
         const prefixLetters = this.getQueuePrefixLetters(noAntrian);
         for (let i = 0; i < prefixLetters.length; i++) {
             const letterPath = this.getLetterSound(prefixLetters[i]);
             if (letterPath.length) sequence.push(letterPath);
         }
 
-        // 3. Angka antrian mengikuti sampel file suara:
-        // 21 => 20 + 1, 115 => 100 + 15, 234 => 200 + 30 + 4.
         const queueNumberValue = this.getQueueNumberValue(noAntrian);
         const numberTokens = this.buildNumberTokens(queueNumberValue);
         for (let i = 0; i < numberTokens.length; i++) {
@@ -405,7 +402,10 @@ class QueueSoundSystem {
             if (numberPath.length) sequence.push(numberPath);
         }
 
-        // 4. Hanya antrean prioritas yang dibacakan.
+        if (String(unit || '').trim().toUpperCase() === 'FARMASI') {
+            sequence.push(this.getWordSound(this.soundFiles.farmasi));
+        }
+
         if (jenisPasien) {
             const jenisLower = jenisPasien.toLowerCase();
             if (jenisLower.includes('prioritas') || jenisLower === 'prioritas') {
@@ -413,7 +413,6 @@ class QueueSoundSystem {
             }
         }
 
-        // 5. Menuju loket
         if (loketTujuan) {
             sequence.push(this.getWordSound(this.soundFiles.menujuLoket));
             const loketTokens = this.getLoketTokens(loketTujuan, unit);
