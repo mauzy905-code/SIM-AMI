@@ -660,6 +660,9 @@
                 function currentMetaLabel(item, unit) {
                     const loketLabel = loketTujuanLabel(item?.loket_tujuan, unit);
                     const poliText = poliLabel(item?.poli_tujuan);
+                    if (unit === 'FARMASI') {
+                        return poliText || '-';
+                    }
                     if (loketLabel && poliText && poliText !== '-') {
                         return `${poliText} • ${loketLabel}`;
                     }
