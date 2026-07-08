@@ -687,6 +687,29 @@
         margin: 0;
     }
 
+    body.assessment-ugd-print input::placeholder,
+    body.assessment-ugd-print textarea::placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+    body.assessment-ugd-print input::-webkit-input-placeholder,
+    body.assessment-ugd-print textarea::-webkit-input-placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+    body.assessment-ugd-print input::-moz-placeholder,
+    body.assessment-ugd-print textarea::-moz-placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
+    }
+
+    body.assessment-ugd-print input:-ms-input-placeholder,
+    body.assessment-ugd-print textarea:-ms-input-placeholder {
+        color: transparent !important;
+    }
+
     body.assessment-ugd-print > *:not(#assessmentUgdModal) {
         display: none !important;
     }
