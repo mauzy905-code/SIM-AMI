@@ -1146,6 +1146,7 @@
             </div>
 
             <script src="assets/js/utils.js"></script>
+            <script src="assets/js/queue-loket-utils.js"></script>
             <script src="assets/js/ugd-assessment.js"></script>
             <script src="assets/js/perawat-dashboard.js"></script>
             <script src="assets/js/dokter-dashboard.js"></script>
@@ -2057,14 +2058,13 @@
                         }
 
                         function formatLoketLabel(loket) {
+                            if (window.queueLoketUtils?.formatLabel) {
+                                return window.queueLoketUtils.formatLabel(loket, {
+                                    role: currentAdminRole,
+                                    unit: isFarmasiControlRole() ? 'FARMASI' : ''
+                                });
+                            }
                             const value = String(loket || '').trim().toUpperCase();
-                            if (value === 'A' || value === 'LOKET_A') return 'Loket A';
-                            if (value === 'B' || value === 'LOKET_B') return 'Loket B';
-                            if (value === 'C' || value === 'LOKET_C') return 'Loket C';
-                            if (value === 'LOKET_1') return 'Loket A';
-                            if (value === 'LOKET_2') return 'Loket B';
-                            if (value === 'LOKET_3') return 'Loket C';
-                            if (value === 'SUPERVISOR') return 'Supervisor';
                             return value ? value.replace(/_/g, ' ') : '-';
                         }
 
@@ -2199,7 +2199,7 @@
                                 drawerRoleEyebrow.textContent = `Akses ${readOnlyRoleLabel}`;
                                 drawerTitle.textContent = `Menu ${readOnlyRoleLabel}`;
                                 drawerDescription.textContent = 'Fokus pada melihat daftar pasien yang masuk tanpa akses input atau perubahan hardfile.';
-                                drawerRoleNote.textContent = 'Akun ini hanya untuk melihat data pasien yang masuk. Form input pasien, kontrol antrean, dan pengelolaan link Google Drive disembunyikan.';
+                                drawerRoleNote.textContent = '-.';
                                 dashboardRolePill.textContent = `Panel ${readOnlyRoleLabel}`;
                                 dashboardTitle.textContent = `Daftar Pasien Untuk ${readOnlyRoleLabel}`;
                                 dashboardDescription.textContent = 'Gunakan rekap untuk melihat pasien yang sudah masuk tanpa akses edit data operasional.';
@@ -2444,7 +2444,7 @@
                         function renderAdminIdentity() {
                             const namaAdmin = getCurrentOperatorName();
                             const roleLabel = formatAdminRoleLabel(currentAdminRole);
-                            const loketLabel = formatLoketLabel(currentLoket);
+                            const loketLabel = formatLoketLabel(getCurrentLoketValue());
 
                             adminNameDisplay.textContent = namaAdmin;
                             adminRoleDisplay.textContent = roleLabel;
@@ -2481,29 +2481,30 @@
                         }
 
                         function normalizeLoketCode(value) {
-                            const raw = String(value || '').trim().toUpperCase();
-                            if (!raw) return '';
-                            if (raw === 'SUPERVISOR') return 'SUPERVISOR';
-                            if (raw === 'A' || raw === 'LOKET_A' || raw === 'LOKETA' || raw === 'LOKET-A') return 'A';
-                            if (raw === 'B' || raw === 'LOKET_B' || raw === 'LOKETB' || raw === 'LOKET-B') return 'B';
-                            if (raw === 'C' || raw === 'LOKET_C' || raw === 'LOKETC' || raw === 'LOKET-C') return 'C';
-                            if (raw === 'LOKET_1' || raw === 'LOKET1') return 'A';
-                            if (raw === 'LOKET_2' || raw === 'LOKET2') return 'B';
-                            if (raw === 'LOKET_3' || raw === 'LOKET3') return 'C';
-                            const match = raw.match(/\b([ABC])\b/);
-                            return match ? match[1] : raw;
+                            if (window.queueLoketUtils?.normalizeCode) {
+                                return window.queueLoketUtils.normalizeCode(value, {
+                                    role: currentAdminRole,
+                                    unit: isFarmasiControlRole() ? 'FARMASI' : ''
+                                });
+                            }
+                            return String(value || '').trim().toUpperCase();
                         }
 
                         function getLoketAliases(loketCode) {
+                            if (window.queueLoketUtils?.getAliases) {
+                                return window.queueLoketUtils.getAliases(loketCode, {
+                                    role: currentAdminRole,
+                                    unit: isFarmasiControlRole() ? 'FARMASI' : ''
+                                });
+                            }
                             const code = normalizeLoketCode(loketCode);
-                            if (!code || code === 'SUPERVISOR') return [];
-                            if (code === 'A') return ['A', 'LOKET_1', 'LOKET_A'];
-                            if (code === 'B') return ['B', 'LOKET_2', 'LOKET_B'];
-                            if (code === 'C') return ['C', 'LOKET_3', 'LOKET_C'];
-                            return [code];
+                            return code ? [code] : [];
                         }
 
                         function getCurrentLoketValue() {
+                            if (window.queueLoketUtils?.getDefaultLoket) {
+                                return window.queueLoketUtils.getDefaultLoket(currentAdminRole, currentLoket);
+                            }
                             return normalizeLoketCode(currentLoket);
                         }
 
@@ -3097,6 +3098,9 @@
 
                             currentAdminRole = String(currentAdminProfile?.role || 'admin_pendaftaran');
                             currentLoket = String(currentAdminProfile?.loket_default || '');
+                            if (window.queueLoketUtils?.getDefaultLoket) {
+                                currentLoket = window.queueLoketUtils.getDefaultLoket(currentAdminRole, currentLoket);
+                            }
                             console.log('Final currentAdminRole:', currentAdminRole, 'currentLoket:', currentLoket);
                             renderAdminIdentity();
                             return currentAdminProfile;
