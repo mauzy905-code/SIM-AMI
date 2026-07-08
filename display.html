@@ -92,6 +92,7 @@
             text-shadow: none;
         }
     </style>
+    <script src="assets/js/queue-loket-utils.js"></script>
     <!-- Sistem Suara Antrian -->
     <script src="js/queue-sound.js?v=20260615-display-cachefix-3"></script>
 </head>
@@ -206,12 +207,21 @@
                 <div class="mt-2 text-white text-3xl font-black tracking-tight">Urutan Antrean Farmasi</div>
             </div>
             <div class="p-6">
-                <div id="farmasiCurrentCard" class="rounded-[24px] border border-emerald-700/40 bg-white/5 p-5 text-center">
-                    <div class="text-emerald-300 text-lg font-bold uppercase tracking-[0.22em]">Antrian Saat Ini</div>
-                    <div id="farmasiCurrentJenisPasien" class="mt-4 inline-flex items-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-sm font-bold">-</div>
-                    <div id="farmasiCurrentPoli" class="mt-3 text-emerald-100/80 text-lg font-bold">-</div>
-                    <div id="farmasiCurrentAntrian" class="mt-4 text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200 drop-shadow-2xl">-</div>
-                    <div id="farmasiCurrentNama" class="mt-4 text-2xl md:text-3xl text-emerald-50 font-semibold">Belum ada antrean</div>
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <div id="farmasiCurrentCard" class="min-h-[320px] rounded-[26px] border border-emerald-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-5 py-6 text-center shadow-2xl flex flex-col justify-center">
+                        <div class="text-emerald-200 text-xl font-black uppercase tracking-[0.24em]">Loket 1</div>
+                        <div id="farmasiCurrentJenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-sm font-bold">-</div>
+                        <div id="farmasiCurrentPoli" class="mt-3 min-h-[3.5rem] text-emerald-100/85 text-lg font-bold flex items-center justify-center">-</div>
+                        <div id="farmasiCurrentAntrian" class="mt-3 text-7xl md:text-8xl font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200 drop-shadow-2xl">-</div>
+                        <div id="farmasiCurrentNama" class="mt-4 min-h-[4rem] text-xl md:text-2xl text-emerald-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                    </div>
+                    <div id="farmasiLoket2Card" class="min-h-[320px] rounded-[26px] border border-emerald-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-5 py-6 text-center shadow-2xl flex flex-col justify-center">
+                        <div class="text-emerald-200 text-xl font-black uppercase tracking-[0.24em]">Loket 2</div>
+                        <div id="farmasiLoket2JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-sm font-bold">-</div>
+                        <div id="farmasiLoket2Poli" class="mt-3 min-h-[3.5rem] text-emerald-100/85 text-lg font-bold flex items-center justify-center">-</div>
+                        <div id="farmasiLoket2Antrian" class="mt-3 text-7xl md:text-8xl font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200 drop-shadow-2xl">-</div>
+                        <div id="farmasiLoket2Nama" class="mt-4 min-h-[4rem] text-xl md:text-2xl text-emerald-50 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                    </div>
                 </div>
                 <div class="mt-5">
                     <div class="mb-3 text-emerald-200 text-sm font-extrabold tracking-[0.24em] uppercase">Antrean Berikutnya</div>
@@ -261,12 +271,31 @@
         <div class="flex h-full flex-col lg:flex-row">
             <div id="focusedCurrentPanel" class="lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-blue-950/80">
                 <div id="focusedSingleCurrent" class="flex flex-col items-center justify-center">
-                    <h3 class="text-emerald-300 text-2xl font-semibold mb-4 tracking-wide uppercase">Antrian Saat Ini</h3>
+                    <h3 id="focusedSingleTitle" class="text-emerald-300 text-2xl font-semibold mb-4 tracking-wide uppercase">Antrian Saat Ini</h3>
                     <div id="focusedUnit" class="text-emerald-200 text-xl font-semibold mb-2">-</div>
                     <div id="focusedJenisPasien" class="inline-flex items-center rounded-full border border-emerald-700/60 bg-white/10 px-4 py-1.5 text-emerald-100 text-base font-bold mb-4">-</div>
                     <div id="focusedPoli" class="text-emerald-100/90 text-xl font-bold mb-6">-</div>
                     <div id="focusedAntrian" class="text-[7rem] md:text-[10rem] xl:text-[12rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 mb-4 drop-shadow-2xl">-</div>
                     <div id="focusedNama" class="text-3xl md:text-4xl text-emerald-100 font-semibold text-center">Belum ada antrean</div>
+                </div>
+                <div id="focusedFarmasiDual" class="hidden w-full">
+                    <h3 class="text-emerald-200 text-2xl md:text-3xl font-semibold mb-7 tracking-wide uppercase text-center">Farmasi Aktif</h3>
+                    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                        <div id="focusedFarmasiLoket1Card" class="min-h-[430px] rounded-[30px] border border-emerald-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-6 py-7 text-center shadow-2xl flex flex-col justify-center">
+                            <div class="text-emerald-200 text-2xl font-black uppercase tracking-[0.24em]">Loket 1</div>
+                            <div id="focusedFarmasiLoket1JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-emerald-700/60 bg-white/10 px-5 py-2 text-emerald-100 text-lg font-bold">-</div>
+                            <div id="focusedFarmasiLoket1Poli" class="mt-4 min-h-[4.5rem] text-emerald-100/90 text-xl font-bold flex items-center justify-center">-</div>
+                            <div id="focusedFarmasiLoket1Antrian" class="mt-4 text-[5.8rem] md:text-[7.5rem] xl:text-[8.5rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 drop-shadow-2xl">-</div>
+                            <div id="focusedFarmasiLoket1Nama" class="mt-5 min-h-[5rem] text-2xl md:text-3xl text-emerald-100 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                        </div>
+                        <div id="focusedFarmasiLoket2Card" class="min-h-[430px] rounded-[30px] border border-emerald-700/40 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.04)_100%)] px-6 py-7 text-center shadow-2xl flex flex-col justify-center">
+                            <div class="text-emerald-200 text-2xl font-black uppercase tracking-[0.24em]">Loket 2</div>
+                            <div id="focusedFarmasiLoket2JenisPasien" class="mt-4 inline-flex items-center self-center rounded-full border border-emerald-700/60 bg-white/10 px-5 py-2 text-emerald-100 text-lg font-bold">-</div>
+                            <div id="focusedFarmasiLoket2Poli" class="mt-4 min-h-[4.5rem] text-emerald-100/90 text-xl font-bold flex items-center justify-center">-</div>
+                            <div id="focusedFarmasiLoket2Antrian" class="mt-4 text-[5.8rem] md:text-[7.5rem] xl:text-[8.5rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 drop-shadow-2xl">-</div>
+                            <div id="focusedFarmasiLoket2Nama" class="mt-5 min-h-[5rem] text-2xl md:text-3xl text-emerald-100 font-semibold flex items-center justify-center">Belum ada antrean</div>
+                        </div>
+                    </div>
                 </div>
                 <div id="focusedPoliklinikDual" class="hidden w-full">
                     <h3 class="text-blue-300 text-2xl md:text-3xl font-semibold mb-7 tracking-wide uppercase text-center">Poliklinik Aktif</h3>
@@ -613,33 +642,23 @@
                     return status === 'terdaftar' ? 'Terdaftar' : 'Menunggu';
                 }
 
-                function loketTujuanLabel(loketTujuan) {
+                function loketTujuanLabel(loketTujuan, unit) {
+                    if (window.queueLoketUtils?.getTargetLabel) {
+                        return window.queueLoketUtils.getTargetLabel(loketTujuan, { unit: unit || '' });
+                    }
                     const value = String(loketTujuan || '').trim().toUpperCase();
-                    if (!value) return '';
-                    if (value === 'A' || value === 'LOKET_A') return 'Menuju Loket A';
-                    if (value === 'B' || value === 'LOKET_B') return 'Menuju Loket B';
-                    if (value === 'C' || value === 'LOKET_C') return 'Menuju Loket C';
-                    if (value === 'LOKET_1') return 'Menuju Loket A';
-                    if (value === 'LOKET_2') return 'Menuju Loket B';
-                    if (value === 'LOKET_3') return 'Menuju Loket C';
-                    return 'Menuju ' + value.replace(/_/g, ' ');
+                    return value ? 'Menuju ' + value.replace(/_/g, ' ') : '';
                 }
 
-                function normalizeLoketCode(value) {
-                    const raw = String(value || '').trim().toUpperCase();
-                    if (!raw) return '';
-                    if (raw === 'A' || raw === 'LOKET_A' || raw === 'LOKETA' || raw === 'LOKET-A') return 'A';
-                    if (raw === 'B' || raw === 'LOKET_B' || raw === 'LOKETB' || raw === 'LOKET-B') return 'B';
-                    if (raw === 'C' || raw === 'LOKET_C' || raw === 'LOKETC' || raw === 'LOKET-C') return 'C';
-                    if (raw === 'LOKET_1' || raw === 'LOKET1') return 'A';
-                    if (raw === 'LOKET_2' || raw === 'LOKET2') return 'B';
-                    if (raw === 'LOKET_3' || raw === 'LOKET3') return 'C';
-                    const match = raw.match(/\b([ABC])\b/);
-                    return match ? match[1] : raw;
+                function normalizeLoketCode(value, unit) {
+                    if (window.queueLoketUtils?.normalizeCode) {
+                        return window.queueLoketUtils.normalizeCode(value, { unit: unit || '' });
+                    }
+                    return String(value || '').trim().toUpperCase();
                 }
 
                 function currentMetaLabel(item, unit) {
-                    const loketLabel = loketTujuanLabel(item?.loket_tujuan);
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan, unit);
                     const poliText = poliLabel(item?.poli_tujuan);
                     if (loketLabel && poliText && poliText !== '-') {
                         return `${poliText} • ${loketLabel}`;
@@ -1091,13 +1110,14 @@
                     if (!noAntrian) return '';
                     const spokenCode = speakQueueCode(noAntrian);
                     const jalur = antreanJalurLabel(item, unit);
-                    const loketLabel = loketTujuanLabel(item?.loket_tujuan);
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan, unit);
                     if (unit === 'POLIKLINIK') {
                         const loketText = loketLabel ? `. ${loketLabel}.` : '.';
                         return `Perhatian. Nomor antrean ${spokenCode}. ${jalur}${loketText}`;
                     }
                     if (unit === 'FARMASI') {
-                        return `Perhatian. Nomor antrean Farmasi ${spokenCode}.`;
+                        const loketText = loketLabel ? ` ${loketLabel}.` : '.';
+                        return `Perhatian. Nomor antrean Farmasi ${spokenCode}.${loketText}`;
                     }
                     return `Perhatian. Nomor antrean ${spokenCode}.`;
                 }
@@ -1122,15 +1142,27 @@
 
                 function announceNewCalls(farmasiRows, poliklinikRows) {
                     if (!soundEnabled) return;
-                    const calledFarmasi = (farmasiRows || []).filter((x) => x.status_norm === 'dipanggil');
-                    const farmasiCurrent = calledFarmasi[0] || null;
-                    if (farmasiCurrent?.no_antrian) {
-                        const key = 'FARMASI';
-                        const nextVal = buildAnnouncementSignature(farmasiCurrent);
+                    const farmasiByLoket = farmasiCalledByLoket(farmasiRows || []);
+                    const farmasiLoket1 = farmasiByLoket.loket1;
+                    const farmasiLoket2 = farmasiByLoket.loket2;
+                    if (farmasiLoket1?.no_antrian) {
+                        const key = 'FARMASI:1';
+                        const fixedRow = { ...farmasiLoket1, loket_tujuan: 'FARMASI_1' };
+                        const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_1');
                         if (lastAnnounced[key] !== nextVal) {
                             lastAnnounced[key] = nextVal;
                             persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', farmasiCurrent) || buildAnnouncementText('FARMASI', farmasiCurrent));
+                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
+                        }
+                    }
+                    if (farmasiLoket2?.no_antrian) {
+                        const key = 'FARMASI:2';
+                        const fixedRow = { ...farmasiLoket2, loket_tujuan: 'FARMASI_2' };
+                        const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_2');
+                        if (lastAnnounced[key] !== nextVal) {
+                            lastAnnounced[key] = nextVal;
+                            persistLastAnnounced();
+                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
                         }
                     }
 
@@ -1174,13 +1206,13 @@
                 function poliklinikCalledByLoket(rows) {
                     const calledRows = (rows || []).filter((item) => item.status_norm === 'dipanggil');
                     const registeredRows = (rows || []).filter((item) => item.status_norm === 'terdaftar');
-                    const loket1 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'A') || null;
-                    const loket2 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'B') || null;
-                    const loket3 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'C') || null;
+                    const loket1 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'A') || null;
+                    const loket2 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'B') || null;
+                    const loket3 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'C') || null;
                     const fallbackRows = calledRows.filter((item) => !String(item.loket_tujuan || '').trim());
-                    const registeredLoket1 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'A') || null;
-                    const registeredLoket2 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'B') || null;
-                    const registeredLoket3 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan) === 'C') || null;
+                    const registeredLoket1 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'A') || null;
+                    const registeredLoket2 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'B') || null;
+                    const registeredLoket3 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'POLIKLINIK') === 'C') || null;
                     const registeredFallbackRows = registeredRows.filter((item) => !String(item.loket_tujuan || '').trim());
                     let fallbackIndex = 0;
                     let registeredFallbackIndex = 0;
@@ -1188,6 +1220,23 @@
                         loket1: loket1 || fallbackRows[fallbackIndex++] || registeredLoket1 || registeredFallbackRows[registeredFallbackIndex++] || null,
                         loket2: loket2 || fallbackRows[fallbackIndex++] || registeredLoket2 || registeredFallbackRows[registeredFallbackIndex++] || null,
                         loket3: loket3 || fallbackRows[fallbackIndex++] || registeredLoket3 || registeredFallbackRows[registeredFallbackIndex++] || null
+                    };
+                }
+
+                function farmasiCalledByLoket(rows) {
+                    const calledRows = (rows || []).filter((item) => item.status_norm === 'dipanggil');
+                    const registeredRows = (rows || []).filter((item) => item.status_norm === 'terdaftar');
+                    const loket1 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'FARMASI') === 'FARMASI_1') || null;
+                    const loket2 = calledRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'FARMASI') === 'FARMASI_2') || null;
+                    const fallbackRows = calledRows.filter((item) => !String(item.loket_tujuan || '').trim());
+                    const registeredLoket1 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'FARMASI') === 'FARMASI_1') || null;
+                    const registeredLoket2 = registeredRows.find((item) => normalizeLoketCode(item.loket_tujuan, 'FARMASI') === 'FARMASI_2') || null;
+                    const registeredFallbackRows = registeredRows.filter((item) => !String(item.loket_tujuan || '').trim());
+                    let fallbackIndex = 0;
+                    let registeredFallbackIndex = 0;
+                    return {
+                        loket1: loket1 || fallbackRows[fallbackIndex++] || registeredLoket1 || registeredFallbackRows[registeredFallbackIndex++] || null,
+                        loket2: loket2 || fallbackRows[fallbackIndex++] || registeredLoket2 || registeredFallbackRows[registeredFallbackIndex++] || null
                     };
                 }
 
@@ -1228,6 +1277,32 @@
                     `).join('');
                 }
 
+                function renderFarmasiDualSection(rows) {
+                    const currentByLoket = farmasiCalledByLoket(rows);
+                    const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id].filter(Boolean));
+                    const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
+
+                    renderLoketCard('farmasiCurrent', currentByLoket.loket1, 'FARMASI', 'Belum ada antrean');
+                    renderLoketCard('farmasiLoket2', currentByLoket.loket2, 'FARMASI', 'Belum ada antrean');
+
+                    const listContainer = document.getElementById('farmasiAntrianList');
+                    if (waiting.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                        <div class="${waitingCardClass(item, 'FARMASI')} border rounded-2xl p-4 flex justify-between items-center gap-4 shadow-lg">
+                            <div>
+                                <div class="text-2xl font-extrabold">${item.no_antrian || '-'}</div>
+                                <div class="mt-1 text-xs font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'FARMASI')}</div>
+                                <div class="mt-1 text-sm font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-right text-base font-semibold">${queueDisplayStatusLabel(item)}</div>
+                        </div>
+                    `).join('');
+                }
+
                 function renderFocusedPoliklinikDual(rows) {
                     const currentByLoket = poliklinikCalledByLoket(rows);
                     const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id, currentByLoket.loket3?.id].filter(Boolean));
@@ -1264,6 +1339,43 @@
                     `).join('');
                 }
 
+                function renderFocusedFarmasiDual(rows) {
+                    const currentByLoket = farmasiCalledByLoket(rows);
+                    const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id].filter(Boolean));
+                    const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
+                    const singleCurrent = document.getElementById('focusedSingleCurrent');
+                    const farmasiDual = document.getElementById('focusedFarmasiDual');
+                    const poliklinikDual = document.getElementById('focusedPoliklinikDual');
+
+                    singleCurrent.classList.add('hidden');
+                    poliklinikDual.classList.add('hidden');
+                    farmasiDual.classList.remove('hidden');
+                    document.getElementById('focusedUnit').textContent = unitNames.FARMASI;
+                    document.getElementById('focusedNextTitle').textContent = 'Daftar Antrean Selanjutnya';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-teal-950/85';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-1/3 bg-emerald-950/45 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto';
+
+                    renderLoketCard('focusedFarmasiLoket1', currentByLoket.loket1, 'FARMASI', 'Belum ada antrean');
+                    renderLoketCard('focusedFarmasiLoket2', currentByLoket.loket2, 'FARMASI', 'Belum ada antrean');
+
+                    const listContainer = document.getElementById('focusedAntrianList');
+                    if (waiting.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Tidak ada antrean menunggu.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = waiting.slice(0, 5).map((item) => `
+                        <div class="${waitingCardClass(item, 'FARMASI')} border rounded-xl p-4 flex justify-between items-center gap-4 shadow-lg">
+                            <div>
+                                <div class="text-3xl font-extrabold">${item.no_antrian || '-'}</div>
+                                <div class="text-sm mt-1 font-bold uppercase tracking-[0.18em] opacity-80">${antreanJalurLabel(item, 'FARMASI')}</div>
+                                <div class="text-sm mt-1 font-semibold opacity-90">${poliLabel(item.poli_tujuan)}</div>
+                            </div>
+                            <div class="text-lg text-right font-semibold">${queueDisplayStatusLabel(item)}</div>
+                        </div>
+                    `).join('');
+                }
+
                 function setSectionVisibility() {
                     const showAll = selectedUnit === 'ALL';
                     displayContainer.classList.toggle('hidden', !showAll);
@@ -1296,9 +1408,14 @@
                         renderFocusedPoliklinikDual(rows);
                         return;
                     }
+                    if (unit === 'FARMASI') {
+                        renderFocusedFarmasiDual(rows);
+                        return;
+                    }
 
                     document.getElementById('focusedSingleCurrent').classList.remove('hidden');
                     document.getElementById('focusedPoliklinikDual').classList.add('hidden');
+                    const focusedSingleTitle = document.getElementById('focusedSingleTitle');
                     const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
                     const queued = (rows || []).filter(a => a.status_norm === 'terdaftar');
                     const waiting = (rows || []).filter(a => a.status_norm === 'menunggu');
@@ -1307,6 +1424,9 @@
                     const isFarmasi = unit === 'FARMASI';
 
                     document.getElementById('focusedUnit').textContent = unitNames[unit] || unit;
+                    if (focusedSingleTitle) {
+                        focusedSingleTitle.textContent = unit === 'FARMASI' ? 'Loket 1' : 'Antrian Saat Ini';
+                    }
                     document.getElementById('focusedNextTitle').textContent = 'Antrean Menunggu ' + (unit === 'FARMASI' ? 'Farmasi' : 'Poliklinik');
                     document.getElementById('focusedCurrentPanel').className = isFarmasi
                         ? 'lg:w-2/3 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-emerald-950/80 to-teal-950/85'
@@ -1373,6 +1493,10 @@
                 function renderUnitQueue(unit, rows) {
                     if (unit === 'POLIKLINIK') {
                         renderPoliklinikDualSection(rows);
+                        return;
+                    }
+                    if (unit === 'FARMASI') {
+                        renderFarmasiDualSection(rows);
                         return;
                     }
 
