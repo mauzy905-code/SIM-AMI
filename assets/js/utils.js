@@ -13,6 +13,70 @@ function computeAgeYears(dateString) {
     return String(age);
 }
 
+function parseLocalDateValue(dateString) {
+    const raw = String(dateString || '').trim();
+    if (!raw) return null;
+    const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+        const year = Number(isoMatch[1]);
+        const month = Number(isoMatch[2]) - 1;
+        const day = Number(isoMatch[3]);
+        const date = new Date(year, month, day);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
+function computeDetailedAgeParts(dateString, referenceDate = new Date()) {
+    const birth = parseLocalDateValue(dateString);
+    if (!birth) return null;
+
+    const today = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+    if (birth.getTime() > today.getTime()) {
+        return { years: 0, months: 0, days: 0 };
+    }
+
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    let days = today.getDate() - birth.getDate();
+
+    if (days < 0) {
+        const daysInPreviousMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+        days += daysInPreviousMonth;
+        months -= 1;
+    }
+
+    if (months < 0) {
+        months += 12;
+        years -= 1;
+    }
+
+    if (!Number.isFinite(years) || years < 0) years = 0;
+    if (!Number.isFinite(months) || months < 0) months = 0;
+    if (!Number.isFinite(days) || days < 0) days = 0;
+
+    return { years, months, days };
+}
+
+function formatDetailedAge(dateString, fallbackAgeYears = '') {
+    const ageParts = computeDetailedAgeParts(dateString);
+    if (ageParts) {
+        return `${ageParts.years}th ${ageParts.months}bln ${ageParts.days}hri`;
+    }
+
+    const fallbackRaw = String(fallbackAgeYears ?? '').trim();
+    if (!fallbackRaw) return '';
+
+    const fallbackNumber = Number(fallbackRaw);
+    if (Number.isFinite(fallbackNumber)) {
+        return `${Math.max(0, Math.trunc(fallbackNumber))}th 0bln 0hri`;
+    }
+
+    return fallbackRaw;
+}
+
 function formatSequentialNumber(number) {
     const safeNumber = Number.isFinite(Number(number)) && Number(number) > 0 ? Number(number) : 1;
     return String(Math.trunc(safeNumber)).padStart(6, '0');
