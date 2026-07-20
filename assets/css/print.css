@@ -10,25 +10,35 @@
                         display: none !important;
                     }
                     body[data-print-mode="barcode"] {
-                        width: 50mm;
-                        height: 30mm;
+                        width: 80mm;
+                        height: 50mm;
+                        min-width: 80mm;
+                        min-height: 50mm;
+                        max-width: 80mm;
+                        max-height: 50mm;
+                        box-sizing: border-box;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
                     }
                     body[data-print-mode="barcode"] #stickerContainer {
                         display: block !important;
                         position: fixed;
                         left: 0;
                         top: 0;
-                        width: 50mm;
-                        height: 30mm;
+                        width: 80mm;
+                        height: 50mm;
                         margin: 0;
                         padding: 0;
                         overflow: hidden;
+                        box-sizing: border-box;
                     }
                     body[data-print-mode="barcode"] #sticker {
-                        width: 50mm !important;
-                        height: 30mm !important;
+                        width: 80mm !important;
+                        height: 50mm !important;
                         box-sizing: border-box;
                         overflow: hidden;
+                        margin: 0 !important;
+                        padding: 3mm !important;
                     }
                     body[data-print-mode="wristband"] {
                         width: 90mm;
