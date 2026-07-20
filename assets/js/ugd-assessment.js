@@ -645,13 +645,13 @@
             dom.jk.textContent = patient.jenis_kelamin || '-';
             dom.tanggalLahir.textContent = formatBirthDate(patient.tanggal_lahir || '') || '-';
             if (dom.umur) {
-                dom.umur.textContent = (patient.umur ?? patient.umur === 0) ? String(patient.umur) : '-';
+                dom.umur.textContent = formatDetailedAge(patient.tanggal_lahir || '', patient.umur ?? '') || '-';
             }
             dom.subtitle.textContent = 'Pasien ' + (patient.nama_pasien || '-') + ' - No REG ' + (patient.no_registrasi || '-');
             dom.roleText.textContent = isDoctorRole()
                 ? 'Dokter dapat mengisi halaman 1, diagnosis, instruksi dokter, dan tanda tangan dokter.'
-                : 'Perawat dapat melihat halaman dokter dan menambah tindakan keperawatan serta tanda tangan perawat.';
-            dom.realtimeText.textContent = 'Perubahan tersimpan ke tabel asesmen UGD dan akan tersinkron realtime saat dokter atau perawat membuka pasien yang sama.';
+                : 'Perawat dapat melihat halaman dokter dan menambah tindakan keperawatan.';
+            dom.realtimeText.textContent = 'Perubahan tersimpan ke tabel asesmen UGD dan akan tersinkron secara realtime.';
         }
 
         function renderAssessment() {
