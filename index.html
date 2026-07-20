@@ -1106,9 +1106,9 @@
             </div>
             
             <div id="stickerContainer" class="hidden">
-                <div id="sticker" style="width: 50mm; height: 30mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 7pt; line-height: 1.15;">
-                    <div style="text-align: center; font-weight: bold; font-size: 7pt;">RSUD AJI MUHAMMAD IDRIS</div>
-                    <div style="margin-top: 1mm;">
+                <div id="sticker" style="width: 80mm; height: 50mm; padding: 3mm; font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; box-sizing: border-box; overflow: hidden;">
+                    <div style="text-align: center; font-weight: bold; font-size: 10pt;">RSUD AJI MUHAMMAD IDRIS</div>
+                    <div style="margin-top: 1.5mm;">
                         <div>
                             <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b>Nama</b>: <span id="sticker_nama"></span></div>
                             <div><b>Tgl Lahir</b>: <span id="sticker_tgl_lahir"></span></div>
@@ -1116,15 +1116,15 @@
                             <div><b>JK</b>: <span id="sticker_jk"></span></div>
                         </div>
                     </div>
-                    <div style="margin-top: 1mm; display: flex; justify-content: space-between; gap: 2mm; align-items: flex-start;">
-                        <div style="font-size: 6.5pt;"><b>No RM</b>: <span id="sticker_no_rm"></span></div>
-                        <div style="font-size: 6.5pt; text-align: right;">
+                    <div style="margin-top: 2mm; display: flex; justify-content: space-between; gap: 4mm; align-items: flex-start;">
+                        <div style="font-size: 8pt;"><b>No RM</b>: <span id="sticker_no_rm"></span></div>
+                        <div style="font-size: 8pt; text-align: right;">
                             <div><b>Waktu</b></div>
                             <div><span id="sticker_waktu"></span></div>
                         </div>
                     </div>
-                    <div style="margin-top: 1mm;">
-                        <svg id="barcode" style="width: 100%; height: 10mm;"></svg>
+                    <div style="margin-top: 3mm;">
+                        <svg id="barcode" style="width: 100%; height: 17mm;"></svg>
                     </div>
                 </div>
             </div>
@@ -1955,7 +1955,7 @@
                                 populateBarcodeTemplate(lastRegisteredPrintPayload);
                                 activePrintMode = 'barcode';
                                 document.body.setAttribute('data-print-mode', 'barcode');
-                                setPrintPageSize('50mm 30mm');
+                                setPrintPageSize('80mm 50mm');
                                 appendStaffActivity('print_barcode', {
                                     no_rm: lastRegisteredPrintPayload.no_rm,
                                     no_registrasi: lastRegisteredPrintPayload.no_registrasi,
