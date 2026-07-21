@@ -545,7 +545,7 @@
 
                                         <div>
                                             <label class="block text-slate-700 font-semibold mb-2">Umur</label>
-                                            <input type="number" id="umur" class="w-full cursor-not-allowed rounded-2xl border border-emerald-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Otomatis dari tanggal lahir" required readonly>
+                                            <input type="text" id="umur" class="w-full cursor-not-allowed rounded-2xl border border-emerald-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Otomatis dari tanggal lahir" required readonly>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2078,9 +2078,8 @@
                         wireSupervisorExternalLinks();
 
                         function syncUmurFromTanggalLahir() {
-                            const computed = computeAgeYears(tanggalLahirInput?.value || '');
                             if (!umurInput) return;
-                            umurInput.value = computed;
+                            umurInput.value = formatDetailedAge(tanggalLahirInput?.value || '', '');
                         }
 
                         function applyRolePresentation() {
@@ -4593,8 +4592,7 @@
                             document.getElementById('no_telepon').value = patient?.no_telepon || '';
                             document.getElementById('jenis_kelamin').value = patient?.jenis_kelamin || '';
                             tanggalLahirInput.value = patient?.tanggal_lahir || '';
-                            const computedAge = computeAgeYears(tanggalLahirInput.value);
-                            umurInput.value = computedAge ? computedAge : (patient?.umur ?? '');
+                            umurInput.value = formatDetailedAge(tanggalLahirInput.value, patient?.umur ?? '');
                             document.getElementById('pendidikan').value = patient?.pendidikan || '';
                             document.getElementById('pekerjaan').value = patient?.pekerjaan || '';
                             document.getElementById('status_perkawinan').value = patient?.status_perkawinan || '';
@@ -5794,7 +5792,7 @@
                             const no_telepon = document.getElementById('no_telepon').value.trim();
                             const jenis_kelamin = document.getElementById('jenis_kelamin').value;
                             const tanggal_lahir = document.getElementById('tanggal_lahir').value;
-                            const umur = document.getElementById('umur').value;
+                            const umur = computeAgeYears(tanggal_lahir);
                             const pendidikan = document.getElementById('pendidikan').value.trim();
                             const pekerjaan = document.getElementById('pekerjaan').value.trim();
                             const status_perkawinan = document.getElementById('status_perkawinan').value.trim();
@@ -7315,8 +7313,7 @@
                             document.getElementById('gc_tgl_lahir').textContent = formattedBirthDate;
                             const umurEl = document.getElementById('gc_umur');
                             if (umurEl) {
-                                const rawUmur = patientData.umur;
-                                const umurText = (rawUmur ?? rawUmur === 0) ? String(rawUmur) : computeAgeYears(patientData.tanggal_lahir || '');
+                                const umurText = formatDetailedAge(patientData.tanggal_lahir || '', patientData.umur ?? '');
                                 umurEl.textContent = umurText || '';
                             }
                             
