@@ -1086,6 +1086,22 @@
                                     <label class="mb-2 block font-semibold text-slate-700">Tanggal Lahir</label>
                                     <input id="patientEditTanggalLahirInput" type="date" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100">
                                 </div>
+                                <div>
+                                    <label class="mb-2 block font-semibold text-slate-700">Pendidikan Terakhir</label>
+                                    <input id="patientEditPendidikanInput" type="text" list="pendidikanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pendidikan">
+                                </div>
+                                <div>
+                                    <label class="mb-2 block font-semibold text-slate-700">Pekerjaan</label>
+                                    <input id="patientEditPekerjaanInput" type="text" list="pekerjaanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pekerjaan">
+                                </div>
+                                <div>
+                                    <label class="mb-2 block font-semibold text-slate-700">Status Perkawinan</label>
+                                    <input id="patientEditStatusPerkawinanInput" type="text" list="statusPerkawinanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari status">
+                                </div>
+                                <div>
+                                    <label class="mb-2 block font-semibold text-slate-700">Suku Bangsa</label>
+                                    <input id="patientEditSukuInput" type="text" list="sukuOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari suku">
+                                </div>
                                 <div class="md:col-span-2">
                                     <label class="mb-2 block font-semibold text-slate-700">Alamat</label>
                                     <textarea id="patientEditAlamatInput" rows="3" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Alamat pasien"></textarea>
@@ -1354,6 +1370,10 @@
                         const patientEditTeleponInput = document.getElementById('patientEditTeleponInput');
                         const patientEditJkInput = document.getElementById('patientEditJkInput');
                         const patientEditTanggalLahirInput = document.getElementById('patientEditTanggalLahirInput');
+                        const patientEditPendidikanInput = document.getElementById('patientEditPendidikanInput');
+                        const patientEditPekerjaanInput = document.getElementById('patientEditPekerjaanInput');
+                        const patientEditStatusPerkawinanInput = document.getElementById('patientEditStatusPerkawinanInput');
+                        const patientEditSukuInput = document.getElementById('patientEditSukuInput');
                         const patientEditAlamatInput = document.getElementById('patientEditAlamatInput');
                         const patientEditMessage = document.getElementById('patientEditMessage');
                         const savePatientEditBtn = document.getElementById('savePatientEditBtn');
@@ -2821,6 +2841,10 @@
                             patientEditTeleponInput.value = '';
                             patientEditJkInput.value = '';
                             patientEditTanggalLahirInput.value = '';
+                            patientEditPendidikanInput.value = '';
+                            patientEditPekerjaanInput.value = '';
+                            patientEditStatusPerkawinanInput.value = '';
+                            patientEditSukuInput.value = '';
                             patientEditAlamatInput.value = '';
                             patientEditMessage.classList.add('hidden');
                             savePatientEditBtn.disabled = false;
@@ -2841,6 +2865,10 @@
                             patientEditTeleponInput.value = String(payload?.telepon || '');
                             patientEditJkInput.value = String(payload?.jk || '');
                             patientEditTanggalLahirInput.value = String(payload?.tanggalLahir || '');
+                            patientEditPendidikanInput.value = String(payload?.pendidikan || '');
+                            patientEditPekerjaanInput.value = String(payload?.pekerjaan || '');
+                            patientEditStatusPerkawinanInput.value = String(payload?.statusPerkawinan || '');
+                            patientEditSukuInput.value = String(payload?.suku || '');
                             patientEditAlamatInput.value = String(payload?.alamat || '');
                             patientEditMessage.classList.add('hidden');
                             patientEditModal.classList.remove('hidden');
@@ -4422,6 +4450,10 @@
                             const noTelepon = String(patientEditTeleponInput.value || '').trim();
                             const jenisKelamin = String(patientEditJkInput.value || '').trim();
                             const tanggalLahir = String(patientEditTanggalLahirInput.value || '').trim();
+                            const pendidikan = String(patientEditPendidikanInput.value || '').trim();
+                            const pekerjaan = String(patientEditPekerjaanInput.value || '').trim();
+                            const statusPerkawinan = String(patientEditStatusPerkawinanInput.value || '').trim();
+                            const suku = String(patientEditSukuInput.value || '').trim();
                             const alamat = String(patientEditAlamatInput.value || '').trim();
                             const umur = computeAgeYears(tanggalLahir);
 
@@ -4448,6 +4480,18 @@
                                 }
                                 if (alamatColumnAvailable) {
                                     updatePayload.alamat = alamat || null;
+                                }
+                                if (pendidikanColumnAvailable) {
+                                    updatePayload.pendidikan = pendidikan || null;
+                                }
+                                if (pekerjaanColumnAvailable) {
+                                    updatePayload.pekerjaan = pekerjaan || null;
+                                }
+                                if (statusPerkawinanColumnAvailable) {
+                                    updatePayload.status_perkawinan = statusPerkawinan || null;
+                                }
+                                if (sukuColumnAvailable) {
+                                    updatePayload.suku = suku || null;
                                 }
 
                                 const { error } = await withTimeout(
@@ -6433,7 +6477,7 @@
                                     : '';
                                 const canEditPatientIdentity = canManagePatientIdentityEdit() && String(p.id || '').trim() !== '';
                                 const patientEditBtn = canEditPatientIdentity
-                                    ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
+                                    ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-pendidikan="${escapeHtml(String(p.pendidikan || ''))}" data-pekerjaan="${escapeHtml(String(p.pekerjaan || ''))}" data-status-perkawinan="${escapeHtml(String(p.status_perkawinan || ''))}" data-suku="${escapeHtml(String(p.suku || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
                                     : '';
                                 const editIdentityCell = patientEditBtn || `<span class="text-xs font-semibold text-slate-400">-</span>`;
                                 const gcBtnRekap = ((isIgd && String(p.unit || '').toUpperCase() === 'UGD') || (isPendaftaran && String(p.unit || '').toUpperCase() === 'POLIKLINIK'))
@@ -6750,6 +6794,10 @@
                                     telepon: patientEditBtn.dataset.telepon,
                                     jk: patientEditBtn.dataset.jk,
                                     tanggalLahir: patientEditBtn.dataset.tanggalLahir,
+                                    pendidikan: patientEditBtn.dataset.pendidikan,
+                                    pekerjaan: patientEditBtn.dataset.pekerjaan,
+                                    statusPerkawinan: patientEditBtn.dataset.statusPerkawinan,
+                                    suku: patientEditBtn.dataset.suku,
                                     alamat: patientEditBtn.dataset.alamat
                                 });
                                 return;
