@@ -1088,19 +1088,23 @@
                                 </div>
                                 <div>
                                     <label class="mb-2 block font-semibold text-slate-700">Pendidikan Terakhir</label>
-                                    <input id="patientEditPendidikanInput" type="text" list="pendidikanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pendidikan">
+                                    <input id="patientEditPendidikanInput" type="text" list="patientEditPendidikanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pendidikan">
+                                    <datalist id="patientEditPendidikanOptions"></datalist>
                                 </div>
                                 <div>
                                     <label class="mb-2 block font-semibold text-slate-700">Pekerjaan</label>
-                                    <input id="patientEditPekerjaanInput" type="text" list="pekerjaanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pekerjaan">
+                                    <input id="patientEditPekerjaanInput" type="text" list="patientEditPekerjaanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari pekerjaan">
+                                    <datalist id="patientEditPekerjaanOptions"></datalist>
                                 </div>
                                 <div>
                                     <label class="mb-2 block font-semibold text-slate-700">Status Perkawinan</label>
-                                    <input id="patientEditStatusPerkawinanInput" type="text" list="statusPerkawinanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari status">
+                                    <input id="patientEditStatusPerkawinanInput" type="text" list="patientEditStatusPerkawinanOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari status">
+                                    <datalist id="patientEditStatusPerkawinanOptions"></datalist>
                                 </div>
                                 <div>
                                     <label class="mb-2 block font-semibold text-slate-700">Suku Bangsa</label>
-                                    <input id="patientEditSukuInput" type="text" list="sukuOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari suku">
+                                    <input id="patientEditSukuInput" type="text" list="patientEditSukuOptions" class="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" placeholder="Ketik untuk mencari suku">
+                                    <datalist id="patientEditSukuOptions"></datalist>
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="mb-2 block font-semibold text-slate-700">Alamat</label>
@@ -3254,6 +3258,7 @@
                                 await detectPekerjaanColumn();
                                 await detectStatusPerkawinanColumn();
                                 await detectSukuColumn();
+                                syncPatientEditOptionLists();
                                 await detectPetugasInputColumn();
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
@@ -4647,6 +4652,13 @@
                             document.getElementById('status_perkawinan').value = '';
                             document.getElementById('suku').value = '';
                             document.getElementById('alamat').value = '';
+                        }
+
+                        function syncPatientEditOptionLists() {
+                            cloneDatalistOptions('pendidikanOptions', 'patientEditPendidikanOptions');
+                            cloneDatalistOptions('pekerjaanOptions', 'patientEditPekerjaanOptions');
+                            cloneDatalistOptions('statusPerkawinanOptions', 'patientEditStatusPerkawinanOptions');
+                            cloneDatalistOptions('sukuOptions', 'patientEditSukuOptions');
                         }
 
                         function fillPatientFields(patient) {
@@ -8494,6 +8506,7 @@
                                 await detectPekerjaanColumn();
                                 await detectStatusPerkawinanColumn();
                                 await detectSukuColumn();
+                                syncPatientEditOptionLists();
                                 await detectPetugasInputColumn();
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
