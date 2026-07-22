@@ -155,3 +155,11 @@ function formatTriaseTime(date = new Date()) {
     const min = String(d.getMinutes()).padStart(2, '0');
     return `${hh}:${min}`;
 }
+
+function cloneDatalistOptions(sourceListId, targetListId) {
+    const source = document.getElementById(sourceListId);
+    const target = document.getElementById(targetListId);
+    if (!source || !target) return false;
+    target.innerHTML = source.innerHTML;
+    return true;
+}
