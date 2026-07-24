@@ -1,0 +1,377 @@
+.nurse-station-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nurse-station-dashboard-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.85fr);
+    gap: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 32px;
+    background: linear-gradient(135deg, #0f172a 0%, #0f766e 45%, #38bdf8 100%);
+    box-shadow: 0 28px 80px -28px rgba(15, 23, 42, 0.28);
+    padding: 24px;
+    color: #ffffff;
+}
+
+.nurse-station-dashboard-kicker {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #ccfbf1;
+}
+
+.nurse-station-dashboard-title {
+    margin-top: 14px;
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.nurse-station-dashboard-desc {
+    margin-top: 10px;
+    max-width: 760px;
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 600;
+    color: rgba(236, 254, 255, 0.92);
+}
+
+.nurse-station-dashboard-cards,
+.nurse-station-dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.nurse-station-dashboard-stat-card,
+.nurse-station-dashboard-side-card,
+.nurse-station-dashboard-summary-card {
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 14px 16px;
+}
+
+.nurse-station-dashboard-stat-label,
+.nurse-station-dashboard-summary-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(204, 251, 241, 0.92);
+}
+
+.nurse-station-dashboard-stat-value,
+.nurse-station-dashboard-side-value,
+.nurse-station-dashboard-summary-value {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.nurse-station-dashboard-side-note {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.65;
+    font-weight: 600;
+    color: rgba(236, 254, 255, 0.9);
+}
+
+.nurse-station-dashboard-summary-card {
+    border-color: #bae6fd;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 50px -30px rgba(15, 23, 42, 0.35);
+}
+
+.nurse-station-dashboard-summary-label {
+    color: #0f766e;
+}
+
+.nurse-station-dashboard-summary-value {
+    color: #0f172a;
+    font-size: 28px;
+}
+
+.nurse-station-dashboard-panel {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 28px 80px -28px rgba(15, 23, 42, 0.2);
+    padding: 20px;
+}
+
+.nurse-station-dashboard-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-panel-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.nurse-station-dashboard-panel-meta {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.nurse-station-dashboard-tabs {
+    margin-top: 16px;
+    display: inline-flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-tab {
+    border: 1px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    background: #ffffff;
+    color: #334155;
+    transition: 0.18s ease;
+    cursor: pointer;
+}
+
+.nurse-station-dashboard-tab.is-active {
+    border-color: #5eead4;
+    background: #f0fdfa;
+    color: #0f766e;
+}
+
+.nurse-station-dashboard-message {
+    margin-top: 14px;
+    border-radius: 18px;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1d4ed8;
+}
+
+.nurse-station-dashboard-message.hidden {
+    display: none;
+}
+
+.nurse-station-dashboard-message.is-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.nurse-station-dashboard-message.is-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.nurse-station-dashboard-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-btn {
+    border: 1px solid transparent;
+    border-radius: 18px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    transition: 0.18s ease;
+    cursor: pointer;
+}
+
+.nurse-station-dashboard-btn:disabled {
+    cursor: wait;
+    opacity: 0.75;
+}
+
+.nurse-station-dashboard-btn-secondary {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.nurse-station-dashboard-btn-primary {
+    background: linear-gradient(135deg, #0f766e 0%, #0891b2 45%, #2563eb 100%);
+    color: #ffffff;
+}
+
+.nurse-station-dashboard-list {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.nurse-station-dashboard-item,
+.nurse-station-dashboard-empty {
+    border-radius: 24px;
+    border: 1px solid #dbeafe;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 14px 16px;
+    box-shadow: 0 18px 40px -32px rgba(15, 23, 42, 0.35);
+}
+
+.nurse-station-dashboard-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.nurse-station-dashboard-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nurse-station-dashboard-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.nurse-station-dashboard-status.is-pending {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.nurse-station-dashboard-status.is-called {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.nurse-station-dashboard-status.is-done {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.nurse-station-dashboard-item-actions {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.nurse-station-dashboard-action-btn {
+    border: 1px solid transparent;
+    border-radius: 16px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.18s ease;
+}
+
+.nurse-station-dashboard-action-btn.is-secondary {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.nurse-station-dashboard-action-btn.is-assign {
+    border-color: #bae6fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.nurse-station-dashboard-action-btn.is-call {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #a16207;
+}
+
+.nurse-station-dashboard-action-btn.is-done {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.nurse-station-dashboard-badge {
+    min-width: 82px;
+    border-radius: 18px;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+}
+
+.nurse-station-dashboard-badge.is-priority {
+    background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+}
+
+.nurse-station-dashboard-badge.is-regular {
+    background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+}
+
+.nurse-station-dashboard-item-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.nurse-station-dashboard-item-meta,
+.nurse-station-dashboard-item-submeta,
+.nurse-station-dashboard-empty {
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+@media (max-width: 1024px) {
+    .nurse-station-dashboard-hero {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .nurse-station-dashboard-cards,
+    .nurse-station-dashboard-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .nurse-station-dashboard-item {
+        grid-template-columns: 1fr;
+    }
+
+    .nurse-station-dashboard-badge {
+        width: 100%;
+    }
+}
