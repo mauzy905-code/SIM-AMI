@@ -1,12 +1,14 @@
 @media print {
                     body[data-print-mode="barcode"],
-                    body[data-print-mode="wristband"] {
+                    body[data-print-mode="wristband"],
+                    body[data-print-mode="nurse-station-ticket"] {
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: hidden !important;
                     }
                     body[data-print-mode="barcode"] > *,
-                    body[data-print-mode="wristband"] > * {
+                    body[data-print-mode="wristband"] > *,
+                    body[data-print-mode="nurse-station-ticket"] > * {
                         display: none !important;
                     }
                     body[data-print-mode="barcode"] {
@@ -60,6 +62,37 @@
                         height: 25mm !important;
                         box-sizing: border-box;
                         overflow: hidden;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] {
+                        width: 80mm;
+                        height: 60mm;
+                        min-width: 80mm;
+                        min-height: 60mm;
+                        max-width: 80mm;
+                        max-height: 60mm;
+                        box-sizing: border-box;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer {
+                        display: block !important;
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        width: 80mm;
+                        height: 60mm;
+                        margin: 0;
+                        padding: 0;
+                        overflow: hidden;
+                        box-sizing: border-box;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket {
+                        width: 80mm !important;
+                        height: 60mm !important;
+                        box-sizing: border-box;
+                        overflow: hidden;
+                        margin: 0 !important;
+                        padding: 4mm 4mm 3mm !important;
                     }
                 }
 
