@@ -1922,12 +1922,20 @@
 
                         function setPrintButtonsState(enabled, message = '') {
                             const nextEnabled = Boolean(enabled);
+                            const currentUnit = String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase();
                             const canPrintNurseStationTicket = nextEnabled
-                                && String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase() === 'POLIKLINIK';
+                                && currentUnit === 'POLIKLINIK';
+                            const canPrintGeneralConsent = nextEnabled
+                                && generalConsentColumnAvailable
+                                && (currentUnit === 'POLIKLINIK' || currentUnit === 'UGD');
                             printBarcodeBtn.disabled = !nextEnabled;
                             printWristbandBtn.disabled = !nextEnabled;
                             if (printNurseStationTicketBtn) {
                                 printNurseStationTicketBtn.disabled = !canPrintNurseStationTicket;
+                            }
+                            const gcBtn = document.getElementById('printGeneralConsentFromFormBtn');
+                            if (gcBtn) {
+                                gcBtn.disabled = !canPrintGeneralConsent;
                             }
                             printActionPanel.classList.toggle('border-emerald-200', nextEnabled);
                             printActionPanel.classList.toggle('bg-emerald-50/60', nextEnabled);
