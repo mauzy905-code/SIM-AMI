@@ -108,6 +108,15 @@
             state.messageTone = tone || 'info';
         }
 
+        function getRegistrationQueueNo(row) {
+            return String(row?.no_antrian || '').trim();
+        }
+
+        function getEffectiveQueueNo(row, nsData) {
+            const stored = String(nsData?.queue_no || row?.nsData?.queue_no || '').trim();
+            return stored || getRegistrationQueueNo(row);
+        }
+
         function normalizeNsData(raw) {
             let value = raw;
             if (!value) return null;
@@ -183,7 +192,7 @@
             const fromLocal = readLocalNsData(row);
             return fromRow || fromLocal || {
                 status: 'menunggu',
-                queue_no: '',
+                queue_no: getRegistrationQueueNo(row),
                 called_at: '',
                 called_by_name: '',
                 called_by_email: '',
@@ -191,29 +200,6 @@
                 completed_by_name: '',
                 completed_by_email: ''
             };
-        }
-
-        function parseQueueNumber(queueNo) {
-            const match = String(queueNo || '').trim().match(/^([AP])-(\d{1,4})$/i);
-            if (!match) return null;
-            return {
-                prefix: match[1].toUpperCase(),
-                value: Number(match[2] || 0)
-            };
-        }
-
-        function getNextQueueNo(isPriority) {
-            const prefix = isPriority ? 'P' : 'A';
-            let maxValue = 0;
-            state.rows.forEach((row) => {
-                const parsed = parseQueueNumber(row?.nsData?.queue_no || '');
-                if (!parsed) return;
-                if (parsed.prefix !== prefix) return;
-                if (parsed.value > maxValue) maxValue = parsed.value;
-            });
-            const next = maxValue + 1;
-            const padded = String(next).padStart(3, '0');
-            return `${prefix}-${padded}`;
         }
 
         function sortRows(list) {
@@ -255,7 +241,7 @@
                 '    </div>',
                 '    <div class="nurse-station-dashboard-hero-side">',
                 '      <div class="nurse-station-dashboard-side-card"><div class="nurse-station-dashboard-stat-label">Email Akun</div><div id="nurseDashEmail" class="nurse-station-dashboard-side-value">-</div></div>',
-                '      <div class="nurse-station-dashboard-side-card"><div class="nurse-station-dashboard-stat-label">Catatan Tahap Awal</div><div class="nurse-station-dashboard-side-note">Versi ini fokus pada ringkasan pasien poliklinik dan akses cepat ke daftar pasien. Kontrol antrean A/P dan penerusan ke poli akan disambungkan pada fase berikutnya.</div></div>',
+                '      <div class="nurse-station-dashboard-side-card"><div class="nurse-station-dashboard-stat-label">Catatan Alur</div><div class="nurse-station-dashboard-side-note">Nomor antrean Nurse Station dibawa dari pendaftaran awal. Di dashboard ini petugas cukup memanggil, melihat riwayat, dan menandai pasien selesai.</div></div>',
                 '    </div>',
                 '  </section>',
                 '  <section class="nurse-station-dashboard-summary">',
@@ -316,15 +302,6 @@
                 renderList();
             });
             els.list?.addEventListener('click', async (event) => {
-                const assignBtn = event.target.closest('[data-action="assign"]');
-                if (assignBtn) {
-                    const rowId = String(assignBtn.getAttribute('data-row-id') || '');
-                    const target = state.rows.find((item) => String(item.id || '') === rowId);
-                    if (target) {
-                        await assignQueueNo(target);
-                    }
-                    return;
-                }
                 const callBtn = event.target.closest('[data-action="call"]');
                 if (callBtn) {
                     const rowId = String(callBtn.getAttribute('data-row-id') || '');
@@ -385,9 +362,9 @@
                 if (poli) poliSet.add(poli);
             });
 
-            if (els.totalCount) els.totalCount.textContent = String(pendingCount);
-            if (els.priorityCount) els.priorityCount.textContent = String(doneCount);
-            if (els.poliCount) els.poliCount.textContent = String(priorityCount);
+            if (els.totalCount) els.totalCount.textContent = String(rows.length);
+            if (els.priorityCount) els.priorityCount.textContent = String(priorityCount);
+            if (els.poliCount) els.poliCount.textContent = String(poliSet.size);
             if (els.meta) {
                 els.meta.textContent = state.loading
                     ? 'Memuat data pasien poliklinik hari ini...'
@@ -410,10 +387,10 @@
             }
 
             els.list.innerHTML = tabRows.map((row) => {
-                const noAntrian = String(row?.no_antrian || '-').trim() || '-';
-                const nsQueueNo = String(row?.nsData?.queue_no || '').trim();
+                const noAntrian = getRegistrationQueueNo(row) || '-';
+                const nsQueueNo = getEffectiveQueueNo(row);
                 const nsLabel = nsQueueNo || '-';
-                const badgeClass = /^P-/i.test(nsLabel)
+                const badgeClass = isPriorityQueue(nsLabel)
                     ? 'nurse-station-dashboard-badge is-priority'
                     : 'nurse-station-dashboard-badge is-regular';
 
@@ -425,9 +402,8 @@
                     ? 'nurse-station-dashboard-status is-done'
                     : (status === 'dipanggil' ? 'nurse-station-dashboard-status is-called' : 'nurse-station-dashboard-status is-pending');
 
-                const canAssign = !nsQueueNo && status !== 'selesai';
                 const canCall = !!nsQueueNo && status !== 'selesai';
-                const canDone = status !== 'selesai';
+                const canDone = !!nsQueueNo && status !== 'selesai';
                 const canHistory = !!String(row?.no_rm || '').trim();
 
                 const calledMeta = row?.nsData?.called_at
@@ -436,7 +412,10 @@
                 const doneMeta = row?.nsData?.completed_at
                     ? `Selesai ${escapeHtml(formatDateTime(row.nsData.completed_at))}`
                     : '';
-                const metaLine = [calledMeta, doneMeta].filter(Boolean).join(' • ');
+                const queueSourceMeta = nsQueueNo
+                    ? `Nomor dari pendaftaran: ${escapeHtml(nsQueueNo)}`
+                    : 'Nomor Nurse Station belum tersedia dari pendaftaran.';
+                const metaLine = [queueSourceMeta, calledMeta, doneMeta].filter(Boolean).join(' • ');
 
                 return [
                     '<div class="nurse-station-dashboard-item">',
@@ -449,7 +428,6 @@
                     `    <div class="nurse-station-dashboard-item-meta">${escapeHtml(formatPoliLabel(row?.poli_tujuan || ''))} • Antrian Poli ${escapeHtml(noAntrian)}</div>`,
                     `    <div class="nurse-station-dashboard-item-submeta">Terdaftar ${escapeHtml(formatTime(row?.created_at || ''))}${metaLine ? ' • ' + metaLine : ''}</div>`,
                     '    <div class="nurse-station-dashboard-item-actions">',
-                    canAssign ? `      <button type="button" class="nurse-station-dashboard-action-btn is-assign" data-action="assign" data-row-id="${escapeHtml(String(row?.id || ''))}">Ambil Nomor</button>` : '',
                     canCall ? `      <button type="button" class="nurse-station-dashboard-action-btn is-call" data-action="call" data-row-id="${escapeHtml(String(row?.id || ''))}">Panggil</button>` : '',
                     canDone ? `      <button type="button" class="nurse-station-dashboard-action-btn is-done" data-action="done" data-row-id="${escapeHtml(String(row?.id || ''))}">Selesai</button>` : '',
                     canHistory ? `      <button type="button" class="nurse-station-dashboard-action-btn is-secondary" data-action="history" data-row-id="${escapeHtml(String(row?.id || ''))}">Riwayat</button>` : '',
@@ -478,40 +456,18 @@
             return false;
         }
 
-        async function assignQueueNo(row) {
-            if (!row) return;
-            const nsData = mergeNsData(row);
-            if (nsData.queue_no) return;
-            const queueNo = getNextQueueNo(isPriorityRow(row));
-            const payload = {
-                ...nsData,
-                queue_no: queueNo,
-                status: 'menunggu'
-            };
-            state.loading = true;
-            setMessage('Menyimpan nomor antrean Nurse Station...', 'info');
-            render();
-            try {
-                await persistNsData(row, payload);
-                row.nsData = payload;
-                setMessage(`Nomor Nurse Station ${queueNo} tersimpan.`, 'success');
-            } catch (err) {
-                setMessage('Gagal menyimpan nomor Nurse Station: ' + (err?.message || String(err)), 'error');
-            } finally {
-                state.loading = false;
-                render();
-            }
-        }
-
         async function markAsCalled(row) {
             if (!row) return;
             const nsData = mergeNsData(row);
-            if (!nsData.queue_no) {
-                await assignQueueNo(row);
+            const queueNo = getEffectiveQueueNo(row, nsData);
+            if (!queueNo) {
+                setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
+                render();
                 return;
             }
             const payload = {
                 ...nsData,
+                queue_no: queueNo,
                 status: 'dipanggil',
                 called_at: new Date().toISOString(),
                 called_by_name: getOperatorName(),
@@ -535,8 +491,15 @@
         async function markAsDone(row) {
             if (!row) return;
             const nsData = mergeNsData(row);
+            const queueNo = getEffectiveQueueNo(row, nsData);
+            if (!queueNo) {
+                setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
+                render();
+                return;
+            }
             const payload = {
                 ...nsData,
+                queue_no: queueNo,
                 status: 'selesai',
                 completed_at: new Date().toISOString(),
                 completed_by_name: getOperatorName(),
