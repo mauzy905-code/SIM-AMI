@@ -1501,6 +1501,7 @@
                         let noRegistrasiColumnAvailable = true;
                         let petugasInputColumnAvailable = true;
                         let petugasPoliColumnAvailable = true;
+                        let nurseStationDataColumnAvailable = true;
                         let triaseDraftColumnAvailable = true;
                         let generalConsentColumnAvailable = true;
                         let triaseUgdDraftsTableAvailable = true;
@@ -2776,6 +2777,10 @@
                                     if (rEls?.to) rEls.to.value = today;
                                     applyRekapRolePresentation();
                                     await r_reloadToFirstPage();
+                                },
+                                openHistory: async (patient) => {
+                                    if (!patient?.no_rm) return;
+                                    await openPatientHistory(patient.no_rm, patient.nama_pasien || '');
                                 }
                             });
                         }
@@ -3419,6 +3424,7 @@
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
                                 await detectNoRegistrasiColumn();
+                                await detectNurseStationDataColumn();
                                 await detectTriaseDraftColumn();
                                 await detectGeneralConsentColumn();
                                 await detectTriaseUgdDraftsTable();
@@ -3916,6 +3922,23 @@
                                 noRegistrasiPreview.textContent = 'TAMBAH KOLOM';
                                 noRegistrasiPreview.classList.remove('text-blue-700');
                                 noRegistrasiPreview.classList.add('text-red-600');
+                            }
+                        }
+
+                        async function detectNurseStationDataColumn() {
+                            try {
+                                const { error } = await supabaseClient
+                                    .from('pasien')
+                                    .select('nurse_station_data')
+                                    .limit(1);
+
+                                if (error && /nurse_station_data/i.test(error.message || '')) {
+                                    nurseStationDataColumnAvailable = false;
+                                } else {
+                                    nurseStationDataColumnAvailable = true;
+                                }
+                            } catch (_err) {
+                                nurseStationDataColumnAvailable = false;
                             }
                         }
 
@@ -6260,6 +6283,19 @@
 
                                 if (petugasInputColumnAvailable) {
                                     pasienPayload.petugas_input = getCurrentOperatorName();
+                                }
+
+                                if (!isIgdRegistration && nurseStationDataColumnAvailable) {
+                                    pasienPayload.nurse_station_data = {
+                                        status: 'menunggu',
+                                        queue_no: no_antrian,
+                                        called_at: '',
+                                        called_by_name: '',
+                                        called_by_email: '',
+                                        completed_at: '',
+                                        completed_by_name: '',
+                                        completed_by_email: ''
+                                    };
                                 }
 
                                 let inserted = false;
@@ -8696,6 +8732,7 @@
                                 await detectPetugasPoliColumn();
                                 await detectRiwayatLinkColumn();
                                 await detectNoRegistrasiColumn();
+                                await detectNurseStationDataColumn();
                                 await detectTriaseDraftColumn();
                                 await detectGeneralConsentColumn();
                                 showView(isNurseStationRole() ? 'nurse_station_dashboard' : (isPetugasPoliRole() ? 'poli_dashboard' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap')));
