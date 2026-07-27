@@ -649,7 +649,6 @@
                                             <div id="printActionInfo" class="mt-2 text-sm font-semibold text-slate-500">
                                                 Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, gelang, dan slip Nurse Station.
                                             </div>
-                                            <div id="gcDebugHint" class="mt-2 hidden text-[11px] font-mono text-slate-400"></div>
                                             <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                                                 <button id="printBarcodeBtn" type="button" class="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
                                                     Cetak Printer Barcode
@@ -660,9 +659,6 @@
                                             </div>
                                             <button id="printNurseStationTicketBtn" type="button" class="mt-3 w-full rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
                                                 Cetak Antrean Nurse Station
-                                            </button>
-                                            <button id="printGeneralConsentFromFormBtn" type="button" class="mt-4 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
-                                                &#128221; Cetak General Consent
                                             </button>
                                             <div class="mt-3 text-xs font-semibold text-slate-500">
                                                 Pilih printer yang sesuai pada dialog print browser.
@@ -1426,7 +1422,6 @@
                         const manualNoAntrianInput = document.getElementById('manualNoAntrianInput');
                         const printActionPanel = document.getElementById('printActionPanel');
                         const printActionInfo = document.getElementById('printActionInfo');
-                        const gcDebugHint = document.getElementById('gcDebugHint');
                         const printBarcodeBtn = document.getElementById('printBarcodeBtn');
                         const printWristbandBtn = document.getElementById('printWristbandBtn');
                         const printNurseStationTicketBtn = document.getElementById('printNurseStationTicketBtn');
@@ -1927,43 +1922,10 @@
                             const currentUnit = String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase();
                             const canPrintNurseStationTicket = nextEnabled
                                 && currentUnit === 'POLIKLINIK';
-                            const canPrintGeneralConsent = nextEnabled;
                             printBarcodeBtn.disabled = !nextEnabled;
                             printWristbandBtn.disabled = !nextEnabled;
                             if (printNurseStationTicketBtn) {
                                 printNurseStationTicketBtn.disabled = !canPrintNurseStationTicket;
-                            }
-                            const gcBtn = document.getElementById('printGeneralConsentFromFormBtn');
-                            if (gcBtn) {
-                                gcBtn.disabled = !canPrintGeneralConsent;
-                                if (canPrintGeneralConsent) {
-                                    gcBtn.removeAttribute('disabled');
-                                } else {
-                                    gcBtn.setAttribute('disabled', 'disabled');
-                                }
-                                // #region debug-point A:gc-button-state
-                                const gcState = {
-                                    nextEnabled,
-                                    currentUnit,
-                                    canPrintGeneralConsent,
-                                    gcDisabled: gcBtn.disabled,
-                                    hasSavedPatient: !!currentSavedPatientData,
-                                    hasPrintPayload: !!lastRegisteredPrintPayload,
-                                    registrationLocked,
-                                    registrationLockedNoAntrian: String(registrationLockedNoAntrian || '').trim()
-                                };
-                                gcBtn.title = `GC DEBUG ${JSON.stringify(gcState)}`;
-                                if (gcDebugHint) {
-                                    gcDebugHint.classList.remove('hidden');
-                                    gcDebugHint.textContent = `GC DEBUG setPrintButtonsState ${JSON.stringify(gcState)}`;
-                                }
-                                try {
-                                    const key = 'simami-debug-general-consent-poli-button';
-                                    const prev = JSON.parse(window.localStorage.getItem(key) || '[]');
-                                    prev.push({ point: 'setPrintButtonsState', state: gcState, ts: Date.now() });
-                                    window.localStorage.setItem(key, JSON.stringify(prev.slice(-20)));
-                                } catch (_err) {}
-                                // #endregion
                             }
                             printActionPanel.classList.toggle('border-emerald-200', nextEnabled);
                             printActionPanel.classList.toggle('bg-emerald-50/60', nextEnabled);
@@ -2038,23 +2000,6 @@
 
                         function updatePrintPayload(payload) {
                             lastRegisteredPrintPayload = payload ? buildPrintPayload(payload) : null;
-                            // #region debug-point B:update-print-payload
-                            try {
-                                const key = 'simami-debug-general-consent-poli-button';
-                                const prev = JSON.parse(window.localStorage.getItem(key) || '[]');
-                                prev.push({
-                                    point: 'updatePrintPayload',
-                                    state: {
-                                        hasPayload: !!lastRegisteredPrintPayload,
-                                        unit: String(lastRegisteredPrintPayload?.unit || '').trim(),
-                                        noAntrian: String(lastRegisteredPrintPayload?.no_antrian || '').trim(),
-                                        nurseStationQueue: String(lastRegisteredPrintPayload?.nurse_station_queue_no || '').trim()
-                                    },
-                                    ts: Date.now()
-                                });
-                                window.localStorage.setItem(key, JSON.stringify(prev.slice(-20)));
-                            } catch (_err) {}
-                            // #endregion
                             if (!lastRegisteredPrintPayload) {
                                 setPrintButtonsState(false);
                                 return;
@@ -6509,26 +6454,6 @@
                                 if (gcBtn) {
                                     gcBtn.disabled = false;
                                     gcBtn.removeAttribute('disabled');
-                                    // #region debug-point C:post-save-enable-gc
-                                    const saveState = {
-                                        gcDisabled: gcBtn.disabled,
-                                        unit: String(unit || '').trim(),
-                                        noAntrian: String(no_antrian || '').trim(),
-                                        hasSavedPatient: !!currentSavedPatientData,
-                                        hasPrintPayload: !!lastRegisteredPrintPayload
-                                    };
-                                    gcBtn.title = `GC DEBUG ${JSON.stringify(saveState)}`;
-                                    if (gcDebugHint) {
-                                        gcDebugHint.classList.remove('hidden');
-                                        gcDebugHint.textContent = `GC DEBUG post-save ${JSON.stringify(saveState)}`;
-                                    }
-                                    try {
-                                        const key = 'simami-debug-general-consent-poli-button';
-                                        const prev = JSON.parse(window.localStorage.getItem(key) || '[]');
-                                        prev.push({ point: 'post-save', state: saveState, ts: Date.now() });
-                                        window.localStorage.setItem(key, JSON.stringify(prev.slice(-20)));
-                                    } catch (_err) {}
-                                    // #endregion
                                 }
 
                                 if (patientMode === 'baru') {
@@ -8619,28 +8544,6 @@
                         });
 
                         // Button from form
-                        document.getElementById('printGeneralConsentFromFormBtn').addEventListener('click', function() {
-                            // #region debug-point D:gc-click
-                            try {
-                                const key = 'simami-debug-general-consent-poli-button';
-                                const prev = JSON.parse(window.localStorage.getItem(key) || '[]');
-                                prev.push({
-                                    point: 'gc-click',
-                                    state: {
-                                        isRegistrationWorkflowRole: isRegistrationWorkflowRole(),
-                                        hasSavedPatient: !!currentSavedPatientData,
-                                        buttonDisabled: !!this.disabled
-                                    },
-                                    ts: Date.now()
-                                });
-                                window.localStorage.setItem(key, JSON.stringify(prev.slice(-20)));
-                            } catch (_err) {}
-                            // #endregion
-                            if (!isRegistrationWorkflowRole()) return;
-                            if (currentSavedPatientData) {
-                                openGeneralConsentModal(currentSavedPatientData);
-                            }
-                        });
 
                         // Close modal when clicking outside
                         document.getElementById('generalConsentModal').addEventListener('click', function(e) {
