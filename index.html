@@ -1926,7 +1926,6 @@
                             const canPrintNurseStationTicket = nextEnabled
                                 && currentUnit === 'POLIKLINIK';
                             const canPrintGeneralConsent = nextEnabled
-                                && generalConsentColumnAvailable
                                 && (currentUnit === 'POLIKLINIK' || currentUnit === 'UGD');
                             printBarcodeBtn.disabled = !nextEnabled;
                             printWristbandBtn.disabled = !nextEnabled;
