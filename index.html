@@ -660,6 +660,9 @@
                                             <button id="printNurseStationTicketBtn" type="button" class="mt-3 w-full rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
                                                 Cetak Antrean Nurse Station
                                             </button>
+                                            <button id="printGeneralConsentFromFormBtn" type="button" class="mt-3 hidden w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
+                                                Cetak General Consent
+                                            </button>
                                             <div class="mt-3 text-xs font-semibold text-slate-500">
                                                 Pilih printer yang sesuai pada dialog print browser.
                                             </div>
@@ -1425,6 +1428,7 @@
                         const printBarcodeBtn = document.getElementById('printBarcodeBtn');
                         const printWristbandBtn = document.getElementById('printWristbandBtn');
                         const printNurseStationTicketBtn = document.getElementById('printNurseStationTicketBtn');
+                        const printGeneralConsentFromFormBtn = document.getElementById('printGeneralConsentFromFormBtn');
                         const nextFarmasiBtn = document.getElementById('nextFarmasiBtn');
                         const recallFarmasiBtn = document.getElementById('recallFarmasiBtn');
                         const skipFarmasiBtn = document.getElementById('skipFarmasiBtn');
@@ -1922,16 +1926,21 @@
                             const currentUnit = String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase();
                             const canPrintNurseStationTicket = nextEnabled
                                 && currentUnit === 'POLIKLINIK';
+                            const canPrintGeneralConsent = nextEnabled
+                                && currentUnit === 'UGD';
                             printBarcodeBtn.disabled = !nextEnabled;
                             printWristbandBtn.disabled = !nextEnabled;
                             if (printNurseStationTicketBtn) {
                                 printNurseStationTicketBtn.disabled = !canPrintNurseStationTicket;
                             }
+                            if (printGeneralConsentFromFormBtn) {
+                                printGeneralConsentFromFormBtn.disabled = !canPrintGeneralConsent;
+                            }
                             printActionPanel.classList.toggle('border-emerald-200', nextEnabled);
                             printActionPanel.classList.toggle('bg-emerald-50/60', nextEnabled);
                             printActionInfo.textContent = message || (nextEnabled
                                 ? 'Dokumen siap dicetak. Klik tombol sesuai printer yang akan dipakai.'
-                                : 'Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, gelang, dan slip Nurse Station.');
+                                : 'Simpan data pasien terlebih dahulu untuk mengaktifkan tombol cetak yang tersedia.');
                             printActionInfo.classList.toggle('text-emerald-700', nextEnabled);
                             printActionInfo.classList.toggle('text-slate-500', !nextEnabled);
                         }
@@ -2400,9 +2409,9 @@
                                 statsSectionTitle.textContent = 'Ringkasan Aktivitas UGD';
                                 statsSectionDescription.textContent = 'Pantau status dan jumlah pasien UGD yang sudah masuk pada hari ini.';
                                 // Show General Consent button for UGD
-                                const gcBtn = document.getElementById('printGeneralConsentFromFormBtn');
-                                if (gcBtn) {
-                                    gcBtn.parentElement.style.display = 'block';
+                                if (printGeneralConsentFromFormBtn) {
+                                    printGeneralConsentFromFormBtn.style.display = '';
+                                    printGeneralConsentFromFormBtn.classList.remove('hidden');
                                 }
                                 const wristbandBtn = document.getElementById('printWristbandBtn');
                                 if (wristbandBtn) {
@@ -2433,10 +2442,9 @@
                                 registrationSectionDescription.textContent = 'Lengkapi jenis pasien, poli tujuan, nomor antrean Poliklinik, lalu isi identitas pasien dengan cepat.';
                                 statsSectionTitle.textContent = 'Ringkasan Aktivitas Poliklinik';
                                 statsSectionDescription.textContent = 'Pantau status antrean Poliklinik dan jumlah pasien yang sudah masuk pada hari ini.';
-                                // Show General Consent button for Poliklinik registration
-                                const gcBtnNonUgd = document.getElementById('printGeneralConsentFromFormBtn');
-                                if (gcBtnNonUgd) {
-                                    gcBtnNonUgd.parentElement.style.display = 'block';
+                                if (printGeneralConsentFromFormBtn) {
+                                    printGeneralConsentFromFormBtn.style.display = 'none';
+                                    printGeneralConsentFromFormBtn.classList.add('hidden');
                                 }
                                 const wristbandBtn = document.getElementById('printWristbandBtn');
                                 if (wristbandBtn) {
@@ -6067,6 +6075,14 @@
                         if (printNurseStationTicketBtn) {
                             printNurseStationTicketBtn.addEventListener('click', async () => triggerPatientPrint('nurse-station-ticket'));
                         }
+                        if (printGeneralConsentFromFormBtn) {
+                            printGeneralConsentFromFormBtn.addEventListener('click', function() {
+                                if (!isRegistrationWorkflowRole()) return;
+                                if (!currentSavedPatientData) return;
+                                if (String(currentSavedPatientData.unit || '').trim().toUpperCase() !== 'UGD') return;
+                                openGeneralConsentModal(currentSavedPatientData);
+                            });
+                        }
                         nextPoliklinikBtn.addEventListener('click', async () => slideNextQueue('POLIKLINIK', nextPoliklinikBtn));
                         if (recallPoliklinikBtn) {
                             recallPoliklinikBtn.addEventListener('click', async () => recallCurrentQueue('POLIKLINIK', recallPoliklinikBtn));
@@ -6450,10 +6466,9 @@
                                 };
 
                                 // Enable General Consent button
-                                const gcBtn = document.getElementById('printGeneralConsentFromFormBtn');
-                                if (gcBtn) {
-                                    gcBtn.disabled = false;
-                                    gcBtn.removeAttribute('disabled');
+                                if (printGeneralConsentFromFormBtn) {
+                                    const isSavedUgd = String(unit || '').trim().toUpperCase() === 'UGD';
+                                    printGeneralConsentFromFormBtn.disabled = !isSavedUgd;
                                 }
 
                                 if (patientMode === 'baru') {
