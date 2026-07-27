@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -6355,19 +6355,6 @@
 
                                 if (petugasInputColumnAvailable) {
                                     pasienPayload.petugas_input = getCurrentOperatorName();
-                                }
-
-                                if (!isIgdRegistration && nurseStationDataColumnAvailable) {
-                                    pasienPayload.nurse_station_data = {
-                                        status: 'menunggu',
-                                        queue_no: no_antrian,
-                                        called_at: '',
-                                        called_by_name: '',
-                                        called_by_email: '',
-                                        completed_at: '',
-                                        completed_by_name: '',
-                                        completed_by_email: ''
-                                    };
                                 }
 
                                 let inserted = false;
