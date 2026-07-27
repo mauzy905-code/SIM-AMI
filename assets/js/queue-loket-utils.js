@@ -23,6 +23,7 @@
         const compact = normalizeCompact(value);
         if (!raw) return '';
         if (raw === 'SUPERVISOR') return 'SUPERVISOR';
+        if (compact === 'NURSESTATION') return 'NURSE_STATION';
 
         if (compact === 'FARMASI1' || compact === 'FARMASILOKET1' || compact === 'LOKETFARMASI1') return 'FARMASI_1';
         if (compact === 'FARMASI2' || compact === 'FARMASILOKET2' || compact === 'LOKETFARMASI2') return 'FARMASI_2';
@@ -49,6 +50,7 @@
         const code = normalizeQueueLoketCode(value, options);
         if (!code) return '-';
         if (code === 'SUPERVISOR') return 'Supervisor';
+        if (code === 'NURSE_STATION') return 'Nurse Station';
         if (code === 'FARMASI_1') return 'Loket 1';
         if (code === 'FARMASI_2') return 'Loket 2';
         if (code === 'A') return 'Loket A';
@@ -60,6 +62,7 @@
     function getQueueLoketAliases(value, options) {
         const code = normalizeQueueLoketCode(value, options);
         if (!code || code === 'SUPERVISOR') return [];
+        if (code === 'NURSE_STATION') return ['NURSE_STATION', 'NURSESTATION'];
         if (code === 'FARMASI_1') return ['FARMASI_1', 'FARMASI1', 'LOKET_FARMASI_1', 'LOKET_1', 'LOKET1', '1'];
         if (code === 'FARMASI_2') return ['FARMASI_2', 'FARMASI2', 'LOKET_FARMASI_2', 'LOKET_2', 'LOKET2', '2'];
         if (code === 'A') return ['A', 'LOKET_1', 'LOKET1', 'LOKET_A'];
