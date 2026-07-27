@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
         <html lang="id">
         <head>
             <meta charset="UTF-8">
@@ -647,7 +647,7 @@
                                         <div id="printActionPanel" class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
                                             <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-500">Cetak Dokumen</div>
                                             <div id="printActionInfo" class="mt-2 text-sm font-semibold text-slate-500">
-                                                Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode dan gelang.
+                                                Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, gelang, dan slip Nurse Station.
                                             </div>
                                             <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                                                 <button id="printBarcodeBtn" type="button" class="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
@@ -657,6 +657,9 @@
                                                     Cetak Printer Gelang
                                                 </button>
                                             </div>
+                                            <button id="printNurseStationTicketBtn" type="button" class="mt-3 w-full rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
+                                                Cetak Antrean Nurse Station
+                                            </button>
                                             <button id="printGeneralConsentFromFormBtn" type="button" class="mt-4 w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
                                                 &#128221; Cetak General Consent
                                             </button>
@@ -1176,6 +1179,23 @@
                     </div>
                 </div>
             </div>
+            <div id="nurseStationTicketContainer" class="hidden">
+                <div id="nurseStationTicket" style="width: 80mm; height: 60mm; padding: 4mm 4mm 3mm; font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; box-sizing: border-box; overflow: hidden;">
+                    <div style="text-align: center; font-size: 10pt; font-weight: bold;">RSUD AJI MUHAMMAD IDRIS</div>
+                    <div style="margin-top: 1mm; text-align: center; font-size: 8pt; font-weight: bold;">ANTREAN NURSE STATION</div>
+                    <div style="margin-top: 2.5mm; display: flex; justify-content: space-between; gap: 3mm; font-size: 8pt;">
+                        <div><b>No Reg</b>: <span id="ns_ticket_no_registrasi"></span></div>
+                        <div><b>No RM</b>: <span id="ns_ticket_no_rm"></span></div>
+                    </div>
+                    <div style="margin-top: 3mm; border: 1px dashed #64748b; border-radius: 3mm; padding: 3mm 2mm; text-align: center;">
+                        <div style="font-size: 8pt; font-weight: bold;">Nomor Nurse Station</div>
+                        <div id="ns_ticket_queue_no" style="margin-top: 1.5mm; font-size: 24pt; line-height: 1; font-weight: bold; letter-spacing: 1.2mm;">-</div>
+                    </div>
+                    <div style="margin-top: 3mm; font-size: 9pt;"><b>Kategori</b>: <span id="ns_ticket_category"></span></div>
+                    <div style="margin-top: 1mm; font-size: 9pt;"><b>Poli Tujuan</b>: <span id="ns_ticket_poli"></span></div>
+                    <div style="margin-top: 2mm; font-size: 8pt; color: #475569;">Harap menunggu panggilan di Nurse Station.</div>
+                </div>
+            </div>
 
             <script src="assets/js/utils.js"></script>
             <script src="assets/js/queue-loket-utils.js"></script>
@@ -1407,6 +1427,7 @@
                         const printActionInfo = document.getElementById('printActionInfo');
                         const printBarcodeBtn = document.getElementById('printBarcodeBtn');
                         const printWristbandBtn = document.getElementById('printWristbandBtn');
+                        const printNurseStationTicketBtn = document.getElementById('printNurseStationTicketBtn');
                         const nextFarmasiBtn = document.getElementById('nextFarmasiBtn');
                         const recallFarmasiBtn = document.getElementById('recallFarmasiBtn');
                         const skipFarmasiBtn = document.getElementById('skipFarmasiBtn');
@@ -1901,18 +1922,25 @@
 
                         function setPrintButtonsState(enabled, message = '') {
                             const nextEnabled = Boolean(enabled);
+                            const canPrintNurseStationTicket = nextEnabled
+                                && String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase() === 'POLIKLINIK';
                             printBarcodeBtn.disabled = !nextEnabled;
                             printWristbandBtn.disabled = !nextEnabled;
+                            if (printNurseStationTicketBtn) {
+                                printNurseStationTicketBtn.disabled = !canPrintNurseStationTicket;
+                            }
                             printActionPanel.classList.toggle('border-emerald-200', nextEnabled);
                             printActionPanel.classList.toggle('bg-emerald-50/60', nextEnabled);
                             printActionInfo.textContent = message || (nextEnabled
                                 ? 'Dokumen siap dicetak. Klik tombol sesuai printer yang akan dipakai.'
-                                : 'Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode dan gelang.');
+                                : 'Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, gelang, dan slip Nurse Station.');
                             printActionInfo.classList.toggle('text-emerald-700', nextEnabled);
                             printActionInfo.classList.toggle('text-slate-500', !nextEnabled);
                         }
 
                         function buildPrintPayload(payload = {}) {
+                            const noAntrian = String(payload.no_antrian || '').trim();
+                            const isPriorityQueue = isPrioritasNoAntrian(noAntrian) || /^P-/i.test(noAntrian);
                             return {
                                 nama_pasien: String(payload.nama_pasien || '').trim(),
                                 tanggal_lahir: formatDateSlash(payload.tanggal_lahir || ''),
@@ -1921,7 +1949,10 @@
                                 no_rm: String(payload.no_rm || '').trim(),
                                 no_registrasi: String(payload.no_registrasi || '').trim(),
                                 unit: String(payload.unit || '').trim(),
-                                no_antrian: String(payload.no_antrian || '').trim(),
+                                no_antrian: noAntrian,
+                                nurse_station_queue_no: String(payload.nurse_station_queue_no || noAntrian).trim(),
+                                nurse_station_category: isPriorityQueue ? 'Prioritas' : 'Umum',
+                                poli_tujuan_label: r_poliLabel(String(payload.poli_tujuan || '').trim()) || '-',
                                 waktu_daftar: payload.waktu_daftar instanceof Date
                                     ? formatLocalDateTime(payload.waktu_daftar)
                                     : String(payload.waktu_daftar || '').trim()
@@ -1961,6 +1992,14 @@
                             });
                         }
 
+                        function populateNurseStationTicketTemplate(payload) {
+                            document.getElementById('ns_ticket_no_registrasi').textContent = payload.no_registrasi || '-';
+                            document.getElementById('ns_ticket_no_rm').textContent = payload.no_rm || '-';
+                            document.getElementById('ns_ticket_queue_no').textContent = payload.nurse_station_queue_no || '-';
+                            document.getElementById('ns_ticket_category').textContent = payload.nurse_station_category || '-';
+                            document.getElementById('ns_ticket_poli').textContent = payload.poli_tujuan_label || '-';
+                        }
+
                         function updatePrintPayload(payload) {
                             lastRegisteredPrintPayload = payload ? buildPrintPayload(payload) : null;
                             if (!lastRegisteredPrintPayload) {
@@ -1969,6 +2008,7 @@
                             }
                             populateBarcodeTemplate(lastRegisteredPrintPayload);
                             populateWristbandTemplate(lastRegisteredPrintPayload);
+                            populateNurseStationTicketTemplate(lastRegisteredPrintPayload);
                             const patientName = lastRegisteredPrintPayload.nama_pasien || 'Pasien terakhir';
                             setPrintButtonsState(true, `Dokumen siap dicetak untuk ${patientName}. Pilih tombol sesuai printer.`);
                         }
@@ -1990,6 +2030,11 @@
                             document.getElementById('wristband_no_rm').textContent = '';
                             document.getElementById('wristband_no_registrasi').textContent = '';
                             document.getElementById('wristband_no_antrian').textContent = '';
+                            document.getElementById('ns_ticket_no_registrasi').textContent = '';
+                            document.getElementById('ns_ticket_no_rm').textContent = '';
+                            document.getElementById('ns_ticket_queue_no').textContent = '';
+                            document.getElementById('ns_ticket_category').textContent = '';
+                            document.getElementById('ns_ticket_poli').textContent = '';
                             setPrintButtonsState(false);
                         }
 
@@ -2020,6 +2065,22 @@
                                     no_registrasi: lastRegisteredPrintPayload.no_registrasi,
                                     no_antrian: lastRegisteredPrintPayload.no_antrian,
                                     unit: lastRegisteredPrintPayload.unit
+                                });
+                            } else if (mode === 'nurse-station-ticket') {
+                                if (String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase() !== 'POLIKLINIK') {
+                                    setPrintButtonsState(true, 'Slip Nurse Station hanya tersedia untuk pendaftaran Poliklinik.');
+                                    return;
+                                }
+                                populateNurseStationTicketTemplate(lastRegisteredPrintPayload);
+                                activePrintMode = 'nurse-station-ticket';
+                                document.body.setAttribute('data-print-mode', 'nurse-station-ticket');
+                                setPrintPageSize('80mm 60mm');
+                                appendStaffActivity('print_antrean_nurse_station', {
+                                    no_rm: lastRegisteredPrintPayload.no_rm,
+                                    no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                    no_antrian: lastRegisteredPrintPayload.nurse_station_queue_no,
+                                    unit: lastRegisteredPrintPayload.unit,
+                                    poli_tujuan: lastRegisteredPrintPayload.poli_tujuan_label
                                 });
                             } else {
                                 populateWristbandTemplate(lastRegisteredPrintPayload);
@@ -2349,6 +2410,10 @@
                                 if (wristbandBtn) {
                                     wristbandBtn.style.display = '';
                                 }
+                                const nurseStationTicketBtn = document.getElementById('printNurseStationTicketBtn');
+                                if (nurseStationTicketBtn) {
+                                    nurseStationTicketBtn.style.display = 'none';
+                                }
                             } else {
                                 supervisorMenuLinks.classList.add('hidden');
                                 drawerRoleEyebrow.textContent = 'SIM-AMI';
@@ -2378,6 +2443,10 @@
                                 const wristbandBtn = document.getElementById('printWristbandBtn');
                                 if (wristbandBtn) {
                                     wristbandBtn.style.display = 'none';
+                                }
+                                const nurseStationTicketBtn = document.getElementById('printNurseStationTicketBtn');
+                                if (nurseStationTicketBtn) {
+                                    nurseStationTicketBtn.style.display = '';
                                 }
                             }
                             applyRekapRolePresentation();
@@ -4764,7 +4833,7 @@
                             if (!form) return;
                             const elements = form.querySelectorAll('input,select,textarea,button');
                             elements.forEach((el) => {
-                                if (['saveBtn', 'printBarcodeBtn', 'printWristbandBtn'].includes(el.id)) return;
+                                if (['saveBtn', 'printBarcodeBtn', 'printWristbandBtn', 'printNurseStationTicketBtn'].includes(el.id)) return;
                                 el.disabled = !enabled;
                             });
                         }
@@ -5997,6 +6066,9 @@
                         modeLamaBtn.addEventListener('click', async () => setPatientMode('lama'));
                         printBarcodeBtn.addEventListener('click', async () => triggerPatientPrint('barcode'));
                         printWristbandBtn.addEventListener('click', async () => triggerPatientPrint('wristband'));
+                        if (printNurseStationTicketBtn) {
+                            printNurseStationTicketBtn.addEventListener('click', async () => triggerPatientPrint('nurse-station-ticket'));
+                        }
                         nextPoliklinikBtn.addEventListener('click', async () => slideNextQueue('POLIKLINIK', nextPoliklinikBtn));
                         if (recallPoliklinikBtn) {
                             recallPoliklinikBtn.addEventListener('click', async () => recallCurrentQueue('POLIKLINIK', recallPoliklinikBtn));
@@ -6374,6 +6446,7 @@
                                     no_registrasi,
                                     unit,
                                     no_antrian,
+                                    poli_tujuan,
                                     waktu_daftar
                                 });
 
