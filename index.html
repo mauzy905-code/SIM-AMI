@@ -1035,7 +1035,9 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label class="block text-slate-700 font-semibold mb-2">Dokter Yang Memeriksa</label>
-                                    <input id="poliExamDoctorInput" type="text" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500" placeholder="Nama dokter">
+                                    <select id="poliExamDoctorInput" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
+                                        <option value="">Pilih dokter</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-slate-700 font-semibold mb-2">Diagnosa</label>
@@ -1533,6 +1535,7 @@
                         let currentPoliExamVisitId = '';
                         let currentPoliExamNoRm = '';
                         let currentPoliExamPatientName = '';
+                        let currentPoliExamPoliCode = '';
                         let currentPatientEditId = '';
                         let currentPatientEditNoRm = '';
                         let currentPatientEditNoRegistrasi = '';
@@ -2881,6 +2884,16 @@
                                 openHistory: async (patient) => {
                                     if (!patient?.no_rm) return;
                                     await openPatientHistory(patient.no_rm, patient.nama_pasien || '');
+                                },
+                                openExam: async (patient) => {
+                                    await openPoliExamModalPanel({
+                                        id: patient?.id,
+                                        noRm: patient?.no_rm,
+                                        nama: patient?.nama_pasien,
+                                        poliTujuan: patient?.poli_tujuan,
+                                        dokter: patient?.nama_dokter,
+                                        diagnosa: patient?.diagnosa
+                                    });
                                 }
                             });
                         }
@@ -3001,8 +3014,10 @@
                             currentPoliExamVisitId = '';
                             currentPoliExamNoRm = '';
                             currentPoliExamPatientName = '';
+                            currentPoliExamPoliCode = '';
                             poliExamPatientTitle.textContent = '-';
                             poliExamPatientMeta.textContent = '-';
+                            poliExamDoctorInput.innerHTML = '<option value="">Pilih dokter</option>';
                             poliExamDoctorInput.value = '';
                             poliExamDiagnosisInput.value = '';
                             poliExamMessage.classList.add('hidden');
@@ -3010,15 +3025,81 @@
                             savePoliExamBtn.textContent = 'Simpan Pemeriksaan';
                         }
 
-                        function openPoliExamModalPanel(payload) {
+                        function populatePoliExamDoctorOptions(options = [], selectedValue = '') {
+                            const normalizedSelected = String(selectedValue || '').trim();
+                            const uniqueOptions = Array.from(new Set(
+                                (Array.isArray(options) ? options : [])
+                                    .map((item) => String(item || '').trim())
+                                    .filter(Boolean)
+                            ));
+                            if (normalizedSelected && !uniqueOptions.includes(normalizedSelected)) {
+                                uniqueOptions.unshift(normalizedSelected);
+                            }
+                            poliExamDoctorInput.innerHTML = [
+                                '<option value="">Pilih dokter</option>',
+                                ...uniqueOptions.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+                            ].join('');
+                            poliExamDoctorInput.value = normalizedSelected;
+                        }
+
+                        async function loadPoliExamDoctorOptions(poliCode = '', selectedValue = '') {
+                            const normalizedSelected = String(selectedValue || '').trim();
+                            if (!supabaseClient || !poliExamColumnsAvailable) {
+                                populatePoliExamDoctorOptions([], normalizedSelected);
+                                return;
+                            }
+                            try {
+                                const buildQuery = () => supabaseClient
+                                    .from('pasien')
+                                    .select('nama_dokter')
+                                    .eq('unit', 'POLIKLINIK')
+                                    .not('nama_dokter', 'is', null)
+                                    .order('created_at', { ascending: false })
+                                    .limit(200);
+                                let query = buildQuery();
+                                if (String(poliCode || '').trim()) {
+                                    query = query.eq('poli_tujuan', String(poliCode || '').trim());
+                                }
+                                let { data, error } = await query;
+                                if (!error && String(poliCode || '').trim() && (!Array.isArray(data) || !data.length)) {
+                                    ({ data, error } = await buildQuery());
+                                }
+                                if (error) throw error;
+                                const doctorOptions = (Array.isArray(data) ? data : [])
+                                    .map((item) => String(item?.nama_dokter || '').trim())
+                                    .filter(Boolean);
+                                populatePoliExamDoctorOptions(doctorOptions, normalizedSelected);
+                            } catch (_err) {
+                                populatePoliExamDoctorOptions([], normalizedSelected);
+                            }
+                        }
+
+                        async function openPoliExamModalPanel(payload) {
                             currentPoliExamVisitId = String(payload?.id || '');
                             currentPoliExamNoRm = String(payload?.noRm || '');
                             currentPoliExamPatientName = String(payload?.nama || '');
+                            currentPoliExamPoliCode = String(payload?.poliTujuan || '');
 
                             poliExamPatientTitle.textContent = currentPoliExamPatientName || 'Pasien';
-                            poliExamPatientMeta.textContent = `No RM: ${currentPoliExamNoRm || '-'}`;
-                            poliExamDoctorInput.value = String(payload?.dokter || '');
-                            poliExamDiagnosisInput.value = String(payload?.diagnosa || '');
+                            let dokterValue = String(payload?.dokter || '');
+                            let diagnosaValue = String(payload?.diagnosa || '');
+                            if (currentPoliExamVisitId && supabaseClient && poliExamColumnsAvailable) {
+                                try {
+                                    const { data, error } = await supabaseClient
+                                        .from('pasien')
+                                        .select('nama_dokter,diagnosa,poli_tujuan')
+                                        .eq('id', currentPoliExamVisitId)
+                                        .maybeSingle();
+                                    if (!error && data) {
+                                        dokterValue = String(data.nama_dokter || dokterValue || '');
+                                        diagnosaValue = String(data.diagnosa || diagnosaValue || '');
+                                        currentPoliExamPoliCode = String(data.poli_tujuan || currentPoliExamPoliCode || '');
+                                    }
+                                } catch (_err) {}
+                            }
+                            poliExamPatientMeta.textContent = `No RM: ${currentPoliExamNoRm || '-'}${currentPoliExamPoliCode ? ` • Poli: ${r_poliLabel(currentPoliExamPoliCode) || currentPoliExamPoliCode}` : ''}`;
+                            await loadPoliExamDoctorOptions(currentPoliExamPoliCode, dokterValue);
+                            poliExamDiagnosisInput.value = diagnosaValue;
                             poliExamMessage.classList.add('hidden');
                             poliExamModal.classList.remove('hidden');
 
@@ -4719,6 +4800,7 @@
 
                                 showPoliExamMessage('Dokter dan diagnosa berhasil disimpan.', 'success');
                                 await r_loadPage(r_currentPage);
+                                await poliDashboardModule?.refresh?.();
                                 if (!historyModal.classList.contains('hidden') && currentHistoryNoRm) {
                                     await openPatientHistory(currentHistoryNoRm, currentHistoryPatientName);
                                 }
