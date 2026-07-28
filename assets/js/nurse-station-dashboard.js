@@ -409,7 +409,7 @@
                     : (status === 'dipanggil' ? 'nurse-station-dashboard-status is-called' : 'nurse-station-dashboard-status is-pending');
 
                 const canCall = !!nsQueueNo && status !== 'selesai';
-                const canDone = !!nsQueueNo && status !== 'selesai';
+                const canDone = !!nsQueueNo && status === 'dipanggil';
                 const canHistory = !!String(row?.no_rm || '').trim();
 
                 const calledMeta = row?.nsData?.called_at
@@ -500,6 +500,11 @@
             const queueNo = getEffectiveQueueNo(row, nsData);
             if (!queueNo) {
                 setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
+                render();
+                return;
+            }
+            if (nsData?.status !== 'dipanggil') {
+                setMessage('Pasien harus dipanggil terlebih dahulu sebelum ditandai selesai.', 'error');
                 render();
                 return;
             }
