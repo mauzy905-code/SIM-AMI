@@ -3044,8 +3044,18 @@
 
                         async function loadPoliExamDoctorOptions(poliCode = '', selectedValue = '') {
                             const normalizedSelected = String(selectedValue || '').trim();
+                            const defaultDoctorsByPoli = {
+                                SPESIALIS_PENYAKIT_DALAM: [
+                                    'dr. Andi Renny Amita, Sp.PD (DOKTER SPESIALIS PENYAKIT DALAM)'
+                                ],
+                                SPESIALIS_ANAK: [
+                                    'dr. Dewi Jumantan Hamzah, M.Sc, Sp.A (DOKTER SPESIALIS ANAK)'
+                                ]
+                            };
+                            const normalizedPoli = String(poliCode || '').trim();
+                            const fallbackOptions = defaultDoctorsByPoli[normalizedPoli] || [];
                             if (!supabaseClient || !poliExamColumnsAvailable) {
-                                populatePoliExamDoctorOptions([], normalizedSelected);
+                                populatePoliExamDoctorOptions(fallbackOptions, normalizedSelected);
                                 return;
                             }
                             try {
@@ -3057,20 +3067,20 @@
                                     .order('created_at', { ascending: false })
                                     .limit(200);
                                 let query = buildQuery();
-                                if (String(poliCode || '').trim()) {
-                                    query = query.eq('poli_tujuan', String(poliCode || '').trim());
+                                if (normalizedPoli) {
+                                    query = query.eq('poli_tujuan', normalizedPoli);
                                 }
                                 let { data, error } = await query;
-                                if (!error && String(poliCode || '').trim() && (!Array.isArray(data) || !data.length)) {
+                                if (!error && normalizedPoli && (!Array.isArray(data) || !data.length)) {
                                     ({ data, error } = await buildQuery());
                                 }
                                 if (error) throw error;
                                 const doctorOptions = (Array.isArray(data) ? data : [])
                                     .map((item) => String(item?.nama_dokter || '').trim())
                                     .filter(Boolean);
-                                populatePoliExamDoctorOptions(doctorOptions, normalizedSelected);
+                                populatePoliExamDoctorOptions([...fallbackOptions, ...doctorOptions], normalizedSelected);
                             } catch (_err) {
-                                populatePoliExamDoctorOptions([], normalizedSelected);
+                                populatePoliExamDoctorOptions(fallbackOptions, normalizedSelected);
                             }
                         }
 
