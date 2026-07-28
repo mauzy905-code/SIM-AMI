@@ -69,6 +69,12 @@
             };
         }
 
+        function normalizeQueueNo(noAntrian) {
+            const value = String(noAntrian || '').trim();
+            if (!value) return '';
+            return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
+        }
+
         function isPriorityQueue(noAntrian) {
             return /^(P|B)-/i.test(String(noAntrian || '').trim());
         }
@@ -109,11 +115,11 @@
         }
 
         function getRegistrationQueueNo(row) {
-            return String(row?.no_antrian || '').trim();
+            return normalizeQueueNo(row?.no_antrian || '');
         }
 
         function getEffectiveQueueNo(row, nsData) {
-            const stored = String(nsData?.queue_no || row?.nsData?.queue_no || '').trim();
+            const stored = normalizeQueueNo(nsData?.queue_no || row?.nsData?.queue_no || '');
             return stored || getRegistrationQueueNo(row);
         }
 
@@ -134,7 +140,7 @@
                 : (statusRaw === 'dipanggil' ? 'dipanggil' : 'menunggu');
             return {
                 status,
-                queue_no: String(value.queue_no || '').trim(),
+                queue_no: normalizeQueueNo(value.queue_no || ''),
                 called_at: String(value.called_at || '').trim(),
                 called_by_name: String(value.called_by_name || '').trim(),
                 called_by_email: String(value.called_by_email || '').trim(),
