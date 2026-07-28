@@ -303,6 +303,12 @@
     color: #1d4ed8;
 }
 
+.poli-dashboard-action-btn.is-exam {
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
 .poli-dashboard-action-btn.is-complete {
     background: linear-gradient(135deg, #059669 0%, #0f766e 38%, #2563eb 100%);
     color: #ffffff;
