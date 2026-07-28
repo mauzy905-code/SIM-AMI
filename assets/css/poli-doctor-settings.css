@@ -1,0 +1,221 @@
+.poli-doctor-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.poli-doctor-settings-hero {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 32px;
+    background: linear-gradient(135deg, #0f766e 0%, #0ea5e9 52%, #1d4ed8 100%);
+    box-shadow: 0 28px 80px -28px rgba(15, 23, 42, 0.28);
+    padding: 24px;
+    color: #ffffff;
+}
+
+.poli-doctor-settings-kicker {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #dbeafe;
+}
+
+.poli-doctor-settings-title {
+    margin-top: 14px;
+    font-size: 32px;
+    line-height: 1.12;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.poli-doctor-settings-desc {
+    margin-top: 10px;
+    max-width: 760px;
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 600;
+    color: rgba(239, 246, 255, 0.94);
+}
+
+.poli-doctor-settings-hero-grid,
+.poli-doctor-settings-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.poli-doctor-settings-card,
+.poli-doctor-settings-summary-card {
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.12);
+    padding: 14px 16px;
+}
+
+.poli-doctor-settings-panel {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 28px 80px -28px rgba(15, 23, 42, 0.2);
+    padding: 20px;
+}
+
+.poli-doctor-settings-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.poli-doctor-settings-panel-title {
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.poli-doctor-settings-panel-meta {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.poli-doctor-settings-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.poli-doctor-settings-btn {
+    border: 1px solid transparent;
+    border-radius: 18px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.18s ease;
+}
+
+.poli-doctor-settings-btn.is-secondary {
+    border-color: #dbeafe;
+    background: #ffffff;
+    color: #1d4ed8;
+}
+
+.poli-doctor-settings-btn.is-primary {
+    background: linear-gradient(135deg, #059669 0%, #0f766e 42%, #2563eb 100%);
+    color: #ffffff;
+}
+
+.poli-doctor-settings-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.poli-doctor-settings-message {
+    margin-top: 14px;
+    border-radius: 18px;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1d4ed8;
+}
+
+.poli-doctor-settings-message.hidden {
+    display: none;
+}
+
+.poli-doctor-settings-message.is-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.poli-doctor-settings-message.is-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.poli-doctor-settings-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.poli-doctor-settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.poli-doctor-settings-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(219, 234, 254, 0.92);
+}
+
+.poli-doctor-settings-field-label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #0f766e;
+}
+
+.poli-doctor-settings-input {
+    width: 100%;
+    border: 1px solid #bae6fd;
+    border-radius: 20px;
+    background: #ffffff;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    box-shadow: 0 12px 30px -24px rgba(15, 23, 42, 0.35);
+}
+
+.poli-doctor-settings-value,
+.poli-doctor-settings-summary-value {
+    margin-top: 8px;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 900;
+}
+
+.poli-doctor-settings-summary-card {
+    border-color: #dbeafe;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.poli-doctor-settings-summary-card .poli-doctor-settings-label {
+    color: #0f766e;
+}
+
+.poli-doctor-settings-summary-card .poli-doctor-settings-summary-value {
+    color: #0f172a;
+}
+
+@media (max-width: 960px) {
+    .poli-doctor-settings-hero-grid,
+    .poli-doctor-settings-summary-grid,
+    .poli-doctor-settings-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
