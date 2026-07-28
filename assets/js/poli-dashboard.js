@@ -135,6 +135,15 @@
                     }
                     return;
                 }
+                const examBtn = event.target.closest('[data-action="exam"]');
+                if (examBtn) {
+                    const rowId = String(examBtn.getAttribute('data-row-id') || '');
+                    const target = state.rows.find((item) => String(item.id || '') === rowId);
+                    if (target) {
+                        await Promise.resolve(config?.openExam?.(target));
+                    }
+                    return;
+                }
                 const completeBtn = event.target.closest('[data-action="complete"]');
                 if (completeBtn) {
                     const rowId = String(completeBtn.getAttribute('data-row-id') || '');
@@ -331,6 +340,7 @@
                 const doneMeta = row.serviceData?.status === 'selesai'
                     ? `<div class="poli-dashboard-item-done">Selesai ${escapeHtml(formatTime(row.serviceData.completed_at))}${row.serviceData.completed_by_name ? ` • ${escapeHtml(row.serviceData.completed_by_name)}` : ''}</div>`
                     : '';
+                const examButton = `<button type="button" class="poli-dashboard-action-btn is-exam" data-action="exam" data-row-id="${escapeHtml(String(row.id || ''))}">Isi Dokter & Diagnosa</button>`;
                 const openDisabled = row.no_rm ? '' : ' disabled';
                 const openLabel = row.serviceData?.status === 'selesai' ? 'Buka Riwayat' : 'Buka / Layani';
                 const completeButton = row.serviceData?.status === 'selesai'
@@ -351,6 +361,7 @@
                     '  </div>',
                     `  ${doneMeta}`,
                     '  <div class="poli-dashboard-item-actions">',
+                    `    ${examButton}`,
                     `    <button type="button" class="poli-dashboard-action-btn is-open" data-action="open" data-row-id="${escapeHtml(String(row.id || ''))}"${openDisabled}>${escapeHtml(openLabel)}</button>`,
                     `    ${completeButton}`,
                     '  </div>',
