@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260615-display-cachefix-3';
+            const DISPLAY_BUILD_VERSION = '20260728-display-nurse-station-1';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -171,6 +171,7 @@
                 <button class="display-unit-btn rounded-full bg-white text-emerald-900 font-extrabold px-4 py-2 active" data-unit="ALL">SEMUA</button>
                 <button class="display-unit-btn rounded-full bg-red-600/90 text-white font-bold px-4 py-2 hover:bg-red-700 transition" data-unit="FARMASI">FARMASI</button>
                 <button class="display-unit-btn rounded-full bg-blue-600/90 text-white font-bold px-4 py-2 hover:bg-blue-700 transition" data-unit="POLIKLINIK">POLIKLINIK</button>
+                <button class="display-unit-btn rounded-full bg-cyan-600/90 text-white font-bold px-4 py-2 hover:bg-cyan-700 transition" data-unit="NURSE_STATION">NURSE STATION</button>
                 <button id="soundToggleBtn" type="button" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/15 transition">Suara: OFF</button>
                 <div id="syncStatus" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">Sinkron: -</div>
                 <div id="displaySessionLabel" class="ml-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">display@rsudami.com</div>
@@ -194,6 +195,11 @@
                     <button id="displayPickPoliklinikBtn" type="button" class="rounded-[24px] border border-blue-200 bg-blue-50 px-6 py-5 text-left font-black text-blue-900 shadow-sm transition hover:bg-blue-100">
                         <div class="text-xs font-extrabold tracking-[0.28em] uppercase text-blue-700">Display</div>
                         <div class="mt-2 text-2xl font-black">Poliklinik</div>
+                    </button>
+                    <button id="displayPickNurseStationBtn" type="button" class="md:col-span-2 rounded-[24px] border border-cyan-200 bg-cyan-50 px-6 py-5 text-left font-black text-cyan-900 shadow-sm transition hover:bg-cyan-100">
+                        <div class="text-xs font-extrabold tracking-[0.28em] uppercase text-cyan-700">Display</div>
+                        <div class="mt-2 text-2xl font-black">Nurse Station</div>
+                        <div class="mt-2 text-sm font-semibold text-cyan-800/80">Tampilkan informasi dokter poli dan antrean Nurse Station secara realtime.</div>
                     </button>
                 </div>
             </div>
@@ -323,10 +329,24 @@
                         </div>
                     </div>
                 </div>
+                <div id="focusedNurseStationPanel" class="hidden w-full">
+                    <div class="mb-6 text-center">
+                        <h3 class="text-cyan-200 text-2xl md:text-3xl font-semibold tracking-wide uppercase">Informasi Dokter Poli</h3>
+                        <div id="focusedNurseDoctorMeta" class="mt-2 text-sm font-semibold text-cyan-100/75">Memuat data dokter poli...</div>
+                    </div>
+                    <div id="focusedDoctorStatusGrid" class="grid grid-cols-1 gap-5 xl:grid-cols-2"></div>
+                </div>
             </div>
 
             <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-900/55 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto">
                 <h3 id="focusedNextTitle" class="text-emerald-300 text-2xl font-bold mb-6 border-b border-emerald-700/50 pb-3">Antrean Berikutnya</h3>
+                <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.18)_0%,_rgba(37,99,235,0.2)_100%)] px-5 py-5 shadow-2xl">
+                    <div class="text-cyan-200 text-xs font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
+                    <div id="focusedCurrentNurseQueue" class="mt-3 text-[4.2rem] md:text-[5.4rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-200">-</div>
+                    <div id="focusedCurrentNurseName" class="mt-3 text-2xl font-black text-white">Belum ada antrean dipanggil</div>
+                    <div id="focusedCurrentNursePoli" class="mt-2 text-base font-semibold text-cyan-100/80">-</div>
+                    <div id="focusedCurrentNurseMeta" class="mt-3 inline-flex rounded-full border border-cyan-300/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-cyan-100">-</div>
+                </div>
                 <div id="focusedAntrianList" class="space-y-4"></div>
             </div>
         </div>
@@ -358,6 +378,7 @@
                 const displayUnitPickerOverlay = document.getElementById('displayUnitPickerOverlay');
                 const displayPickFarmasiBtn = document.getElementById('displayPickFarmasiBtn');
                 const displayPickPoliklinikBtn = document.getElementById('displayPickPoliklinikBtn');
+                const displayPickNurseStationBtn = document.getElementById('displayPickNurseStationBtn');
                 
                 let selectedUnit = 'ALL';
                 let displayLockedUnit = null;
@@ -371,6 +392,7 @@
                     const value = String(unitValue || '').trim().toUpperCase();
                     if (value === 'FARMASI') return 'FARMASI';
                     if (value === 'POLIKLINIK') return 'POLIKLINIK';
+                    if (value === 'NURSE_STATION' || value === 'NURSESTATION') return 'NURSE_STATION';
                     if (value === 'ALL') return 'ALL';
                     return null;
                 }
@@ -563,7 +585,8 @@
                 // Mapping nama unit
                 const unitNames = {
                     'FARMASI': '💊 FARMASI',
-                    'POLIKLINIK': '🩺 POLIKLINIK'
+                    'POLIKLINIK': '🩺 POLIKLINIK',
+                    'NURSE_STATION': '🩹 NURSE STATION'
                 };
 
                 function jenisPasienLabel(jenisPasien) {
@@ -667,6 +690,217 @@
                         return `${poliText} • ${loketLabel}`;
                     }
                     return loketLabel || poliText || '-';
+                }
+
+                function normalizeNsQueueNo(noAntrian) {
+                    const value = String(noAntrian || '').trim();
+                    if (!value) return '';
+                    return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
+                }
+
+                function isNsPriorityQueue(noAntrian) {
+                    return /^(P|B)-/i.test(String(noAntrian || '').trim());
+                }
+
+                function normalizeNsData(raw) {
+                    let value = raw;
+                    if (!value) return null;
+                    if (typeof value === 'string') {
+                        try {
+                            value = JSON.parse(value);
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+                    if (!value || typeof value !== 'object') return null;
+                    const statusRaw = String(value.status || '').trim().toLowerCase();
+                    return {
+                        status: statusRaw === 'selesai' ? 'selesai' : (statusRaw === 'dipanggil' ? 'dipanggil' : 'menunggu'),
+                        queue_no: normalizeNsQueueNo(value.queue_no || ''),
+                        called_at: String(value.called_at || '').trim(),
+                        completed_at: String(value.completed_at || '').trim()
+                    };
+                }
+
+                const DEFAULT_NURSE_DOCTOR_ROWS = [
+                    {
+                        poli_tujuan: 'SPESIALIS_ANAK',
+                        nama_dokter: 'dr. Dewi Jumantan Hamzah, M.Sc, Sp.A (DOKTER SPESIALIS ANAK)',
+                        status_dokter: 'Tidak Ada Dokter'
+                    },
+                    {
+                        poli_tujuan: 'SPESIALIS_PENYAKIT_DALAM',
+                        nama_dokter: 'dr. Andi Renny Amita, Sp.PD (DOKTER SPESIALIS PENYAKIT DALAM)',
+                        status_dokter: 'Tidak Ada Dokter'
+                    }
+                ];
+
+                function getDefaultDoctorRows() {
+                    return DEFAULT_NURSE_DOCTOR_ROWS.map((item) => ({ ...item }));
+                }
+
+                function mergeDoctorRows(dbRows) {
+                    const map = new Map();
+                    getDefaultDoctorRows().forEach((row) => {
+                        map.set(String(row.poli_tujuan || '').trim().toUpperCase(), { ...row });
+                    });
+                    (dbRows || []).forEach((row) => {
+                        const key = String(row?.poli_tujuan || '').trim().toUpperCase();
+                        if (!key) return;
+                        const current = map.get(key) || { poli_tujuan: key, nama_dokter: '', status_dokter: 'Tidak Ada Dokter' };
+                        map.set(key, {
+                            ...current,
+                            ...row,
+                            poli_tujuan: key,
+                            nama_dokter: String(row?.nama_dokter || current.nama_dokter || '').trim(),
+                            status_dokter: String(row?.status_dokter || current.status_dokter || 'Tidak Ada Dokter').trim(),
+                            updated_at: String(row?.updated_at || '').trim()
+                        });
+                    });
+                    return Array.from(map.values()).sort((a, b) => poliLabel(a.poli_tujuan).localeCompare(poliLabel(b.poli_tujuan)));
+                }
+
+                function nurseDoctorStatusClass(status) {
+                    const value = String(status || '').trim().toLowerCase();
+                    if (value === 'sedang praktik') return 'border-emerald-300/40 bg-emerald-400/15 text-emerald-100';
+                    if (value === 'tersedia') return 'border-cyan-300/40 bg-cyan-400/15 text-cyan-100';
+                    if (value === 'istirahat') return 'border-amber-300/40 bg-amber-400/15 text-amber-100';
+                    return 'border-rose-300/35 bg-rose-400/12 text-rose-100';
+                }
+
+                function renderNurseDoctorCards(rows) {
+                    const container = document.getElementById('focusedDoctorStatusGrid');
+                    const metaEl = document.getElementById('focusedNurseDoctorMeta');
+                    if (!container) return;
+                    const items = mergeDoctorRows(rows);
+                    container.innerHTML = items.map((row) => `
+                        <div class="rounded-[30px] border border-cyan-400/20 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.03)_100%)] px-6 py-6 shadow-2xl">
+                            <div class="text-cyan-200 text-xs font-extrabold uppercase tracking-[0.28em]">${poliLabel(row.poli_tujuan)}</div>
+                            <div class="mt-4 min-h-[4.8rem] text-2xl font-black leading-tight text-white">${row.nama_dokter || 'Belum diatur'}</div>
+                            <div class="mt-4 inline-flex rounded-full border px-4 py-2 text-sm font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">${row.status_dokter || 'Tidak Ada Dokter'}</div>
+                            <div class="mt-4 text-sm font-semibold text-cyan-100/70">${row.updated_at ? `Update ${new Date(row.updated_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Belum ada update hari ini'}</div>
+                        </div>
+                    `).join('');
+                    if (metaEl) {
+                        metaEl.textContent = 'Nama dokter dan status diambil dari menu "Atur Dokter Poli" pada akun poli masing-masing.';
+                    }
+                }
+
+                function renderNurseStationDisplay(queueRows, doctorRows) {
+                    const singleCurrent = document.getElementById('focusedSingleCurrent');
+                    const farmasiDual = document.getElementById('focusedFarmasiDual');
+                    const poliklinikDual = document.getElementById('focusedPoliklinikDual');
+                    const nursePanel = document.getElementById('focusedNurseStationPanel');
+                    const currentCard = document.getElementById('focusedCurrentNurseCard');
+                    const currentQueue = document.getElementById('focusedCurrentNurseQueue');
+                    const currentName = document.getElementById('focusedCurrentNurseName');
+                    const currentPoli = document.getElementById('focusedCurrentNursePoli');
+                    const currentMeta = document.getElementById('focusedCurrentNurseMeta');
+                    const listContainer = document.getElementById('focusedAntrianList');
+
+                    singleCurrent.classList.add('hidden');
+                    farmasiDual.classList.add('hidden');
+                    poliklinikDual.classList.add('hidden');
+                    nursePanel.classList.remove('hidden');
+                    document.getElementById('focusedUnit').textContent = unitNames.NURSE_STATION;
+                    document.getElementById('focusedNextTitle').textContent = 'Antrean Nurse Station';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-3/5 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-2/5 bg-slate-950/55 backdrop-blur-sm p-6 border-l border-cyan-800/45 overflow-y-auto';
+
+                    renderNurseDoctorCards(doctorRows);
+
+                    const normalizedRows = (queueRows || []).slice().sort((left, right) => {
+                        const leftPriority = isNsPriorityQueue(left.queue_no || left.no_antrian) ? 0 : 1;
+                        const rightPriority = isNsPriorityQueue(right.queue_no || right.no_antrian) ? 0 : 1;
+                        if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+                        const leftStatusRank = left.ns_status === 'dipanggil' ? 0 : 1;
+                        const rightStatusRank = right.ns_status === 'dipanggil' ? 0 : 1;
+                        if (leftStatusRank !== rightStatusRank) return leftStatusRank - rightStatusRank;
+                        return new Date(left.created_at || 0).getTime() - new Date(right.created_at || 0).getTime();
+                    });
+
+                    const current = normalizedRows.find((item) => item.ns_status === 'dipanggil') || null;
+                    const waitingRows = normalizedRows.filter((item) => item.ns_status !== 'selesai' && item.id !== current?.id);
+
+                    currentCard.classList.remove('hidden');
+                    if (current) {
+                        currentQueue.textContent = current.queue_no || '-';
+                        currentName.textContent = current.nama_pasien || 'Pasien';
+                        currentPoli.textContent = poliLabel(current.poli_tujuan);
+                        currentMeta.textContent = isNsPriorityQueue(current.queue_no) ? 'Prioritas Dipanggil' : 'Umum Dipanggil';
+                    } else {
+                        currentQueue.textContent = '-';
+                        currentName.textContent = 'Belum ada antrean dipanggil';
+                        currentPoli.textContent = 'Menunggu panggilan dari petugas Nurse Station';
+                        currentMeta.textContent = 'Belum Ada Panggilan';
+                    }
+
+                    if (waitingRows.length === 0) {
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean Nurse Station hari ini.</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = waitingRows.slice(0, 8).map((item) => `
+                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-gradient-to-r from-cyan-950/75 to-blue-950/65 border-cyan-700/45 text-cyan-50'} border rounded-[24px] px-4 py-4 shadow-lg">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <div class="text-3xl font-extrabold">${item.queue_no || '-'}</div>
+                                    <div class="mt-1 text-sm font-bold uppercase tracking-[0.18em] ${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-status' : 'text-cyan-200/80'}">${isNsPriorityQueue(item.queue_no) ? 'Prioritas' : 'Umum'}</div>
+                                    <div class="mt-2 text-lg font-black text-white">${item.nama_pasien || 'Pasien'}</div>
+                                    <div class="mt-1 text-sm font-semibold text-cyan-100/75">${poliLabel(item.poli_tujuan)}</div>
+                                </div>
+                                <div class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">${item.ns_status === 'dipanggil' ? 'Dipanggil' : 'Menunggu'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                async function loadNurseStationDisplay() {
+                    const { startISO, endISO } = getTodayRangeISO();
+                    let doctorRows = getDefaultDoctorRows();
+                    let queueRows = [];
+
+                    const [{ data: pasienData, error: pasienError }, { data: doctorData, error: doctorError }] = await Promise.all([
+                        supabaseClient
+                            .from('pasien')
+                            .select('id,nama_pasien,no_antrian,poli_tujuan,created_at,unit,nurse_station_data')
+                            .eq('unit', 'POLIKLINIK')
+                            .gte('created_at', startISO)
+                            .lt('created_at', endISO)
+                            .order('created_at', { ascending: true })
+                            .limit(250),
+                        supabaseClient
+                            .from('poli_doctor_status')
+                            .select('poli_tujuan,nama_dokter,status_dokter,updated_at')
+                    ]);
+
+                    if (!doctorError && Array.isArray(doctorData)) {
+                        doctorRows = mergeDoctorRows(doctorData);
+                    }
+
+                    if (pasienError) {
+                        renderNurseStationDisplay([], doctorRows);
+                        setSyncStatus('Sinkron Nurse Station gagal', 'error');
+                        return;
+                    }
+
+                    queueRows = (pasienData || []).map((row) => {
+                        const nsData = normalizeNsData(row.nurse_station_data) || {};
+                        return {
+                            ...row,
+                            ns_status: nsData.status || 'menunggu',
+                            queue_no: normalizeNsQueueNo(nsData.queue_no || row.no_antrian || '')
+                        };
+                    }).filter((row) => row.ns_status !== 'selesai');
+
+                    renderNurseStationDisplay(queueRows, doctorRows);
+
+                    const now = new Date();
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const mm = String(now.getMinutes()).padStart(2, '0');
+                    const ss = String(now.getSeconds()).padStart(2, '0');
+                    const metaSuffix = doctorError ? ' • dokter default aktif' : '';
+                    setSyncStatus(`Sinkron: ${hh}:${mm}:${ss} • ${queueRows.length} antrean Nurse Station${metaSuffix}`, 'ok');
                 }
 
                 function getTodayRangeISO() {
@@ -1312,8 +1546,14 @@
                     const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
                     const singleCurrent = document.getElementById('focusedSingleCurrent');
                     const dualCurrent = document.getElementById('focusedPoliklinikDual');
+                    const farmasiDual = document.getElementById('focusedFarmasiDual');
+                    const nursePanel = document.getElementById('focusedNurseStationPanel');
+                    const nurseCard = document.getElementById('focusedCurrentNurseCard');
 
                     singleCurrent.classList.add('hidden');
+                    farmasiDual.classList.add('hidden');
+                    nursePanel.classList.add('hidden');
+                    nurseCard.classList.add('hidden');
                     dualCurrent.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.POLIKLINIK;
                     document.getElementById('focusedNextTitle').textContent = 'Daftar Antrean Selanjutnya';
@@ -1349,9 +1589,13 @@
                     const singleCurrent = document.getElementById('focusedSingleCurrent');
                     const farmasiDual = document.getElementById('focusedFarmasiDual');
                     const poliklinikDual = document.getElementById('focusedPoliklinikDual');
+                    const nursePanel = document.getElementById('focusedNurseStationPanel');
+                    const nurseCard = document.getElementById('focusedCurrentNurseCard');
 
                     singleCurrent.classList.add('hidden');
                     poliklinikDual.classList.add('hidden');
+                    nursePanel.classList.add('hidden');
+                    nurseCard.classList.add('hidden');
                     farmasiDual.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.FARMASI;
                     document.getElementById('focusedNextTitle').textContent = 'Daftar Antrean Selanjutnya';
@@ -1415,9 +1659,16 @@
                         renderFocusedFarmasiDual(rows);
                         return;
                     }
+                    if (unit === 'NURSE_STATION') {
+                        renderNurseStationDisplay(rows, getDefaultDoctorRows());
+                        return;
+                    }
 
                     document.getElementById('focusedSingleCurrent').classList.remove('hidden');
                     document.getElementById('focusedPoliklinikDual').classList.add('hidden');
+                    document.getElementById('focusedFarmasiDual').classList.add('hidden');
+                    document.getElementById('focusedNurseStationPanel').classList.add('hidden');
+                    document.getElementById('focusedCurrentNurseCard').classList.add('hidden');
                     const focusedSingleTitle = document.getElementById('focusedSingleTitle');
                     const called = (rows || []).filter(a => a.status_norm === 'dipanggil');
                     const queued = (rows || []).filter(a => a.status_norm === 'terdaftar');
@@ -1564,6 +1815,11 @@
 
                 async function loadAntrian() {
                     if (!displayAccessGranted) return;
+                    if (selectedUnit === 'NURSE_STATION') {
+                        await loadNurseStationDisplay();
+                        setSectionVisibility();
+                        return;
+                    }
                     try {
                         const { data: antrianData, error: antrianError } = await supabaseClient
                             .from('antrian')
@@ -1615,6 +1871,12 @@
                     displayRealtimeChannel = supabaseClient
                         .channel('public:antrian_display')
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => loadAntrian())
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'pasien' }, () => {
+                            if (selectedUnit === 'NURSE_STATION') loadAntrian();
+                        })
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'poli_doctor_status' }, () => {
+                            if (selectedUnit === 'NURSE_STATION') loadAntrian();
+                        })
                         .subscribe();
                 }
 
@@ -1772,6 +2034,14 @@
                     displayPickPoliklinikBtn.addEventListener('click', async () => {
                         if (!displayAccessGranted) return;
                         if (!lockDisplayUnit('POLIKLINIK')) return;
+                        await startDisplayRuntime();
+                    });
+                }
+
+                if (displayPickNurseStationBtn) {
+                    displayPickNurseStationBtn.addEventListener('click', async () => {
+                        if (!displayAccessGranted) return;
+                        if (!lockDisplayUnit('NURSE_STATION')) return;
                         await startDisplayRuntime();
                     });
                 }
