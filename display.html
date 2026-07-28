@@ -334,7 +334,7 @@
                         <h3 class="text-cyan-200 text-2xl md:text-3xl font-semibold tracking-wide uppercase">Informasi Dokter Poli</h3>
                         <div id="focusedNurseDoctorMeta" class="mt-2 text-sm font-semibold text-cyan-100/75">Memuat data dokter poli...</div>
                     </div>
-                    <div id="focusedDoctorStatusGrid" class="grid grid-cols-1 gap-5 xl:grid-cols-2"></div>
+                    <div id="focusedDoctorStatusGrid" class="flex flex-col gap-5"></div>
                 </div>
             </div>
 
@@ -342,10 +342,10 @@
                 <h3 id="focusedNextTitle" class="text-emerald-300 text-2xl font-bold mb-6 border-b border-emerald-700/50 pb-3">Antrean Berikutnya</h3>
                 <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.18)_0%,_rgba(37,99,235,0.2)_100%)] px-5 py-5 shadow-2xl">
                     <div class="text-cyan-200 text-xs font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
-                    <div id="focusedCurrentNurseQueue" class="mt-3 text-[4.2rem] md:text-[5.4rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-200">-</div>
-                    <div id="focusedCurrentNurseName" class="mt-3 text-2xl font-black text-white">Belum ada antrean dipanggil</div>
-                    <div id="focusedCurrentNursePoli" class="mt-2 text-base font-semibold text-cyan-100/80">-</div>
-                    <div id="focusedCurrentNurseMeta" class="mt-3 inline-flex rounded-full border border-cyan-300/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-cyan-100">-</div>
+                    <div id="focusedCurrentNurseQueue" class="mt-3 text-[5.6rem] md:text-[7.4rem] xl:text-[8.8rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-200">-</div>
+                    <div id="focusedCurrentNurseName" class="mt-3 text-3xl md:text-4xl font-black tracking-tight text-white">Belum ada antrean dipanggil</div>
+                    <div id="focusedCurrentNursePoli" class="mt-2 text-lg md:text-xl font-bold text-cyan-100/85">-</div>
+                    <div id="focusedCurrentNurseMeta" class="mt-4 inline-flex rounded-full border border-cyan-300/20 bg-white/10 px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] text-cyan-100">-</div>
                 </div>
                 <div id="focusedAntrianList" class="space-y-4"></div>
             </div>
@@ -760,6 +760,75 @@
                     return Array.from(map.values()).sort((a, b) => poliLabel(a.poli_tujuan).localeCompare(poliLabel(b.poli_tujuan)));
                 }
 
+                function escapeHtml(value) {
+                    return String(value ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                function poliLogoSvg(poliCode) {
+                    const code = String(poliCode || '').trim().toUpperCase();
+                    if (code === 'SPESIALIS_ANAK') {
+                        return `
+                            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="poliAnakGrad" x1="6" y1="6" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#22c55e" stop-opacity="0.95"/>
+                                        <stop offset="0.5" stop-color="#06b6d4" stop-opacity="0.9"/>
+                                        <stop offset="1" stop-color="#2563eb" stop-opacity="0.95"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="3" y="3" width="38" height="38" rx="16" fill="url(#poliAnakGrad)" fill-opacity="0.85" stroke="rgba(255,255,255,0.26)" stroke-width="1.5"/>
+                                <path d="M22 14.2c-3.1 0-5.6 2.5-5.6 5.6 0 2.2 1.2 4.1 3.1 5.1v2.1c0 .6.5 1.1 1.1 1.1h2.8c.6 0 1.1-.5 1.1-1.1V24.9c1.9-1 3.1-2.9 3.1-5.1 0-3.1-2.5-5.6-5.6-5.6Zm0 2.2c1.9 0 3.4 1.5 3.4 3.4 0 1.6-1.1 2.9-2.6 3.3-.5.1-.8.6-.8 1.1v2.1h-1.2v-2.1c0-.5-.3-1-.8-1.1-1.5-.4-2.6-1.7-2.6-3.3 0-1.9 1.5-3.4 3.4-3.4Z" fill="rgba(15,23,42,0.86)"/>
+                                <path d="M15.6 30.2c2 1.8 4.7 2.9 6.4 2.9s4.4-1.1 6.4-2.9" stroke="rgba(15,23,42,0.78)" stroke-width="2.2" stroke-linecap="round"/>
+                            </svg>
+                        `;
+                    }
+                    if (code === 'SPESIALIS_PENYAKIT_DALAM') {
+                        return `
+                            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="poliPdGrad" x1="6" y1="7" x2="38" y2="37" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#f97316" stop-opacity="0.9"/>
+                                        <stop offset="0.45" stop-color="#f43f5e" stop-opacity="0.85"/>
+                                        <stop offset="1" stop-color="#2563eb" stop-opacity="0.9"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="3" y="3" width="38" height="38" rx="16" fill="url(#poliPdGrad)" fill-opacity="0.82" stroke="rgba(255,255,255,0.24)" stroke-width="1.5"/>
+                                <path d="M22 12.8c-5.2 0-9.4 4.2-9.4 9.4 0 6.2 5.8 10.4 9.4 14 3.6-3.6 9.4-7.8 9.4-14 0-5.2-4.2-9.4-9.4-9.4Z" fill="rgba(15,23,42,0.14)"/>
+                                <path d="M22 16.1c3.3 0 6 2.7 6 6 0 3.2-2.4 5.5-6 8.8-3.6-3.3-6-5.6-6-8.8 0-3.3 2.7-6 6-6Z" fill="rgba(15,23,42,0.76)"/>
+                                <path d="M22 18.4v7.4" stroke="rgba(255,255,255,0.76)" stroke-width="2.2" stroke-linecap="round"/>
+                                <path d="M18.3 22.1h7.4" stroke="rgba(255,255,255,0.76)" stroke-width="2.2" stroke-linecap="round"/>
+                            </svg>
+                        `;
+                    }
+                    return `
+                        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="3" y="3" width="38" height="38" rx="16" fill="rgba(148,163,184,0.22)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+                            <path d="M22 14.5c-4.2 0-7.5 3.4-7.5 7.5 0 4.2 3.4 7.5 7.5 7.5 4.2 0 7.5-3.4 7.5-7.5 0-4.2-3.4-7.5-7.5-7.5Z" fill="rgba(15,23,42,0.7)"/>
+                            <path d="M22 18.2v7.6" stroke="rgba(255,255,255,0.72)" stroke-width="2.2" stroke-linecap="round"/>
+                            <path d="M18.2 22h7.6" stroke="rgba(255,255,255,0.72)" stroke-width="2.2" stroke-linecap="round"/>
+                        </svg>
+                    `;
+                }
+
+                function statusIconSvg(statusText) {
+                    const value = String(statusText || '').trim().toLowerCase();
+                    if (value === 'sedang praktik') {
+                        return '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" fill="rgba(255,255,255,0.22)"/><path d="M10.8 5.8v4.4l3 1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    }
+                    if (value === 'tersedia') {
+                        return '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" fill="rgba(255,255,255,0.22)"/><path d="M6.2 10.1l2.4 2.5 5.2-5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    }
+                    if (value === 'istirahat') {
+                        return '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" fill="rgba(255,255,255,0.22)"/><path d="M7.2 12.8h5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                    }
+                    return '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" fill="rgba(255,255,255,0.22)"/><path d="M7.3 7.3l5.4 5.4M12.7 7.3l-5.4 5.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                }
+
                 function nurseDoctorStatusClass(status) {
                     const value = String(status || '').trim().toLowerCase();
                     if (value === 'sedang praktik') return 'border-emerald-300/40 bg-emerald-400/15 text-emerald-100';
@@ -774,15 +843,50 @@
                     if (!container) return;
                     const items = mergeDoctorRows(rows);
                     container.innerHTML = items.map((row) => `
-                        <div class="rounded-[30px] border border-cyan-400/20 bg-[linear-gradient(135deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0.03)_100%)] px-6 py-6 shadow-2xl">
-                            <div class="text-cyan-200 text-xs font-extrabold uppercase tracking-[0.28em]">${poliLabel(row.poli_tujuan)}</div>
-                            <div class="mt-4 min-h-[4.8rem] text-2xl font-black leading-tight text-white">${row.nama_dokter || 'Belum diatur'}</div>
-                            <div class="mt-4 inline-flex rounded-full border px-4 py-2 text-sm font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">${row.status_dokter || 'Tidak Ada Dokter'}</div>
-                            <div class="mt-4 text-sm font-semibold text-cyan-100/70">${row.updated_at ? `Update ${new Date(row.updated_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Belum ada update hari ini'}</div>
+                        <div class="rounded-[32px] border border-cyan-200/20 bg-[linear-gradient(145deg,_rgba(255,255,255,0.10)_0%,_rgba(255,255,255,0.04)_50%,_rgba(2,132,199,0.08)_100%)] px-6 py-6 shadow-2xl">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="shrink-0">${poliLogoSvg(row.poli_tujuan)}</div>
+                                    <div>
+                                        <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Poli</div>
+                                        <div class="mt-1 text-white text-xl md:text-2xl font-black tracking-tight">${escapeHtml(poliLabel(row.poli_tujuan))}</div>
+                                    </div>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">
+                                    <span class="opacity-90">${statusIconSvg(row.status_dokter)}</span>
+                                    <span>${escapeHtml(row.status_dokter || 'Tidak Ada Dokter')}</span>
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-1 gap-4">
+                                <div class="rounded-[26px] border border-white/10 bg-white/5 px-5 py-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Dokter Bertugas</div>
+                                        <div class="text-cyan-200/70 text-[11px] font-bold uppercase tracking-[0.22em]">Sumber: Akun Poli</div>
+                                    </div>
+                                    <div class="mt-2 text-white text-xl md:text-2xl font-black leading-snug">${escapeHtml(row.nama_dokter || 'Belum diatur')}</div>
+                                </div>
+                                <div class="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-cyan-100/70">
+                                    <div class="inline-flex items-center gap-2">
+                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M6.2 1.9v2.1M13.8 1.9v2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M3.8 7.4h12.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M5.6 4.9h8.8c1.4 0 2.6 1.2 2.6 2.6v8c0 1.4-1.2 2.6-2.6 2.6H5.6c-1.4 0-2.6-1.2-2.6-2.6v-8c0-1.4 1.2-2.6 2.6-2.6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <span>${row.updated_at ? escapeHtml(new Date(row.updated_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'Belum ada update hari ini'}</span>
+                                    </div>
+                                    <div class="inline-flex items-center gap-2">
+                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M10 6v4.4l2.8 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <span>Realtime</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     `).join('');
                     if (metaEl) {
-                        metaEl.textContent = 'Nama dokter dan status diambil dari menu "Atur Dokter Poli" pada akun poli masing-masing.';
+                        metaEl.textContent = 'Nama dokter dan status diambil dari akun poli masing-masing dan tampil realtime di sini.';
                     }
                 }
 
@@ -804,8 +908,8 @@
                     nursePanel.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.NURSE_STATION;
                     document.getElementById('focusedNextTitle').textContent = 'Antrean Nurse Station';
-                    document.getElementById('focusedCurrentPanel').className = 'lg:w-3/5 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
-                    document.getElementById('focusedNextPanel').className = 'lg:w-2/5 bg-slate-950/55 backdrop-blur-sm p-6 border-l border-cyan-800/45 overflow-y-auto';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/3 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-2/3 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
 
                     renderNurseDoctorCards(doctorRows);
 
@@ -841,13 +945,13 @@
                     }
 
                     listContainer.innerHTML = waitingRows.slice(0, 8).map((item) => `
-                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-gradient-to-r from-cyan-950/75 to-blue-950/65 border-cyan-700/45 text-cyan-50'} border rounded-[24px] px-4 py-4 shadow-lg">
+                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-gradient-to-r from-cyan-950/75 to-blue-950/65 border-cyan-700/45 text-cyan-50'} border rounded-[26px] px-5 py-5 shadow-lg">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
-                                    <div class="text-3xl font-extrabold">${item.queue_no || '-'}</div>
+                                    <div class="text-4xl md:text-5xl font-extrabold tracking-tight">${escapeHtml(item.queue_no || '-')}</div>
                                     <div class="mt-1 text-sm font-bold uppercase tracking-[0.18em] ${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-status' : 'text-cyan-200/80'}">${isNsPriorityQueue(item.queue_no) ? 'Prioritas' : 'Umum'}</div>
-                                    <div class="mt-2 text-lg font-black text-white">${item.nama_pasien || 'Pasien'}</div>
-                                    <div class="mt-1 text-sm font-semibold text-cyan-100/75">${poliLabel(item.poli_tujuan)}</div>
+                                    <div class="mt-3 text-2xl font-black tracking-tight text-white">${escapeHtml(item.nama_pasien || 'Pasien')}</div>
+                                    <div class="mt-1 text-base font-semibold text-cyan-100/75">${escapeHtml(poliLabel(item.poli_tujuan))}</div>
                                 </div>
                                 <div class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">${item.ns_status === 'dipanggil' ? 'Dipanggil' : 'Menunggu'}</div>
                             </div>
