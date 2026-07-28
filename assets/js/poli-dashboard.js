@@ -70,7 +70,7 @@
                 '    </div>',
                 '    <div class="poli-dashboard-hero-side">',
                 '      <div class="poli-dashboard-side-card"><div class="poli-dashboard-stat-label">Email Akun</div><div id="poliDashEmail" class="poli-dashboard-side-value">-</div></div>',
-                '      <div class="poli-dashboard-side-card"><div class="poli-dashboard-stat-label">Catatan</div><div class="poli-dashboard-side-note">Tahap awal ini fokus pada daftar pasien, prioritas, buka riwayat, dan status selesai. Alur Nurse Station akan disambungkan di tahap berikutnya.</div></div>',
+                '      <div class="poli-dashboard-side-card"><div class="poli-dashboard-stat-label">Catatan</div><div class="poli-dashboard-side-note">Daftar ini menampilkan pasien yang sudah selesai diproses di Nurse Station dan masuk ke poli aktif hari ini.</div></div>',
                 '    </div>',
                 '  </section>',
                 '  <section class="poli-dashboard-summary">',
@@ -165,6 +165,12 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        }
+
+        function normalizeQueueNo(noAntrian) {
+            const value = String(noAntrian || '').trim();
+            if (!value) return '';
+            return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
         }
 
         function isPriorityQueue(noAntrian) {
@@ -318,8 +324,9 @@
             }
 
             els.list.innerHTML = rows.map((row) => {
-                const queueCategory = getQueueCategoryLabel(row.no_antrian);
-                const isPriority = isPriorityQueue(row.no_antrian);
+                const displayQueueNo = normalizeQueueNo(row.no_antrian);
+                const queueCategory = getQueueCategoryLabel(displayQueueNo);
+                const isPriority = isPriorityQueue(displayQueueNo);
                 const serviceStatus = row.serviceData?.status === 'selesai' ? 'Sudah Dilayani' : 'Belum Dilayani';
                 const doneMeta = row.serviceData?.status === 'selesai'
                     ? `<div class="poli-dashboard-item-done">Selesai ${escapeHtml(formatTime(row.serviceData.completed_at))}${row.serviceData.completed_by_name ? ` • ${escapeHtml(row.serviceData.completed_by_name)}` : ''}</div>`
@@ -332,7 +339,7 @@
                 return [
                     '<article class="poli-dashboard-item">',
                     '  <div class="poli-dashboard-item-head">',
-                    `    <div class="poli-dashboard-queue-badge ${isPriority ? 'is-priority' : 'is-regular'}">${escapeHtml(String(row.no_antrian || '-'))}</div>`,
+                    `    <div class="poli-dashboard-queue-badge ${isPriority ? 'is-priority' : 'is-regular'}">${escapeHtml(String(displayQueueNo || '-'))}</div>`,
                     '    <div class="poli-dashboard-item-main">',
                     `      <h3 class="poli-dashboard-item-title">${escapeHtml(String(row.nama_pasien || 'Pasien'))}</h3>`,
                     `      <div class="poli-dashboard-item-meta">RM ${escapeHtml(String(row.no_rm || '-'))} • Masuk ${escapeHtml(formatTime(row.created_at))}</div>`,
