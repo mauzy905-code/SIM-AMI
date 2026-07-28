@@ -155,6 +155,7 @@
                             <div class="my-4 h-px bg-gradient-to-r from-transparent via-violet-100 to-transparent"></div>
                             <a id="supervisorOpenDisplayPoliklinik" href="display.html?unit=POLIKLINIK" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Display Antrean Poliklinik</a>
                             <a id="supervisorOpenDisplayFarmasi" href="display.html?unit=FARMASI" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Display Antrean Farmasi</a>
+                            <a id="supervisorOpenDisplayNurseStation" href="display.html?unit=NURSE_STATION" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Display Nurse Station</a>
                             <a id="supervisorOpenDisplay" href="display.html" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Display Antrean (Pilih Unit)</a>
                             <a id="supervisorOpenMesinFarmasi" href="mesin-farmasi.html" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Mesin Antrean Farmasi</a>
                             <a id="supervisorOpenMesinPoliklinik" href="mesin-poliklinik.html" class="block rounded-2xl border border-violet-100 bg-white px-4 py-3.5 font-semibold text-slate-800 transition hover:bg-violet-50" target="_blank" rel="noreferrer">Mesin Antrean Poliklinik</a>
@@ -1358,6 +1359,7 @@
                             const supervisorMenuLinks = document.getElementById('supervisorMenuLinks');
                             const supervisorOpenDisplayPoliklinik = document.getElementById('supervisorOpenDisplayPoliklinik');
                             const supervisorOpenDisplayFarmasi = document.getElementById('supervisorOpenDisplayFarmasi');
+                            const supervisorOpenDisplayNurseStation = document.getElementById('supervisorOpenDisplayNurseStation');
                             const supervisorOpenDisplay = document.getElementById('supervisorOpenDisplay');
                             const supervisorOpenMesinFarmasi = document.getElementById('supervisorOpenMesinFarmasi');
                             const supervisorOpenMesinPoliklinik = document.getElementById('supervisorOpenMesinPoliklinik');
@@ -1597,6 +1599,7 @@
                                 const links = [
                                     { el: supervisorOpenDisplayPoliklinik, path: 'display.html?unit=POLIKLINIK' },
                                     { el: supervisorOpenDisplayFarmasi, path: 'display.html?unit=FARMASI' },
+                                    { el: supervisorOpenDisplayNurseStation, path: 'display.html?unit=NURSE_STATION' },
                                     { el: supervisorOpenDisplay, path: 'display.html' },
                                     { el: supervisorOpenMesinFarmasi, path: 'mesin-farmasi.html' },
                                     { el: supervisorOpenMesinPoliklinik, path: 'mesin-poliklinik.html' }
