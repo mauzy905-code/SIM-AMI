@@ -16,6 +16,7 @@
             loading: false,
             rows: [],
             serviceColumnAvailable: null,
+            examColumnsAvailable: null,
             message: '',
             messageTone: 'info'
         };
@@ -253,6 +254,35 @@
             return state.serviceColumnAvailable;
         }
 
+        async function detectExamColumns() {
+            if (!supabaseClient) {
+                state.examColumnsAvailable = false;
+                return false;
+            }
+            if (typeof state.examColumnsAvailable === 'boolean') {
+                return state.examColumnsAvailable;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('pasien')
+                    .select('nama_dokter,diagnosa')
+                    .limit(1);
+                state.examColumnsAvailable = !(error && /(nama_dokter|diagnosa)/i.test(error.message || ''));
+            } catch (_err) {
+                state.examColumnsAvailable = false;
+            }
+            return state.examColumnsAvailable;
+        }
+
+        function formatClinicalPreview(row) {
+            const dokter = String(row?.nama_dokter || '').trim();
+            const diagnosa = String(row?.diagnosa || '').trim();
+            if (!dokter && !diagnosa) return '';
+            const dokterText = dokter ? `Dokter: ${dokter}` : '';
+            const diagnosaText = diagnosa ? `Dx: ${diagnosa}` : '';
+            return [dokterText, diagnosaText].filter(Boolean).join(' • ');
+        }
+
         function mergeServiceData(row) {
             const fromRow = normalizeServiceData(row?.poli_service_data || null);
             const fromLocal = readLocalServiceData(row);
@@ -340,9 +370,15 @@
                 const doneMeta = row.serviceData?.status === 'selesai'
                     ? `<div class="poli-dashboard-item-done">Selesai ${escapeHtml(formatTime(row.serviceData.completed_at))}${row.serviceData.completed_by_name ? ` • ${escapeHtml(row.serviceData.completed_by_name)}` : ''}</div>`
                     : '';
+                const clinicalPreview = state.examColumnsAvailable
+                    ? formatClinicalPreview(row)
+                    : '';
+                const clinicalMeta = clinicalPreview
+                    ? `<div class="poli-dashboard-item-clinical" title="${escapeHtml(clinicalPreview)}">${escapeHtml(clinicalPreview)}</div>`
+                    : '';
                 const examButton = `<button type="button" class="poli-dashboard-action-btn is-exam" data-action="exam" data-row-id="${escapeHtml(String(row.id || ''))}">Isi Dokter & Diagnosa</button>`;
                 const openDisabled = row.no_rm ? '' : ' disabled';
-                const openLabel = row.serviceData?.status === 'selesai' ? 'Buka Riwayat' : 'Buka / Layani';
+                const openLabel = 'Riwayat';
                 const completeButton = row.serviceData?.status === 'selesai'
                     ? ''
                     : `<button type="button" class="poli-dashboard-action-btn is-complete" data-action="complete" data-row-id="${escapeHtml(String(row.id || ''))}">Selesai</button>`;
@@ -353,6 +389,7 @@
                     '    <div class="poli-dashboard-item-main">',
                     `      <h3 class="poli-dashboard-item-title">${escapeHtml(String(row.nama_pasien || 'Pasien'))}</h3>`,
                     `      <div class="poli-dashboard-item-meta">RM ${escapeHtml(String(row.no_rm || '-'))} • Masuk ${escapeHtml(formatTime(row.created_at))}</div>`,
+                    `      ${clinicalMeta}`,
                     '    </div>',
                     '    <div class="poli-dashboard-item-statuses">',
                     `      <span class="poli-dashboard-chip ${isPriority ? 'is-priority' : 'is-regular'}">${escapeHtml(queueCategory)}</span>`,
@@ -394,6 +431,7 @@
 
             try {
                 const canUseServiceColumn = await detectServiceColumn();
+                const canUseExamColumns = await detectExamColumns();
                 const selectFields = [
                     'id',
                     'no_rm',
@@ -405,6 +443,9 @@
                 ];
                 if (canUseServiceColumn) {
                     selectFields.push('poli_service_data');
+                }
+                if (canUseExamColumns) {
+                    selectFields.push('nama_dokter', 'diagnosa');
                 }
 
                 const bounds = getDayBounds();
@@ -482,6 +523,12 @@
 
         async function markAsCompleted(row) {
             if (!row?.id) return;
+            const dokter = String(row?.nama_dokter || '').trim();
+            const diagnosa = String(row?.diagnosa || '').trim();
+            if (state.examColumnsAvailable && (!dokter || !diagnosa)) {
+                const ok = window.confirm('Dokter atau diagnosa masih kosong. Tandai pasien sebagai selesai tetap?');
+                if (!ok) return;
+            }
             const payload = {
                 status: 'selesai',
                 completed_at: new Date().toISOString(),
