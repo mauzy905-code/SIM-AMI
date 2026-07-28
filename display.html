@@ -330,22 +330,26 @@
                     </div>
                 </div>
                 <div id="focusedNurseStationPanel" class="hidden w-full">
-                    <div class="mb-6 text-center">
-                        <h3 class="bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.5rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">Informasi Dokter Poli</h3>
-                        <div id="focusedNurseDoctorMeta" class="mt-2 text-sm md:text-base font-bold tracking-[0.04em] text-cyan-100/80">Memuat data dokter poli...</div>
+                    <div class="mb-7 rounded-[30px] border border-cyan-200/10 bg-white/[0.04] px-6 py-6 shadow-[0_28px_60px_-36px_rgba(8,145,178,0.48)]">
+                        <div class="inline-flex rounded-full border border-cyan-200/15 bg-cyan-300/10 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.28em] text-cyan-100/90">Panel Dokter</div>
+                        <h3 class="mt-4 text-[2rem] md:text-[2.55rem] font-black tracking-[0.04em] uppercase text-white">INFORMASI DOKTER POLI</h3>
+                        <div id="focusedNurseDoctorMeta" class="mt-2 max-w-xl text-sm md:text-[15px] font-medium leading-6 text-slate-200/78">Memuat data dokter poli...</div>
                     </div>
                     <div id="focusedDoctorStatusGrid" class="flex flex-col gap-5"></div>
                 </div>
             </div>
 
             <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-900/55 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto">
-                <h3 id="focusedNextTitle" class="mb-6 border-b border-cyan-500/25 pb-3 bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.4rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">ANTREAN BERIKUTNYA</h3>
-                <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.18)_0%,_rgba(37,99,235,0.2)_100%)] px-5 py-5 shadow-2xl">
-                    <div class="text-cyan-200 text-xs font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
+                <div class="mb-6 rounded-[30px] border border-cyan-200/10 bg-white/[0.04] px-6 py-6 shadow-[0_28px_60px_-36px_rgba(8,145,178,0.48)]">
+                    <div class="inline-flex rounded-full border border-cyan-200/15 bg-cyan-300/10 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.28em] text-cyan-100/90">Panel Antrean</div>
+                    <h3 id="focusedNextTitle" class="mt-4 text-[2rem] md:text-[2.55rem] font-black tracking-[0.04em] uppercase text-white">ANTREAN NURSE STATION</h3>
+                </div>
+                <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[32px] border border-cyan-200/12 bg-[linear-gradient(145deg,_rgba(255,255,255,0.08)_0%,_rgba(9,33,64,0.72)_100%)] px-6 py-6 shadow-[0_30px_70px_-34px_rgba(15,23,42,0.72)]">
+                    <div class="text-cyan-100/85 text-[11px] font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
                     <div id="focusedCurrentNurseQueue" class="mt-3 text-[5.6rem] md:text-[7.4rem] xl:text-[8.8rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-200">-</div>
                     <div id="focusedCurrentNurseName" class="mt-3 text-3xl md:text-4xl font-black tracking-tight text-white">Belum ada antrean dipanggil</div>
-                    <div id="focusedCurrentNursePoli" class="mt-2 text-lg md:text-xl font-bold text-cyan-100/85">-</div>
-                    <div id="focusedCurrentNurseMeta" class="mt-4 inline-flex rounded-full border border-cyan-300/20 bg-white/10 px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] text-cyan-100">-</div>
+                    <div id="focusedCurrentNursePoli" class="mt-2 text-lg md:text-xl font-semibold text-slate-200/86">-</div>
+                    <div id="focusedCurrentNurseMeta" class="mt-5 inline-flex rounded-full border border-cyan-200/14 bg-cyan-300/10 px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] text-cyan-100">-</div>
                 </div>
                 <div id="focusedAntrianList" class="space-y-4"></div>
             </div>
@@ -843,26 +847,26 @@
                     if (!container) return;
                     const items = mergeDoctorRows(rows);
                     container.innerHTML = items.map((row) => `
-                        <div class="rounded-[32px] border border-cyan-200/20 bg-[linear-gradient(145deg,_rgba(255,255,255,0.10)_0%,_rgba(255,255,255,0.04)_50%,_rgba(2,132,199,0.08)_100%)] px-6 py-6 shadow-2xl">
+                        <div class="rounded-[32px] border border-white/10 bg-[linear-gradient(145deg,_rgba(255,255,255,0.07)_0%,_rgba(255,255,255,0.03)_40%,_rgba(15,23,42,0.18)_100%)] px-6 py-6 shadow-[0_30px_64px_-36px_rgba(15,23,42,0.8)]">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="flex items-center gap-4">
-                                    <div class="shrink-0">${poliLogoSvg(row.poli_tujuan)}</div>
+                                    <div class="shrink-0 rounded-[20px] border border-white/10 bg-white/[0.06] p-2 shadow-inner">${poliLogoSvg(row.poli_tujuan)}</div>
                                     <div>
-                                        <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Poli</div>
-                                        <div class="mt-1 text-white text-xl md:text-2xl font-black tracking-tight">${escapeHtml(poliLabel(row.poli_tujuan))}</div>
+                                        <div class="text-slate-300/78 text-[11px] font-extrabold uppercase tracking-[0.24em]">Poli</div>
+                                        <div class="mt-1 text-white text-[1.45rem] md:text-[1.75rem] font-black leading-tight tracking-[0.01em]">${escapeHtml(poliLabel(row.poli_tujuan))}</div>
                                     </div>
                                 </div>
-                                <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">
+                                <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] md:text-xs font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">
                                     <span class="opacity-90">${statusIconSvg(row.status_dokter)}</span>
                                     <span>${escapeHtml(row.status_dokter || 'Tidak Ada Dokter')}</span>
                                 </div>
                             </div>
                             <div class="mt-6 grid grid-cols-1 gap-4">
-                                <div class="rounded-[26px] border border-white/10 bg-white/5 px-5 py-4">
-                                    <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Dokter Bertugas</div>
-                                    <div class="mt-2 text-white text-xl md:text-2xl font-black leading-snug">${escapeHtml(row.nama_dokter || 'Belum diatur')}</div>
+                                <div class="rounded-[26px] border border-white/8 bg-white/[0.05] px-5 py-4">
+                                    <div class="text-slate-300/78 text-[11px] font-extrabold uppercase tracking-[0.24em]">Dokter Bertugas</div>
+                                    <div class="mt-2 text-white text-[1.28rem] md:text-[1.55rem] font-black leading-snug tracking-[0.01em]">${escapeHtml(row.nama_dokter || 'Belum diatur')}</div>
                                 </div>
-                                <div class="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-cyan-100/70">
+                                <div class="flex flex-wrap items-center justify-between gap-3 text-sm font-medium text-slate-300/72">
                                     <div class="inline-flex items-center gap-2">
                                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                             <path d="M6.2 1.9v2.1M13.8 1.9v2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -871,19 +875,13 @@
                                         </svg>
                                         <span>${row.updated_at ? escapeHtml(new Date(row.updated_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'Belum ada update hari ini'}</span>
                                     </div>
-                                    <div class="inline-flex items-center gap-2">
-                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M10 6v4.4l2.8 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>Realtime</span>
-                                    </div>
+                                    <div class="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-100/78">Aktif Hari Ini</div>
                                 </div>
                             </div>
                         </div>
                     `).join('');
                     if (metaEl) {
-                        metaEl.textContent = 'Nama dokter dan status diambil dari akun poli masing-masing dan tampil realtime di sini.';
+                        metaEl.textContent = 'Nama dokter dan status diperbarui dari akun poli masing-masing untuk ditampilkan pada layar antrean.';
                     }
                 }
 
@@ -905,8 +903,8 @@
                     nursePanel.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.NURSE_STATION;
                     document.getElementById('focusedNextTitle').textContent = 'Antrean Nurse Station';
-                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/3 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
-                    document.getElementById('focusedNextPanel').className = 'lg:w-2/3 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-[36%] flex flex-col items-center justify-center p-7 bg-[linear-gradient(180deg,_rgba(8,47,73,0.94)_0%,_rgba(15,23,42,0.98)_100%)]';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-[64%] bg-[linear-gradient(180deg,_rgba(2,6,23,0.96)_0%,_rgba(3,18,42,0.98)_100%)] backdrop-blur-sm p-8 border-l border-white/8 overflow-y-auto';
 
                     renderNurseDoctorCards(doctorRows);
 
@@ -937,20 +935,20 @@
                     }
 
                     if (waitingRows.length === 0) {
-                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean Nurse Station hari ini.</div>';
+                        listContainer.innerHTML = '<div class="rounded-[24px] border border-white/8 bg-white/[0.04] px-5 py-4 text-sm font-medium text-slate-300/78">Belum ada antrean Nurse Station hari ini.</div>';
                         return;
                     }
 
                     listContainer.innerHTML = waitingRows.slice(0, 8).map((item) => `
-                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-gradient-to-r from-cyan-950/75 to-blue-950/65 border-cyan-700/45 text-cyan-50'} border rounded-[26px] px-5 py-5 shadow-lg">
+                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'border-white/8 bg-[linear-gradient(145deg,_rgba(255,255,255,0.06)_0%,_rgba(255,255,255,0.025)_50%,_rgba(15,23,42,0.22)_100%)] text-cyan-50'} border rounded-[28px] px-6 py-5 shadow-[0_26px_60px_-36px_rgba(15,23,42,0.85)]">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
-                                    <div class="text-4xl md:text-5xl font-extrabold tracking-tight">${escapeHtml(item.queue_no || '-')}</div>
-                                    <div class="mt-1 text-sm font-bold uppercase tracking-[0.18em] ${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-status' : 'text-cyan-200/80'}">${isNsPriorityQueue(item.queue_no) ? 'Prioritas' : 'Umum'}</div>
-                                    <div class="mt-3 text-2xl font-black tracking-tight text-white">${escapeHtml(item.nama_pasien || 'Pasien')}</div>
-                                    <div class="mt-1 text-base font-semibold text-cyan-100/75">${escapeHtml(poliLabel(item.poli_tujuan))}</div>
+                                    <div class="text-4xl md:text-[3.6rem] font-extrabold tracking-tight text-white">${escapeHtml(item.queue_no || '-')}</div>
+                                    <div class="mt-1 text-[11px] font-extrabold uppercase tracking-[0.22em] ${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-status' : 'text-cyan-100/68'}">${isNsPriorityQueue(item.queue_no) ? 'Prioritas' : 'Umum'}</div>
+                                    <div class="mt-3 text-2xl md:text-[1.9rem] font-black tracking-tight text-white">${escapeHtml(item.nama_pasien || 'Pasien')}</div>
+                                    <div class="mt-1 text-[15px] font-medium text-slate-300/78">${escapeHtml(poliLabel(item.poli_tujuan))}</div>
                                 </div>
-                                <div class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">${item.ns_status === 'dipanggil' ? 'Dipanggil' : 'Menunggu'}</div>
+                                <div class="rounded-full border border-white/8 bg-white/[0.05] px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-200/78">${item.ns_status === 'dipanggil' ? 'Dipanggil' : 'Menunggu'}</div>
                             </div>
                         </div>
                     `).join('');
