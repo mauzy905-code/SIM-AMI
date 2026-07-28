@@ -257,6 +257,18 @@
     color: #64748b;
 }
 
+.poli-dashboard-item-clinical {
+    margin-top: 8px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 800;
+    color: #0f766e;
+}
+
 .poli-dashboard-item-statuses {
     display: flex;
     gap: 8px;
