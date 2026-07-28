@@ -1948,6 +1948,7 @@
                         function buildPrintPayload(payload = {}) {
                             const noAntrian = String(payload.no_antrian || '').trim();
                             const isPriorityQueue = isPrioritasNoAntrian(noAntrian) || /^P-/i.test(noAntrian);
+                            const nurseStationQueueNo = normalizePriorityQueueNo(payload.nurse_station_queue_no || noAntrian);
                             return {
                                 nama_pasien: String(payload.nama_pasien || '').trim(),
                                 tanggal_lahir: formatDateSlash(payload.tanggal_lahir || ''),
@@ -1957,7 +1958,7 @@
                                 no_registrasi: String(payload.no_registrasi || '').trim(),
                                 unit: String(payload.unit || '').trim(),
                                 no_antrian: noAntrian,
-                                nurse_station_queue_no: String(payload.nurse_station_queue_no || noAntrian).trim(),
+                                nurse_station_queue_no: nurseStationQueueNo,
                                 nurse_station_category: isPriorityQueue ? 'Prioritas' : 'Umum',
                                 poli_tujuan_label: r_poliLabel(String(payload.poli_tujuan || '').trim()) || '-',
                                 waktu_daftar: payload.waktu_daftar instanceof Date
@@ -2928,8 +2929,14 @@
                             return String(unit || '');
                         }
 
+                        function normalizePriorityQueueNo(noAntrian) {
+                            const value = String(noAntrian || '').trim();
+                            if (!value) return '';
+                            return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
+                        }
+
                         function isPrioritasNoAntrian(noAntrian) {
-                            return /^B-/i.test(String(noAntrian || '').trim());
+                            return /^(P|B)-/i.test(String(noAntrian || '').trim());
                         }
 
                         function isPoliklinikRegulerNoAntrian(noAntrian) {
@@ -6515,6 +6522,12 @@
                             await refreshStats();
                             if (!viewPendaftaran.classList.contains('hidden') && !isSupervisorRole()) {
                                 await loadQueueControls();
+                            }
+                            if (!viewNurseStationDashboard.classList.contains('hidden')) {
+                                await nurseStationDashboardModule?.refresh?.();
+                            }
+                            if (!viewPoliDashboard.classList.contains('hidden')) {
+                                await poliDashboardModule?.refresh?.();
                             }
                             if (!viewRekap.classList.contains('hidden')) {
                                 await r_loadPage(r_currentPage);
