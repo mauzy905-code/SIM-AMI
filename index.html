@@ -2567,6 +2567,7 @@
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
@@ -2583,7 +2584,6 @@
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Jenis Pasien</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Poli / Tujuan</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Antrian</th>
-                                            <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Petugas Input</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Petugas Poli</th>
                                             <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Dokter</th>
@@ -2607,6 +2607,7 @@
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Waktu Daftar</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Nama</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No RM</th>
+                                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">JK</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Tgl Lahir</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Umur</th>
@@ -2623,7 +2624,6 @@
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Jenis Pasien</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Poli</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Antrian</th>
-                                                <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">No Registrasi</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Petugas Input</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Petugas Poli</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Dokter</th>
@@ -7100,6 +7100,7 @@
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
                                             <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
                                             <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
+                                            <td class="px-4 py-2 font-semibold text-slate-700 whitespace-nowrap">${noRegistrasi}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jk}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${tglLahir}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${umur}</td>
@@ -7116,7 +7117,6 @@
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jenisPasien}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap max-w-[180px] truncate" title="${escapeHtml(poli || '-')}">${poli || '-'}</td>
                                             <td class="px-4 py-2 font-semibold text-emerald-700 whitespace-nowrap">${noAntrian}</td>
-                                            <td class="px-4 py-2 font-semibold text-slate-700 whitespace-nowrap">${noRegistrasi}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(petugasInput))}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(petugasPoli))}</td>
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(dokter))}</td>
@@ -7144,6 +7144,7 @@
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
                                         <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
                                         <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
+                                        <td class="px-4 py-2 font-semibold text-slate-700 whitespace-nowrap">${noRegistrasi}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jk}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${tglLahir}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${umur}</td>
@@ -7160,7 +7161,6 @@
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${jenisPasien}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap max-w-[180px] truncate" title="${escapeHtml(poli)}">${poli || '-'}</td>
                                         <td class="px-4 py-2 font-semibold text-emerald-700 whitespace-nowrap">${noAntrian}</td>
-                                        <td class="px-4 py-2 font-semibold text-slate-700 whitespace-nowrap">${noRegistrasi}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(petugasInput))}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(petugasPoli))}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(dokter))}</td>
@@ -7288,32 +7288,41 @@
                                         throw new Error('Library export Excel tidak tersedia.');
                                     }
 
-                                    const rows = data.map((p) => ({
-                                        'Waktu Daftar': r_formatDateTimeLocal(p.created_at),
-                                        'Nama Pasien': p.nama_pasien ?? '',
-                                        'No RM': p.no_rm ?? '',
-                                        'Jenis Kelamin': p.jenis_kelamin ?? '',
-                                        'Tanggal Lahir': r_formatDateOnly(p.tanggal_lahir),
-                                        'Pendidikan': p.pendidikan ?? '',
-                                        'Pekerjaan': p.pekerjaan ?? '',
-                                        'Status Perkawinan': p.status_perkawinan ?? '',
-                                        'Suku': p.suku ?? '',
-                                        'NIK': p.nik ?? '',
-                                        'No BPJS': p.no_bpjs ?? '',
-                                        'Alamat': p.alamat ?? '',
-                                        'No Telepon': p.no_telepon ?? '',
-                                        'Unit': r_unitLabel(p.unit),
-                                        'Jenis Pasien': r_jenisPasienLabel(p.jenis_pasien),
-                                        'Poli': r_poliLabel(p.poli_tujuan),
-                                        'No Antrian': p.no_antrian ?? '',
-                                        'No Registrasi': p.no_registrasi ?? '',
-                                        'Petugas Input': p.petugas_input ?? '',
-                                        'Petugas Poli': p.petugas_poli ?? '',
-                                        'Dokter': p.nama_dokter ?? '',
-                                        'Diagnosa': p.diagnosa ?? '',
-                                        'Riwayat Pasien (GDrive)': p.riwayat_pasien_link ?? '',
-                                        'Umur': p.umur ?? ''
-                                    }));
+                                    const rows = data.map((p) => {
+                                        const batalPayload = getBatalBerobatPayload(p);
+                                        const cancelledBy = [batalPayload?.byName || '', batalPayload?.byRole || '']
+                                            .filter(Boolean)
+                                            .join(' - ');
+                                        return {
+                                            'Waktu Daftar': r_formatDateTimeLocal(p.created_at),
+                                            'Status Kunjungan': batalPayload ? 'BATAL BEROBAT' : 'AKTIF',
+                                            'Nama Pasien': p.nama_pasien ?? '',
+                                            'No RM': p.no_rm ?? '',
+                                            'No Registrasi': p.no_registrasi ?? '',
+                                            'Jenis Kelamin': p.jenis_kelamin ?? '',
+                                            'Tanggal Lahir': r_formatDateOnly(p.tanggal_lahir),
+                                            'Umur': p.umur ?? '',
+                                            'Pendidikan': p.pendidikan ?? '',
+                                            'Pekerjaan': p.pekerjaan ?? '',
+                                            'Status Perkawinan': p.status_perkawinan ?? '',
+                                            'Suku': p.suku ?? '',
+                                            'NIK': p.nik ?? '',
+                                            'No BPJS': p.no_bpjs ?? '',
+                                            'Alamat': p.alamat ?? '',
+                                            'No Telepon': p.no_telepon ?? '',
+                                            'Unit': r_unitLabel(p.unit),
+                                            'Jenis Pasien': r_jenisPasienLabel(p.jenis_pasien),
+                                            'Poli': r_poliLabel(p.poli_tujuan),
+                                            'No Antrian': p.no_antrian ?? '',
+                                            'Petugas Input': p.petugas_input ?? '',
+                                            'Petugas Poli': p.petugas_poli ?? '',
+                                            'Dokter': p.nama_dokter ?? '',
+                                            'Diagnosa': p.diagnosa ?? '',
+                                            'Waktu Batal': batalPayload?.cancelledAt ? r_formatDateTimeLocal(batalPayload.cancelledAt) : '',
+                                            'Dibatalkan Oleh': cancelledBy || (batalPayload?.byEmail || ''),
+                                            'Riwayat Pasien (GDrive)': p.riwayat_pasien_link ?? ''
+                                        };
+                                    });
 
                                     const worksheet = XLSX.utils.json_to_sheet(rows);
                                     const workbook = XLSX.utils.book_new();
