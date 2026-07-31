@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
             <html lang="id">
             <head>
                 <meta charset="UTF-8">
@@ -1538,6 +1538,7 @@
                             let nurseStationDataColumnAvailable = true;
                             let triaseDraftColumnAvailable = true;
                             let generalConsentColumnAvailable = true;
+                            let batalBerobatColumnAvailable = true;
                             let triaseUgdDraftsTableAvailable = true;
                             let queueRoutingColumnsAvailable = true;
                             let queueProcessingColumnsAvailable = true;
@@ -2488,6 +2489,7 @@
                                 const isReadOnlyViewer = isReadOnlyPatientViewerRole();
                                 const scopedPetugasPoli = isPetugasPoliScopedRekap();
                                 const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
+                                const showCancelVisitColumn = canManageBatalBerobat() && !isRme && !isPetugasPoli && !isNurseStation;
                                 const titleEl = document.getElementById('rekapTitle');
                                 const descEl = document.getElementById('rekapDescription');
                                 const qLabelEl = document.getElementById('r_q_label');
@@ -2626,6 +2628,7 @@
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Petugas Poli</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Dokter</th>
                                                 <th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Diagnosa</th>
+                                                ${showCancelVisitColumn ? '<th class="px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-900/90 whitespace-nowrap">Batal Berobat</th>' : ''}
                                             </tr>`);
                                 }
                             }
@@ -2996,6 +2999,10 @@
 
                             function canManagePoliExam() {
                                 return isPetugasPoliRole();
+                            }
+
+                            function canManageBatalBerobat() {
+                                return isRegistrationWorkflowRole();
                             }
 
                             function canManagePatientIdentityEdit() {
@@ -3656,6 +3663,7 @@
                                     await detectNurseStationDataColumn();
                                     await detectTriaseDraftColumn();
                                     await detectGeneralConsentColumn();
+                                    await detectBatalBerobatColumn();
                                     await detectTriaseUgdDraftsTable();
                                     showView(isPerawatRole()
                                         ? 'perawat_dashboard'
@@ -4212,6 +4220,23 @@
                                     }
                                 } catch (_err) {
                                     generalConsentColumnAvailable = false;
+                                }
+                            }
+
+                            async function detectBatalBerobatColumn() {
+                                try {
+                                    const { error } = await supabaseClient
+                                        .from('pasien')
+                                        .select('batal_berobat_data')
+                                        .limit(1);
+
+                                    if (error && /batal_berobat_data/i.test(error.message || '')) {
+                                        batalBerobatColumnAvailable = false;
+                                    } else {
+                                        batalBerobatColumnAvailable = true;
+                                    }
+                                } catch (_err) {
+                                    batalBerobatColumnAvailable = false;
                                 }
                             }
 
@@ -6907,6 +6932,57 @@
                                     .order('id', { ascending: false });
                             }
 
+                            const BATAL_BEROBAT_STORAGE_PREFIX = 'simami:batal_berobat:';
+
+                            function normalizeBatalBerobatPayload(payload) {
+                                if (!payload) return null;
+                                if (typeof payload === 'string') {
+                                    try {
+                                        payload = JSON.parse(payload);
+                                    } catch (_err) {
+                                        return null;
+                                    }
+                                }
+                                if (!payload || typeof payload !== 'object') return null;
+                                const status = String(payload.status || '').trim().toUpperCase();
+                                if (status !== 'BATAL_BEROBAT') return null;
+                                return {
+                                    status: 'BATAL_BEROBAT',
+                                    cancelledAt: String(payload.cancelledAt || payload.cancelled_at || '').trim(),
+                                    byName: String(payload.byName || payload.by_name || '').trim(),
+                                    byEmail: String(payload.byEmail || payload.by_email || '').trim(),
+                                    byRole: String(payload.byRole || payload.by_role || '').trim(),
+                                    note: String(payload.note || '').trim()
+                                };
+                            }
+
+                            function getBatalBerobatStorageKey(record) {
+                                if (!record) return '';
+                                const id = String(record.id || '').trim();
+                                if (id) return `${BATAL_BEROBAT_STORAGE_PREFIX}id:${id}`;
+                                const noReg = String(record.no_registrasi || '').trim();
+                                if (noReg) return `${BATAL_BEROBAT_STORAGE_PREFIX}reg:${noReg}`;
+                                const noRm = String(record.no_rm || '').trim();
+                                if (noRm) return `${BATAL_BEROBAT_STORAGE_PREFIX}rm:${noRm}`;
+                                return '';
+                            }
+
+                            function getBatalBerobatPayload(record) {
+                                const dbPayload = normalizeBatalBerobatPayload(record?.batal_berobat_data || null);
+                                if (dbPayload) return dbPayload;
+                                const storageKey = getBatalBerobatStorageKey(record);
+                                if (!storageKey) return null;
+                                try {
+                                    return normalizeBatalBerobatPayload(window.localStorage.getItem(storageKey));
+                                } catch (_err) {
+                                    return null;
+                                }
+                            }
+
+                            function isBatalBerobatRecord(record) {
+                                return Boolean(getBatalBerobatPayload(record));
+                            }
+
                             function r_renderRows(items) {
                                 const isRme = isRmeRole();
                                 const isIgd = isIgdRole();
@@ -6916,12 +6992,14 @@
                                 const canTriase = canAccessTriaseUgd();
                                 const canAssessment = canAccessAssessmentUgd();
                                 const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
+                                const showCancelVisitColumn = canManageBatalBerobat() && !isRme && !isPetugasPoli;
                                 if (!items || items.length === 0) {
-                                    const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : (showSupervisorEditColumn ? 25 : 24));
+                                    const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : ((showSupervisorEditColumn ? 25 : 24) + (showCancelVisitColumn ? 1 : 0)));
                                     rEls.rows.innerHTML = `<tr><td class="px-4 py-6 text-slate-500" colspan="${emptyColspan}">Tidak ada data.</td></tr>`;
                                     return;
                                 }
                                 rEls.rows.innerHTML = items.map((p) => {
+                                    const isCancelled = isBatalBerobatRecord(p);
                                     const waktu = r_formatDateTimeLocal(p.created_at);
                                     const unit = r_unitLabel(p.unit);
                                     const jenisPasien = r_jenisPasienLabel(p.jenis_pasien);
@@ -7009,11 +7087,16 @@
                                             ${assessmentBtnRekap}
                                             <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${canManageDriveLink ? 'Input Link' : 'Lihat Riwayat'}</button>
                                         </div>`;
+                                    const cancelVisitCell = showCancelVisitColumn && String(p.id || '').trim()
+                                        ? (isCancelled
+                                            ? `<span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-700 whitespace-nowrap">BATAL</span>`
+                                            : `<button type="button" class="cancel-visit-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-800 transition hover:bg-rose-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-nama="${escapeHtml(nama)}" data-unit="${escapeHtml(String(p.unit || ''))}">Batal Berobat</button>`)
+                                        : (isCancelled ? `<span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-700 whitespace-nowrap">BATAL</span>` : `<span class="text-xs font-semibold text-slate-400">-</span>`);
                                     if (isRme) {
                                         const actionCell = noRm !== '-'
                                             ? riwayatLinkCell
                                             : `<span class="text-xs font-semibold text-slate-500">No RM belum ada</span>`;
-                                        return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                                        return `<tr class="${isCancelled ? 'bg-rose-50/80 hover:bg-rose-50' : 'odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60'} transition">
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
                                             <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
                                             <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
@@ -7043,7 +7126,7 @@
                                     if (isPetugasPoli) {
                                         const examBtn = `<button type="button" class="poli-exam-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}" data-dokter="${escapeHtml(String(p.nama_dokter || ''))}" data-diagnosa="${escapeHtml(String(p.diagnosa || ''))}">Input Dokter/Diagnosa</button>`;
                                         const actionCell = `<div class="flex items-center gap-2 whitespace-nowrap">${examBtn}${riwayatOnlyCell}</div>`;
-                                        return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                                        return `<tr class="${isCancelled ? 'bg-rose-50/80 hover:bg-rose-50' : 'odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60'} transition">
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
                                             <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
                                             <td class="px-4 py-2 font-semibold text-blue-700 whitespace-nowrap">${noRm}</td>
@@ -7056,7 +7139,7 @@
                                             <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${actionCell}</td>
                                         </tr>`;
                                     }
-                                    return `<tr class="odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60 transition">
+                                    return `<tr class="${isCancelled ? 'bg-rose-50/80 hover:bg-rose-50' : 'odd:bg-white even:bg-slate-50/40 hover:bg-emerald-50/60'} transition">
                                         ${showSupervisorEditColumn ? `<td class="px-4 py-2 text-slate-800 whitespace-nowrap">${editIdentityCell}</td>` : ''}
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${waktu}</td>
                                         <td class="px-4 py-2 text-slate-900 whitespace-nowrap">${namaButton}</td>
@@ -7082,6 +7165,7 @@
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(petugasPoli))}</td>
                                         <td class="px-4 py-2 text-slate-800 whitespace-nowrap">${escapeHtml(String(dokter))}</td>
                                         <td class="px-4 py-2 text-slate-800 min-w-[240px] max-w-[320px] whitespace-normal break-words">${escapeHtml(String(diagnosa))}</td>
+                                        ${showCancelVisitColumn ? `<td class="px-4 py-2 text-slate-800 whitespace-nowrap">${cancelVisitCell}</td>` : ''}
                                     </tr>`;
                                 }).join('');
                             }
@@ -7129,6 +7213,55 @@
                             function r_debouncedReload() {
                                 if (r_debounceTimer) window.clearTimeout(r_debounceTimer);
                                 r_debounceTimer = window.setTimeout(() => r_reloadToFirstPage(), 300);
+                            }
+
+                            async function r_markBatalBerobat(patientId, patientName, patientUnit) {
+                                if (!canManageBatalBerobat()) return false;
+                                const pid = String(patientId || '').trim();
+                                if (!pid) return false;
+                                const nama = String(patientName || '').trim() || 'pasien ini';
+                                const unit = String(patientUnit || '').trim();
+                                const ok = confirm(`Tandai ${nama} sebagai BATAL BEROBAT?${unit ? `\nUnit: ${unit}` : ''}\n\nCatatan: data pasien tidak dihapus, hanya diberi status batal untuk audit.`);
+                                if (!ok) return false;
+
+                                const payload = {
+                                    status: 'BATAL_BEROBAT',
+                                    cancelledAt: new Date().toISOString(),
+                                    byName: getCurrentOperatorName(),
+                                    byEmail: getCurrentAdminEmail(),
+                                    byRole: String(currentAdminRole || '').trim()
+                                };
+
+                                const storageKey = getBatalBerobatStorageKey({ id: pid });
+                                if (storageKey) {
+                                    try {
+                                        window.localStorage.setItem(storageKey, JSON.stringify(payload));
+                                    } catch (_err) {}
+                                }
+
+                                if (batalBerobatColumnAvailable) {
+                                    try {
+                                        const { error } = await withTimeout(
+                                            supabaseClient
+                                                .from('pasien')
+                                                .update({ batal_berobat_data: payload })
+                                                .eq('id', pid),
+                                            15000,
+                                            'Simpan Batal Berobat'
+                                        );
+                                        if (error) {
+                                            if (/batal_berobat_data/i.test(error.message || '')) {
+                                                batalBerobatColumnAvailable = false;
+                                                return true;
+                                            }
+                                            throw new Error(error.message);
+                                        }
+                                    } catch (err) {
+                                        console.warn('Gagal menyimpan status batal berobat ke database:', err);
+                                    }
+                                }
+
+                                return true;
                             }
 
                             async function r_exportExcel() {
@@ -7244,7 +7377,26 @@
                                     syncSupervisorAutoRefresh();
                                 });
                             }
-                            rEls.rows.addEventListener('click', (event) => {
+                            rEls.rows.addEventListener('click', async (event) => {
+                                const cancelVisitBtn = event.target.closest('.cancel-visit-btn');
+                                if (cancelVisitBtn) {
+                                    const originalText = cancelVisitBtn.textContent;
+                                    cancelVisitBtn.disabled = true;
+                                    cancelVisitBtn.textContent = 'Memproses...';
+                                    try {
+                                        const saved = await r_markBatalBerobat(cancelVisitBtn.dataset.id, cancelVisitBtn.dataset.nama, cancelVisitBtn.dataset.unit);
+                                        if (saved && !viewRekap.classList.contains('hidden')) {
+                                            await r_loadPage(r_currentPage);
+                                        }
+                                    } catch (err) {
+                                        alert('Gagal menandai batal berobat: ' + (err?.message || String(err)));
+                                    } finally {
+                                        cancelVisitBtn.disabled = false;
+                                        cancelVisitBtn.textContent = originalText;
+                                    }
+                                    return;
+                                }
+
                                 const assessmentBtn = event.target.closest('.assessment-ugd-btn-trigger');
                                 if (assessmentBtn) {
                                     ugdAssessmentModule?.handleRekapButtonClick(assessmentBtn);
@@ -8977,6 +9129,7 @@
                                     await detectNurseStationDataColumn();
                                     await detectTriaseDraftColumn();
                                     await detectGeneralConsentColumn();
+                                    await detectBatalBerobatColumn();
                                     showView(isNurseStationRole() ? 'nurse_station_dashboard' : (isPetugasPoliRole() ? 'poli_dashboard' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap')));
                                     await initForm();
                                     await loadQueueControls();
