@@ -18,7 +18,7 @@ class QueueSoundSystem {
         this.transitionGapMs = 15;
         this.soundFiles = {
             opening: 'nada.mp3',
-            nurseOpening: 'Opening Nurse Station.mp3',
+            nurseOpening: 'OPENING NURSE.mp3',
             attention: 'Perhatian.mp3',
             queueNumber: 'Nomor Antrian.mp3',
             noAntrean: 'No Antrean.mp3',
@@ -317,6 +317,15 @@ class QueueSoundSystem {
         return this.getCandidatePaths('00-opening', [raw, raw.toLowerCase()]);
     }
 
+    getNurseOpeningSound() {
+        const candidates = [
+            this.soundFiles.nurseOpening,
+            'Opening Nurse Station.mp3',
+            this.soundFiles.opening
+        ].map((item) => String(item || '').trim()).filter(Boolean);
+        return this.getCandidatePaths('00-opening', candidates);
+    }
+
     getLetterSound(letter) {
         const token = String(letter || '').trim();
         if (!token) return [];
@@ -436,7 +445,7 @@ class QueueSoundSystem {
         const { noAntrian } = queueData;
         const sequence = [];
 
-        sequence.push(this.getOpeningSound(this.soundFiles.nurseOpening || this.soundFiles.opening));
+        sequence.push(this.getNurseOpeningSound());
         sequence.push(this.getWordSound(this.soundFiles.queueNumber));
 
         const normalizedQueueNo = String(noAntrian || '').trim().toUpperCase();
