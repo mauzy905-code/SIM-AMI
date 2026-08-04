@@ -18,6 +18,7 @@
             serviceColumnAvailable: null,
             examColumnsAvailable: null,
             batalColumnAvailable: null,
+            nsColumnAvailable: null,
             message: '',
             messageTone: 'info'
         };
@@ -321,6 +322,44 @@
             return state.examColumnsAvailable;
         }
 
+        async function detectNsColumn() {
+            if (!supabaseClient) {
+                state.nsColumnAvailable = false;
+                return false;
+            }
+            if (typeof state.nsColumnAvailable === 'boolean') {
+                return state.nsColumnAvailable;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('pasien')
+                    .select('nurse_station_data')
+                    .limit(1);
+                state.nsColumnAvailable = !(error && /nurse_station_data/i.test(error.message || ''));
+            } catch (_err) {
+                state.nsColumnAvailable = false;
+            }
+            return state.nsColumnAvailable;
+        }
+
+        function normalizeNsData(raw) {
+            let value = raw;
+            if (!value) return null;
+            if (typeof value === 'string') {
+                try {
+                    value = JSON.parse(value);
+                } catch (_err) {
+                    return null;
+                }
+            }
+            if (!value || typeof value !== 'object') return null;
+            const statusRaw = String(value.status || '').trim().toLowerCase();
+            const status = statusRaw === 'selesai'
+                ? 'selesai'
+                : (statusRaw === 'dipanggil' ? 'dipanggil' : 'menunggu');
+            return { status };
+        }
+
         function formatClinicalPreview(row) {
             const dokter = String(row?.nama_dokter || '').trim();
             const diagnosa = String(row?.diagnosa || '').trim();
@@ -480,6 +519,7 @@
                 const canUseServiceColumn = await detectServiceColumn();
                 const canUseExamColumns = await detectExamColumns();
                 const canUseBatalColumn = await detectBatalColumn();
+                const canUseNsColumn = await detectNsColumn();
                 const selectFields = [
                     'id',
                     'no_rm',
@@ -497,6 +537,9 @@
                 }
                 if (canUseBatalColumn) {
                     selectFields.push('batal_berobat_data');
+                }
+                if (canUseNsColumn) {
+                    selectFields.push('nurse_station_data');
                 }
 
                 const bounds = getDayBounds();
@@ -516,6 +559,11 @@
 
                 const rows = (Array.isArray(data) ? data : [])
                     .filter((row) => (state.batalColumnAvailable ? !isCancelledRow(row) : true))
+                    .filter((row) => {
+                        if (!state.nsColumnAvailable) return true;
+                        const ns = normalizeNsData(row?.nurse_station_data || null);
+                        return ns?.status === 'selesai';
+                    })
                     .map((row) => ({
                         ...row,
                         serviceData: mergeServiceData(row)
