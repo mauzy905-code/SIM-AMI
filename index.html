@@ -3595,8 +3595,40 @@
                                     viewDokterDashboard.classList.add('hidden');
                                     viewNurseStationDashboard.classList.remove('hidden');
                                     setActiveMenu('nurse_station_dashboard');
+                                    if (!nurseStationDashboardModule && typeof window.createNurseStationDashboardModule === 'function') {
+                                        nurseStationDashboardModule = window.createNurseStationDashboardModule({
+                                            containerEl: viewNurseStationDashboard,
+                                            supabaseClient,
+                                            getCurrentOperatorName,
+                                            getCurrentAdminEmail,
+                                            getRoleLabel: () => formatAdminRoleLabel(currentAdminRole),
+                                            getLoketLabel: () => formatLoketLabel(getCurrentLoketValue()),
+                                            getPoliLabel: r_poliLabel,
+                                            openRekapToday: async () => {
+                                                const today = new Date().toISOString().slice(0, 10);
+                                                showView('rekap');
+                                                if (rEls?.unit) rEls.unit.value = 'POLIKLINIK';
+                                                if (rEls?.from) rEls.from.value = today;
+                                                if (rEls?.to) rEls.to.value = today;
+                                                applyRekapRolePresentation();
+                                                await r_reloadToFirstPage();
+                                            },
+                                            openHistory: async (patient) => {
+                                                if (!patient?.no_rm) return;
+                                                await openPatientHistory(patient.no_rm, patient.nama_pasien || '');
+                                            }
+                                        });
+                                    }
                                     if (nurseStationDashboardModule?.render) {
                                         nurseStationDashboardModule.render();
+                                    } else {
+                                        viewNurseStationDashboard.innerHTML = `<div class="mx-auto max-w-3xl px-6 py-10">
+                                            <div class="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-5 text-rose-800">
+                                                <div class="text-xs font-extrabold uppercase tracking-[0.2em]">Nurse Station</div>
+                                                <div class="mt-2 text-lg font-black">Dashboard tidak termuat</div>
+                                                <div class="mt-2 text-sm font-semibold leading-6">Pastikan file assets/js/nurse-station-dashboard.js berhasil terbuka (tidak 404) dan tidak ada error JavaScript di console.</div>
+                                            </div>
+                                        </div>`;
                                     }
                                     return;
                                 }
