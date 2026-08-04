@@ -17,6 +17,7 @@
             rows: [],
             nsColumnAvailable: null,
             batalColumnAvailable: null,
+            poliServiceColumnAvailable: null,
             message: '',
             messageTone: 'info'
         };
@@ -192,6 +193,26 @@
                 state.nsColumnAvailable = false;
             }
             return state.nsColumnAvailable;
+        }
+
+        async function detectPoliServiceColumn() {
+            if (!supabaseClient) {
+                state.poliServiceColumnAvailable = false;
+                return false;
+            }
+            if (typeof state.poliServiceColumnAvailable === 'boolean') {
+                return state.poliServiceColumnAvailable;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('pasien')
+                    .select('poli_service_data')
+                    .limit(1);
+                state.poliServiceColumnAvailable = !(error && /poli_service_data/i.test(error.message || ''));
+            } catch (_err) {
+                state.poliServiceColumnAvailable = false;
+            }
+            return state.poliServiceColumnAvailable;
         }
 
         async function detectBatalColumn() {
@@ -500,18 +521,30 @@
             }).join('');
         }
 
-        async function persistNsData(row, payload) {
+        async function persistNsData(row, payload, extraUpdate = null) {
             const rowId = String(row?.id || '').trim();
             if (!rowId) return false;
             const hasColumn = await detectNsColumn();
             if (hasColumn) {
-                const { error } = await supabaseClient
+                const baseUpdate = { nurse_station_data: payload };
+                const mergedUpdate = extraUpdate && typeof extraUpdate === 'object'
+                    ? { ...baseUpdate, ...extraUpdate }
+                    : baseUpdate;
+
+                let result = await supabaseClient
                     .from('pasien')
-                    .update({ nurse_station_data: payload })
+                    .update(mergedUpdate)
                     .eq('id', rowId);
-                if (error) {
-                    throw error;
+
+                if (result?.error && /poli_service_data/i.test(result.error.message || '') && Object.prototype.hasOwnProperty.call(mergedUpdate, 'poli_service_data')) {
+                    state.poliServiceColumnAvailable = false;
+                    result = await supabaseClient
+                        .from('pasien')
+                        .update(baseUpdate)
+                        .eq('id', rowId);
                 }
+
+                if (result?.error) throw result.error;
                 return true;
             }
             writeLocalNsData(row, payload);
@@ -580,11 +613,22 @@
                 completed_by_name: getOperatorName(),
                 completed_by_email: getOperatorEmail()
             };
+
+            const canUsePoliService = await detectPoliServiceColumn();
+            const poliServicePayload = canUsePoliService
+                ? {
+                    status: 'menunggu',
+                    ready_at: new Date().toISOString(),
+                    ready_by_name: getOperatorName(),
+                    ready_by_email: getOperatorEmail()
+                }
+                : null;
+
             state.loading = true;
             setMessage('Menyimpan status selesai...', 'info');
             render();
             try {
-                await persistNsData(row, payload);
+                await persistNsData(row, payload, poliServicePayload ? { poli_service_data: poliServicePayload } : null);
                 row.nsData = payload;
                 setMessage('Status Nurse Station disimpan: selesai.', 'success');
                 renderList();
