@@ -695,7 +695,9 @@
                 function normalizeNsQueueNo(noAntrian) {
                     const value = String(noAntrian || '').trim();
                     if (!value) return '';
-                    return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
+                    if (/^B-/i.test(value)) return `P-${value.slice(2)}`;
+                    if (/^A-/i.test(value)) return `C-${value.slice(2)}`;
+                    return value;
                 }
 
                 function isNsPriorityQueue(noAntrian) {
@@ -1436,6 +1438,8 @@
                                 await window.queueSound.announceFarmasi(nextItem);
                             } else if (nextItem.unit === 'POLIKLINIK') {
                                 await window.queueSound.announcePoliklinik(nextItem);
+                            } else if (nextItem.unit === 'NURSE_STATION' && typeof window.queueSound.announceNurseStation === 'function') {
+                                await window.queueSound.announceNurseStation(nextItem);
                             }
                         } else {
                             await playAirportChime();
@@ -1524,7 +1528,7 @@
                     const noAntrian = String(item?.queue_no || item?.no_antrian || '').trim();
                     if (!noAntrian) return '';
                     const spokenCode = speakQueueCode(noAntrian);
-                    return `Perhatian. Nomor antrean ${spokenCode}. Silahkan menuju meja pemeriksaan.`;
+                    return `No antrean ${spokenCode}. Menuju meja pemeriksaan.`;
                 }
 
                 function announceNewCalls(farmasiRows, poliklinikRows) {
@@ -1595,7 +1599,10 @@
                     if (lastAnnounced[key] === nextVal) return;
                     lastAnnounced[key] = nextVal;
                     persistLastAnnounced();
-                    enqueueAnnouncement(buildNurseStationAnnouncementText(current));
+                    enqueueAnnouncement({
+                        unit: 'NURSE_STATION',
+                        noAntrian: String(current?.queue_no || '').trim() || String(current?.no_antrian || '').trim()
+                    });
                 }
 
                 function sectionPrefix(unit) {
