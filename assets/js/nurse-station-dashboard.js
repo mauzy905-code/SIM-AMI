@@ -16,6 +16,7 @@
             loading: false,
             rows: [],
             nsColumnAvailable: null,
+            batalColumnAvailable: null,
             message: '',
             messageTone: 'info'
         };
@@ -193,6 +194,52 @@
             return state.nsColumnAvailable;
         }
 
+        async function detectBatalColumn() {
+            if (!supabaseClient) {
+                state.batalColumnAvailable = false;
+                return false;
+            }
+            if (typeof state.batalColumnAvailable === 'boolean') {
+                return state.batalColumnAvailable;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('pasien')
+                    .select('batal_berobat_data')
+                    .limit(1);
+                state.batalColumnAvailable = !(error && /batal_berobat_data/i.test(error.message || ''));
+            } catch (_err) {
+                state.batalColumnAvailable = false;
+            }
+            return state.batalColumnAvailable;
+        }
+
+        function normalizeBatalBerobatPayload(raw) {
+            let payload = raw;
+            if (!payload) return null;
+            if (typeof payload === 'string') {
+                try {
+                    payload = JSON.parse(payload);
+                } catch (_err) {
+                    return null;
+                }
+            }
+            if (!payload || typeof payload !== 'object') return null;
+            const status = String(payload.status || '').trim().toUpperCase();
+            if (status !== 'BATAL_BEROBAT') return null;
+            return payload;
+        }
+
+        function isCancelledRow(row) {
+            if (!row) return false;
+            if (typeof window !== 'undefined' && typeof window.isBatalBerobatRecord === 'function') {
+                try {
+                    return Boolean(window.isBatalBerobatRecord(row));
+                } catch (_err) {}
+            }
+            return Boolean(normalizeBatalBerobatPayload(row?.batal_berobat_data || null));
+        }
+
         function mergeNsData(row) {
             const fromRow = normalizeNsData(row?.nurse_station_data || null);
             const fromLocal = readLocalNsData(row);
@@ -256,7 +303,6 @@
                 '    </div>',
                 '    <div class="nurse-station-dashboard-hero-side">',
                 '      <div class="nurse-station-dashboard-side-card"><div class="nurse-station-dashboard-stat-label">Email Akun</div><div id="nurseDashEmail" class="nurse-station-dashboard-side-value">-</div></div>',
-                '      <div class="nurse-station-dashboard-side-card"><div class="nurse-station-dashboard-stat-label">Catatan Alur</div><div class="nurse-station-dashboard-side-note">Nomor antrean Nurse Station dibawa dari pendaftaran awal. Di dashboard ini petugas cukup memanggil, melihat riwayat, dan menandai pasien selesai.</div></div>',
                 '    </div>',
                 '  </section>',
                 '  <section class="nurse-station-dashboard-summary">',
@@ -566,10 +612,24 @@
 
             try {
                 await detectNsColumn();
+                await detectBatalColumn();
                 const { startIso, endIso } = getDayBounds();
+                const selectFields = [
+                    'id',
+                    'no_rm',
+                    'nama_pasien',
+                    'no_antrian',
+                    'poli_tujuan',
+                    'created_at',
+                    'unit',
+                    'nurse_station_data'
+                ];
+                if (state.batalColumnAvailable) {
+                    selectFields.push('batal_berobat_data');
+                }
                 const { data, error } = await supabaseClient
                     .from('pasien')
-                    .select('id,no_rm,nama_pasien,no_antrian,poli_tujuan,created_at,unit,nurse_station_data')
+                    .select(selectFields.join(','))
                     .eq('unit', 'POLIKLINIK')
                     .gte('created_at', startIso)
                     .lt('created_at', endIso)
@@ -580,10 +640,13 @@
                 }
 
                 const rows = Array.isArray(data) ? data : [];
-                state.rows = sortRows(rows.map((row) => ({
-                    ...row,
-                    nsData: mergeNsData(row)
-                })));
+                const normalized = rows
+                    .filter((row) => (state.batalColumnAvailable ? !isCancelledRow(row) : true))
+                    .map((row) => ({
+                        ...row,
+                        nsData: mergeNsData(row)
+                    }));
+                state.rows = sortRows(normalized);
                 setMessage('', 'info');
             } catch (_err) {
                 state.rows = [];
