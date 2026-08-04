@@ -18,7 +18,7 @@ class QueueSoundSystem {
         this.transitionGapMs = 15;
         this.soundFiles = {
             opening: 'nada.mp3',
-            nurseOpening: 'OPENING NURSE.mp3',
+            nurseOpening: 'nada2.mp3',
             attention: 'Perhatian.mp3',
             queueNumber: 'Nomor Antrian.mp3',
             noAntrean: 'No Antrean.mp3',
