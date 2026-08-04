@@ -2637,6 +2637,10 @@
                                 const namaAdmin = getCurrentOperatorName();
                                 const roleLabel = formatAdminRoleLabel(currentAdminRole);
                                 const loketLabel = formatLoketLabel(getCurrentLoketValue());
+                                const isPerawat = isPerawatRole();
+                                const isDokter = isDokterRole();
+                                const isNurseStation = isNurseStationRole();
+                                const isPetugasPoli = isPetugasPoliRole();
 
                                 adminNameDisplay.textContent = namaAdmin;
                                 adminRoleDisplay.textContent = roleLabel;
@@ -2645,19 +2649,19 @@
                                 applyRolePresentation();
                                 changeStaffBtn.classList.toggle('hidden', !canChangeStaffIdentity());
                                 adminIdentityBadge.classList.remove('hidden');
-                                if (perawatDashboardModule?.render) {
+                                if (isPerawat && perawatDashboardModule?.render) {
                                     perawatDashboardModule.render();
                                 }
-                                if (dokterDashboardModule?.render) {
+                                if (isDokter && dokterDashboardModule?.render) {
                                     dokterDashboardModule.render();
                                 }
-                                if (nurseStationDashboardModule?.render) {
+                                if (isNurseStation && nurseStationDashboardModule?.render) {
                                     nurseStationDashboardModule.render();
                                 }
-                                if (poliDashboardModule?.render) {
+                                if (isPetugasPoli && poliDashboardModule?.render) {
                                     poliDashboardModule.render();
                                 }
-                                if (poliDoctorSettingsModule?.render) {
+                                if (isPetugasPoli && poliDoctorSettingsModule?.render) {
                                     poliDoctorSettingsModule.render();
                                 }
                             }
@@ -3674,10 +3678,12 @@
                                                 : (isPetugasPoliRole()
                                                 ? 'poli_dashboard'
                                                 : (canAccessDraftTriaseView() ? 'draft_triase' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap'))))));
-                                    await initForm();
-                                    await loadQueueControls();
-                                    await refreshStats();
-                                    await r_reloadToFirstPage();
+                                    if (!isPetugasPoliRole()) {
+                                        await initForm();
+                                        await loadQueueControls();
+                                        await refreshStats();
+                                        await r_reloadToFirstPage();
+                                    }
                                     if (canAccessDraftTriaseView()) {
                                         await dt_reloadDraftTriaseList();
                                     }
@@ -9140,10 +9146,12 @@
                                     await detectGeneralConsentColumn();
                                     await detectBatalBerobatColumn();
                                     showView(isNurseStationRole() ? 'nurse_station_dashboard' : (isPetugasPoliRole() ? 'poli_dashboard' : (canAccessPendaftaranView() ? 'pendaftaran' : 'rekap')));
-                                    await initForm();
-                                    await loadQueueControls();
-                                    await refreshStats();
-                                    await r_reloadToFirstPage();
+                                    if (!isPetugasPoliRole()) {
+                                        await initForm();
+                                        await loadQueueControls();
+                                        await refreshStats();
+                                        await r_reloadToFirstPage();
+                                    }
                                     appendStaffActivity('restore_dashboard_session', { session: 'restore' });
                                 });
                             })();
