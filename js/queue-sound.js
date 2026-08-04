@@ -18,6 +18,7 @@ class QueueSoundSystem {
         this.transitionGapMs = 15;
         this.soundFiles = {
             opening: 'nada.mp3',
+            nurseOpening: 'OPENING NURSE.mp3',
             attention: 'Perhatian.mp3',
             queueNumber: 'Nomor Antrian.mp3',
             noAntrean: 'No Antrean.mp3',
@@ -435,7 +436,7 @@ class QueueSoundSystem {
         const { noAntrian } = queueData;
         const sequence = [];
 
-        sequence.push(this.getOpeningSound(this.soundFiles.opening));
+        sequence.push(this.getOpeningSound(this.soundFiles.nurseOpening || this.soundFiles.opening));
         sequence.push(this.getWordSound(this.soundFiles.queueNumber));
 
         const normalizedQueueNo = String(noAntrian || '').trim().toUpperCase();
