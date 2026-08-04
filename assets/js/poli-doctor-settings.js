@@ -14,10 +14,10 @@
         const STATUS_OPTIONS = ['Tersedia', 'Sedang Praktik', 'Istirahat', 'Tidak Ada Dokter'];
         const DEFAULT_DOCTORS_BY_POLI = {
             SPESIALIS_ANAK: [
-                'dr. Dewi Jumantan Hamzah, M.Sc, Sp.A (DOKTER SPESIALIS ANAK)'
+                'dr. Dewi Jumantan Hamzah, M.Sc, Sp.A'
             ],
             SPESIALIS_PENYAKIT_DALAM: [
-                'dr. Andi Renny Amita, Sp.PD (DOKTER SPESIALIS PENYAKIT DALAM)'
+                'dr. Andi Renny Amita, Sp.PD'
             ],
             DOKTER_UMUM: []
         };
@@ -61,9 +61,16 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function sanitizeDoctorName(value) {
+            return String(value || '')
+                .replace(/\s*\([^)]*\)\s*/g, ' ')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+        }
+
         function getDoctorOptions(poliCode, selectedDoctor = '') {
-            const defaults = DEFAULT_DOCTORS_BY_POLI[String(poliCode || '').trim()] || [];
-            const selected = String(selectedDoctor || '').trim();
+            const defaults = (DEFAULT_DOCTORS_BY_POLI[String(poliCode || '').trim()] || []).map(sanitizeDoctorName);
+            const selected = sanitizeDoctorName(selectedDoctor);
             const items = [...defaults];
             if (selected && !items.includes(selected)) {
                 items.unshift(selected);
@@ -87,7 +94,7 @@
                 }
             }
             const normalizedPoli = String(value?.poli_tujuan || poliCode || '').trim();
-            const namaDokter = String(value?.nama_dokter || '').trim();
+            const namaDokter = sanitizeDoctorName(value?.nama_dokter || '');
             const statusDokter = STATUS_OPTIONS.includes(String(value?.status_dokter || '').trim())
                 ? String(value.status_dokter).trim()
                 : DEFAULT_STATUS;
