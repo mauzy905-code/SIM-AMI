@@ -1023,11 +1023,13 @@
                         return {
                             ...row,
                             ns_status: nsData.status || 'menunggu',
+                            ns_called_at: nsData.called_at || '',
                             queue_no: normalizeNsQueueNo(nsData.queue_no || row.no_antrian || '')
                         };
                     }).filter((row) => row.ns_status !== 'selesai' && !isCancelledRow(row));
 
                     renderNurseStationDisplay(queueRows, doctorRows);
+                    announceNewNurseStationCalls(queueRows);
 
                     const now = new Date();
                     const hh = String(now.getHours()).padStart(2, '0');
@@ -1511,6 +1513,20 @@
                     return [noAntrian, waktuPanggil, loket].join('|');
                 }
 
+                function buildNurseStationAnnouncementSignature(item) {
+                    const rowId = String(item?.id || '').trim();
+                    const noAntrian = String(item?.queue_no || item?.no_antrian || '').trim();
+                    const calledAt = String(item?.ns_called_at || item?.called_at || '').trim();
+                    return [rowId, noAntrian, calledAt].join('|');
+                }
+
+                function buildNurseStationAnnouncementText(item) {
+                    const noAntrian = String(item?.queue_no || item?.no_antrian || '').trim();
+                    if (!noAntrian) return '';
+                    const spokenCode = speakQueueCode(noAntrian);
+                    return `Perhatian. Nomor antrean ${spokenCode}. Silahkan menuju meja pemeriksaan.`;
+                }
+
                 function announceNewCalls(farmasiRows, poliklinikRows) {
                     if (!soundEnabled) return;
                     const farmasiByLoket = farmasiCalledByLoket(farmasiRows || []);
@@ -1568,6 +1584,18 @@
                             enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }) || buildAnnouncementText('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }));
                         }
                     }
+                }
+
+                function announceNewNurseStationCalls(queueRows) {
+                    if (!soundEnabled) return;
+                    const current = (queueRows || []).find((row) => row?.ns_status === 'dipanggil') || null;
+                    if (!current) return;
+                    const key = 'NURSE_STATION:CURRENT';
+                    const nextVal = buildNurseStationAnnouncementSignature(current);
+                    if (lastAnnounced[key] === nextVal) return;
+                    lastAnnounced[key] = nextVal;
+                    persistLastAnnounced();
+                    enqueueAnnouncement(buildNurseStationAnnouncementText(current));
                 }
 
                 function sectionPrefix(unit) {
