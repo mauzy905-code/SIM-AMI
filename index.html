@@ -1971,7 +1971,7 @@
                             function buildPrintPayload(payload = {}) {
                                 const noAntrian = String(payload.no_antrian || '').trim();
                                 const isPriorityQueue = isPrioritasNoAntrian(noAntrian) || /^P-/i.test(noAntrian);
-                                const nurseStationQueueNo = normalizePriorityQueueNo(payload.nurse_station_queue_no || noAntrian);
+                                const nurseStationQueueNo = normalizeNurseStationQueueNo(payload.nurse_station_queue_no || noAntrian);
                                 return {
                                     nama_pasien: String(payload.nama_pasien || '').trim(),
                                     tanggal_lahir: formatDateSlash(payload.tanggal_lahir || ''),
@@ -2987,6 +2987,14 @@
                                 const value = String(noAntrian || '').trim();
                                 if (!value) return '';
                                 return /^B-/i.test(value) ? `P-${value.slice(2)}` : value;
+                            }
+
+                            function normalizeNurseStationQueueNo(noAntrian) {
+                                const value = String(noAntrian || '').trim();
+                                if (!value) return '';
+                                if (/^B-/i.test(value)) return `P-${value.slice(2)}`;
+                                if (/^A-/i.test(value)) return `C-${value.slice(2)}`;
+                                return value;
                             }
 
                             function isPrioritasNoAntrian(noAntrian) {
