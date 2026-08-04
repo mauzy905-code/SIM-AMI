@@ -229,6 +229,15 @@
             });
         }
 
+        function getOpenCalledRow(excludeRowId = '') {
+            const excluded = String(excludeRowId || '').trim();
+            return (Array.isArray(state.rows) ? state.rows : []).find((item) => {
+                const rowId = String(item?.id || '').trim();
+                if (excluded && rowId === excluded) return false;
+                return item?.nsData?.status === 'dipanggil';
+            }) || null;
+        }
+
         function ensureMounted() {
             if (mounted) return;
 
@@ -381,6 +390,7 @@
         function renderList() {
             if (!els.list) return;
             const rows = Array.isArray(state.rows) ? state.rows : [];
+            const activeCalledRow = getOpenCalledRow();
             const tabRows = state.activeTab === 'done'
                 ? rows.filter((row) => row.nsData?.status === 'selesai')
                 : rows.filter((row) => row.nsData?.status !== 'selesai');
@@ -408,7 +418,7 @@
                     ? 'nurse-station-dashboard-status is-done'
                     : (status === 'dipanggil' ? 'nurse-station-dashboard-status is-called' : 'nurse-station-dashboard-status is-pending');
 
-                const canCall = !!nsQueueNo && status !== 'selesai';
+                const canCall = !!nsQueueNo && status !== 'selesai' && (!activeCalledRow || String(activeCalledRow.id || '') === String(row?.id || ''));
                 const canDone = !!nsQueueNo && status === 'dipanggil';
                 const canHistory = !!String(row?.no_rm || '').trim();
 
@@ -465,6 +475,14 @@
         async function markAsCalled(row) {
             if (!row) return;
             const nsData = mergeNsData(row);
+            const activeCalledRow = getOpenCalledRow(row?.id || '');
+            if (activeCalledRow) {
+                const activeQueueNo = getEffectiveQueueNo(activeCalledRow, activeCalledRow.nsData) || '-';
+                const activeName = String(activeCalledRow?.nama_pasien || 'Pasien sebelumnya').trim();
+                setMessage(`Selesaikan pasien yang sedang dipanggil dulu (${activeQueueNo} - ${activeName}) sebelum memanggil pasien berikutnya.`, 'error');
+                render();
+                return;
+            }
             const queueNo = getEffectiveQueueNo(row, nsData);
             if (!queueNo) {
                 setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
