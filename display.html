@@ -722,6 +722,26 @@
                     };
                 }
 
+                function normalizeBatalBerobatPayload(raw) {
+                    let payload = raw;
+                    if (!payload) return null;
+                    if (typeof payload === 'string') {
+                        try {
+                            payload = JSON.parse(payload);
+                        } catch (_err) {
+                            return null;
+                        }
+                    }
+                    if (!payload || typeof payload !== 'object') return null;
+                    const status = String(payload.status || '').trim().toUpperCase();
+                    if (status !== 'BATAL_BEROBAT') return null;
+                    return payload;
+                }
+
+                function isCancelledRow(row) {
+                    return Boolean(normalizeBatalBerobatPayload(row?.batal_berobat_data || null));
+                }
+
                 const DEFAULT_NURSE_DOCTOR_ROWS = [
                     {
                         poli_tujuan: 'SPESIALIS_ANAK',
@@ -961,19 +981,32 @@
                     let doctorRows = getDefaultDoctorRows();
                     let queueRows = [];
 
-                    const [{ data: pasienData, error: pasienError }, { data: doctorData, error: doctorError }] = await Promise.all([
-                        supabaseClient
+                    const doctorPromise = supabaseClient
+                        .from('poli_doctor_status')
+                        .select('poli_tujuan,nama_dokter,status_dokter,updated_at');
+
+                    let pasienResult = await supabaseClient
+                        .from('pasien')
+                        .select('id,nama_pasien,no_antrian,poli_tujuan,created_at,unit,nurse_station_data,batal_berobat_data')
+                        .eq('unit', 'POLIKLINIK')
+                        .gte('created_at', startISO)
+                        .lt('created_at', endISO)
+                        .order('created_at', { ascending: true })
+                        .limit(250);
+
+                    if (pasienResult?.error && /batal_berobat_data/i.test(pasienResult.error.message || '')) {
+                        pasienResult = await supabaseClient
                             .from('pasien')
                             .select('id,nama_pasien,no_antrian,poli_tujuan,created_at,unit,nurse_station_data')
                             .eq('unit', 'POLIKLINIK')
                             .gte('created_at', startISO)
                             .lt('created_at', endISO)
                             .order('created_at', { ascending: true })
-                            .limit(250),
-                        supabaseClient
-                            .from('poli_doctor_status')
-                            .select('poli_tujuan,nama_dokter,status_dokter,updated_at')
-                    ]);
+                            .limit(250);
+                    }
+
+                    const { data: doctorData, error: doctorError } = await doctorPromise;
+                    const { data: pasienData, error: pasienError } = pasienResult || {};
 
                     if (!doctorError && Array.isArray(doctorData)) {
                         doctorRows = mergeDoctorRows(doctorData);
@@ -992,7 +1025,7 @@
                             ns_status: nsData.status || 'menunggu',
                             queue_no: normalizeNsQueueNo(nsData.queue_no || row.no_antrian || '')
                         };
-                    }).filter((row) => row.ns_status !== 'selesai');
+                    }).filter((row) => row.ns_status !== 'selesai' && !isCancelledRow(row));
 
                     renderNurseStationDisplay(queueRows, doctorRows);
 
