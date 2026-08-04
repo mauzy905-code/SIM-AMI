@@ -17,6 +17,7 @@
             rows: [],
             serviceColumnAvailable: null,
             examColumnsAvailable: null,
+            batalColumnAvailable: null,
             message: '',
             messageTone: 'info'
         };
@@ -254,6 +255,52 @@
             return state.serviceColumnAvailable;
         }
 
+        async function detectBatalColumn() {
+            if (!supabaseClient) {
+                state.batalColumnAvailable = false;
+                return false;
+            }
+            if (typeof state.batalColumnAvailable === 'boolean') {
+                return state.batalColumnAvailable;
+            }
+            try {
+                const { error } = await supabaseClient
+                    .from('pasien')
+                    .select('batal_berobat_data')
+                    .limit(1);
+                state.batalColumnAvailable = !(error && /batal_berobat_data/i.test(error.message || ''));
+            } catch (_err) {
+                state.batalColumnAvailable = false;
+            }
+            return state.batalColumnAvailable;
+        }
+
+        function normalizeBatalBerobatPayload(raw) {
+            let payload = raw;
+            if (!payload) return null;
+            if (typeof payload === 'string') {
+                try {
+                    payload = JSON.parse(payload);
+                } catch (_err) {
+                    return null;
+                }
+            }
+            if (!payload || typeof payload !== 'object') return null;
+            const status = String(payload.status || '').trim().toUpperCase();
+            if (status !== 'BATAL_BEROBAT') return null;
+            return payload;
+        }
+
+        function isCancelledRow(row) {
+            if (!row) return false;
+            if (typeof window !== 'undefined' && typeof window.isBatalBerobatRecord === 'function') {
+                try {
+                    return Boolean(window.isBatalBerobatRecord(row));
+                } catch (_err) {}
+            }
+            return Boolean(normalizeBatalBerobatPayload(row?.batal_berobat_data || null));
+        }
+
         async function detectExamColumns() {
             if (!supabaseClient) {
                 state.examColumnsAvailable = false;
@@ -432,6 +479,7 @@
             try {
                 const canUseServiceColumn = await detectServiceColumn();
                 const canUseExamColumns = await detectExamColumns();
+                const canUseBatalColumn = await detectBatalColumn();
                 const selectFields = [
                     'id',
                     'no_rm',
@@ -446,6 +494,9 @@
                 }
                 if (canUseExamColumns) {
                     selectFields.push('nama_dokter', 'diagnosa');
+                }
+                if (canUseBatalColumn) {
+                    selectFields.push('batal_berobat_data');
                 }
 
                 const bounds = getDayBounds();
@@ -463,10 +514,13 @@
                     throw new Error(error.message);
                 }
 
-                state.rows = sortRows((Array.isArray(data) ? data : []).map((row) => ({
-                    ...row,
-                    serviceData: mergeServiceData(row)
-                })));
+                const rows = (Array.isArray(data) ? data : [])
+                    .filter((row) => (state.batalColumnAvailable ? !isCancelledRow(row) : true))
+                    .map((row) => ({
+                        ...row,
+                        serviceData: mergeServiceData(row)
+                    }));
+                state.rows = sortRows(rows);
 
                 if (state.serviceColumnAvailable === false) {
                     setMessage('Status selesai poli saat ini masih memakai simpan lokal browser. Jika ingin permanen lintas perangkat, nanti kita tambahkan kolom database.', 'info');
