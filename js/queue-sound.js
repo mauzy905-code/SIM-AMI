@@ -20,10 +20,12 @@ class QueueSoundSystem {
             opening: 'nada.mp3',
             attention: 'Perhatian.mp3',
             queueNumber: 'Nomor Antrian.mp3',
+            noAntrean: 'No Antrean.mp3',
             farmasi: 'Farmasi.mp3',
             umum: 'Umum.mp3',
             prioritas: 'Prioritas.mp3',
             menujuLoket: 'Menuju Loket.mp3',
+            menujuMejaPemeriksaan: 'Menuju Meja Pemeriksaan.mp3',
             ribu: 'ribu.mp3'
         };
     }
@@ -429,6 +431,35 @@ class QueueSoundSystem {
         return sequence;
     }
 
+    buildNurseStationSequence(queueData) {
+        const { noAntrian } = queueData;
+        const sequence = [];
+
+        sequence.push(this.getOpeningSound(this.soundFiles.opening));
+        sequence.push(this.getWordSound(this.soundFiles.queueNumber));
+
+        const normalizedQueueNo = String(noAntrian || '').trim().toUpperCase();
+        const isPrioritas = /^(P|B)-/.test(normalizedQueueNo);
+        sequence.push(this.getWordSound(isPrioritas ? this.soundFiles.prioritas : this.soundFiles.umum));
+
+        const prefixLetters = this.getQueuePrefixLetters(noAntrian);
+        for (let i = 0; i < prefixLetters.length; i++) {
+            const letterPath = this.getLetterSound(prefixLetters[i]);
+            if (letterPath.length) sequence.push(letterPath);
+        }
+
+        const queueNumberValue = this.getQueueNumberValue(noAntrian);
+        const numberTokens = this.buildNumberTokens(queueNumberValue);
+        for (let i = 0; i < numberTokens.length; i++) {
+            const numberPath = this.getNumberSound(numberTokens[i]);
+            if (numberPath.length) sequence.push(numberPath);
+        }
+
+        sequence.push(this.getWordSound(this.soundFiles.menujuMejaPemeriksaan));
+
+        return sequence;
+    }
+
     async playActivationPreview() {
         const previewSequence = [
             this.getOpeningSound(this.soundFiles.opening),
@@ -457,6 +488,15 @@ class QueueSoundSystem {
         const sequence = this.buildQueueSequence({
             ...queueData,
             unit: 'POLIKLINIK'
+        });
+        await this.playSequence(sequence);
+    }
+
+    async announceNurseStation(queueData) {
+        console.log('📢 Memanggil antrian Nurse Station:', queueData.noAntrian);
+        const sequence = this.buildNurseStationSequence({
+            ...queueData,
+            unit: 'NURSE_STATION'
         });
         await this.playSequence(sequence);
     }
