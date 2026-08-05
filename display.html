@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260805-display-nurse-station-rotating-doctor-1';
+            const DISPLAY_BUILD_VERSION = '20260805-display-nurse-station-rotating-doctor-2';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -1016,9 +1016,17 @@
                     }
                 }
 
-                function startNurseDoctorRotation() {
+                function startNurseDoctorRotation(forceRestart = false) {
+                    if ((currentNurseDoctorRows || []).length <= 1) {
+                        stopNurseDoctorRotation();
+                        return;
+                    }
+
+                    if (nurseDoctorRotationTimer && !forceRestart) {
+                        return;
+                    }
+
                     stopNurseDoctorRotation();
-                    if ((currentNurseDoctorRows || []).length <= 1) return;
 
                     nurseDoctorRotationTimer = window.setInterval(() => {
                         if (document.hidden || selectedUnit !== 'NURSE_STATION') return;
@@ -1030,15 +1038,24 @@
                 function renderNurseDoctorCards(rows) {
                     const items = mergeDoctorRows(rows);
                     const nextSignature = nurseDoctorSignature(items);
+                    const signatureChanged = nextSignature !== nurseDoctorRotationSignature;
                     currentNurseDoctorRows = items;
-                    if (nextSignature !== nurseDoctorRotationSignature) {
+                    if (signatureChanged) {
                         nurseDoctorRotationSignature = nextSignature;
                         nurseDoctorRotationIndex = 0;
-                    } else if (currentNurseDoctorRows.length > 0) {
+                        renderNurseDoctorRotationFrame();
+                        startNurseDoctorRotation(true);
+                        return;
+                    }
+
+                    if (currentNurseDoctorRows.length > 0) {
                         nurseDoctorRotationIndex = nurseDoctorRotationIndex % currentNurseDoctorRows.length;
                     }
-                    renderNurseDoctorRotationFrame();
-                    startNurseDoctorRotation();
+
+                    if (!nurseDoctorRotationTimer || currentNurseDoctorRows.length <= 1) {
+                        renderNurseDoctorRotationFrame();
+                    }
+                    startNurseDoctorRotation(false);
                 }
 
                 function renderNurseStationDisplay(queueRows, doctorRows) {
