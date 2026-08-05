@@ -1072,6 +1072,7 @@
                     const waitingRows = normalizedRows.filter((item) => item.ns_status !== 'selesai' && item.id !== current?.id);
 
                     currentCard.classList.remove('hidden');
+                    const isCurrentPriority = !!current && isNsPriorityQueue(current.queue_no);
                     if (current) {
                         currentQueue.textContent = current.queue_no || '-';
                         currentName.textContent = current.nama_pasien || 'Pasien';
@@ -1083,6 +1084,13 @@
                         currentPoli.textContent = 'Menunggu panggilan dari petugas Nurse Station';
                         currentMeta.textContent = 'Belum Ada Panggilan';
                     }
+                    togglePriorityAccent(currentCard, 'priority-card', isCurrentPriority);
+                    togglePriorityAccent(currentCard, 'priority-ring', isCurrentPriority);
+                    togglePriorityAccent(currentQueue, 'priority-number', isCurrentPriority);
+                    togglePriorityAccent(currentMeta, 'priority-chip', isCurrentPriority);
+                    togglePriorityAccent(currentMeta, 'priority-meta', isCurrentPriority);
+                    togglePriorityAccent(currentName, 'priority-text', isCurrentPriority);
+                    togglePriorityAccent(currentPoli, 'priority-text', isCurrentPriority);
 
                     if (waitingRows.length === 0) {
                         listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean Nurse Station hari ini.</div>';
