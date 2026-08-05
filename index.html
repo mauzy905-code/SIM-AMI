@@ -6747,81 +6747,184 @@
 
                             let realtimeStatsTimer = null;
                             let realtimeRefreshInFlight = false;
-                            let realtimeRefreshPending = false;
+                            let realtimeRefreshPending = createRealtimeRefreshRequest();
 
-                            async function refreshVisibleDashboardSections() {
-                                await refreshStats();
-                                if (!viewPendaftaran.classList.contains('hidden') && !isSupervisorRole()) {
+                            function createRealtimeRefreshRequest(partial = {}) {
+                                return {
+                                    stats: Boolean(partial?.stats),
+                                    queueControls: Boolean(partial?.queueControls),
+                                    nurse: Boolean(partial?.nurse),
+                                    poli: Boolean(partial?.poli),
+                                    poliDoctorSettings: Boolean(partial?.poliDoctorSettings),
+                                    rekap: Boolean(partial?.rekap)
+                                };
+                            }
+
+                            function mergeRealtimeRefreshRequest(base, incoming) {
+                                return createRealtimeRefreshRequest({
+                                    stats: Boolean(base?.stats || incoming?.stats),
+                                    queueControls: Boolean(base?.queueControls || incoming?.queueControls),
+                                    nurse: Boolean(base?.nurse || incoming?.nurse),
+                                    poli: Boolean(base?.poli || incoming?.poli),
+                                    poliDoctorSettings: Boolean(base?.poliDoctorSettings || incoming?.poliDoctorSettings),
+                                    rekap: Boolean(base?.rekap || incoming?.rekap)
+                                });
+                            }
+
+                            function hasRealtimeRefreshWork(request) {
+                                return Boolean(
+                                    request?.stats
+                                    || request?.queueControls
+                                    || request?.nurse
+                                    || request?.poli
+                                    || request?.poliDoctorSettings
+                                    || request?.rekap
+                                );
+                            }
+
+                            function getRealtimeRefreshRequest(source = 'all') {
+                                const isPendaftaranVisible = !viewPendaftaran.classList.contains('hidden') && !isSupervisorRole();
+                                const isNurseVisible = !viewNurseStationDashboard.classList.contains('hidden');
+                                const isPoliVisible = !viewPoliDashboard.classList.contains('hidden');
+                                const isPoliDoctorSettingsVisible = !viewPoliDoctorSettings.classList.contains('hidden');
+                                const isRekapVisible = !viewRekap.classList.contains('hidden');
+
+                                if (source === 'antrian') {
+                                    return createRealtimeRefreshRequest({
+                                        stats: isPendaftaranVisible,
+                                        queueControls: isPendaftaranVisible
+                                    });
+                                }
+
+                                if (source === 'pasien') {
+                                    return createRealtimeRefreshRequest({
+                                        stats: isPendaftaranVisible,
+                                        queueControls: isPendaftaranVisible,
+                                        nurse: isNurseVisible,
+                                        poli: isPoliVisible,
+                                        poliDoctorSettings: isPoliDoctorSettingsVisible,
+                                        rekap: isRekapVisible
+                                    });
+                                }
+
+                                return createRealtimeRefreshRequest({
+                                    stats: isPendaftaranVisible,
+                                    queueControls: isPendaftaranVisible,
+                                    nurse: isNurseVisible,
+                                    poli: isPoliVisible,
+                                    poliDoctorSettings: isPoliDoctorSettingsVisible,
+                                    rekap: isRekapVisible
+                                });
+                            }
+
+                            function getRealtimeRefreshDelay(request) {
+                                const isRekapOnly = Boolean(
+                                    request?.rekap
+                                    && !request?.stats
+                                    && !request?.queueControls
+                                    && !request?.nurse
+                                    && !request?.poli
+                                    && !request?.poliDoctorSettings
+                                );
+                                return isRekapOnly ? 1500 : 500;
+                            }
+
+                            async function refreshRequestedDashboardSections(request) {
+                                if (request?.stats) {
+                                    await refreshStats();
+                                }
+                                if (request?.queueControls) {
                                     await loadQueueControls();
                                 }
-                                if (!viewNurseStationDashboard.classList.contains('hidden')) {
+                                if (request?.nurse) {
                                     await nurseStationDashboardModule?.refresh?.();
                                 }
-                                if (!viewPoliDashboard.classList.contains('hidden')) {
+                                if (request?.poli) {
                                     await poliDashboardModule?.refresh?.();
                                 }
-                                if (!viewPoliDoctorSettings.classList.contains('hidden')) {
+                                if (request?.poliDoctorSettings) {
                                     await poliDoctorSettingsModule?.refresh?.();
                                 }
-                                if (!viewRekap.classList.contains('hidden')) {
+                                if (request?.rekap) {
                                     await r_loadPage(r_currentPage);
                                 }
                             }
 
-                            function scheduleRealtimeDashboardRefresh() {
+                            function scheduleRealtimeDashboardRefresh(source = 'all') {
+                                const request = typeof source === 'string'
+                                    ? getRealtimeRefreshRequest(source)
+                                    : createRealtimeRefreshRequest(source);
+                                realtimeRefreshPending = mergeRealtimeRefreshRequest(realtimeRefreshPending, request);
+
+                                if (!hasRealtimeRefreshWork(realtimeRefreshPending)) {
+                                    return;
+                                }
+
                                 if (realtimeStatsTimer) {
                                     window.clearTimeout(realtimeStatsTimer);
                                 }
 
                                 realtimeStatsTimer = window.setTimeout(async () => {
-                                    if (document.hidden) return;
-                                    if (realtimeRefreshInFlight) {
-                                        realtimeRefreshPending = true;
+                                    realtimeStatsTimer = null;
+
+                                    if (document.hidden) {
                                         return;
                                     }
+
+                                    if (realtimeRefreshInFlight) {
+                                        scheduleRealtimeDashboardRefresh(realtimeRefreshPending);
+                                        return;
+                                    }
+
+                                    const requestToRun = realtimeRefreshPending;
+                                    realtimeRefreshPending = createRealtimeRefreshRequest();
+
+                                    if (!hasRealtimeRefreshWork(requestToRun)) {
+                                        return;
+                                    }
+
                                     realtimeRefreshInFlight = true;
                                     try {
-                                        await refreshVisibleDashboardSections();
+                                        await refreshRequestedDashboardSections(requestToRun);
                                     } catch (err) {
-                                        if (!viewRekap.classList.contains('hidden') && rEls?.meta) {
+                                        if (requestToRun?.rekap && !viewRekap.classList.contains('hidden') && rEls?.meta) {
                                             rEls.meta.textContent = 'Gagal memuat data realtime: ' + (err?.message || String(err));
                                         }
                                     } finally {
                                         realtimeRefreshInFlight = false;
-                                        if (realtimeRefreshPending) {
-                                            realtimeRefreshPending = false;
-                                            scheduleRealtimeDashboardRefresh();
+                                        if (hasRealtimeRefreshWork(realtimeRefreshPending)) {
+                                            scheduleRealtimeDashboardRefresh(realtimeRefreshPending);
                                         }
                                     }
-                                }, 500);
+                                }, getRealtimeRefreshDelay(realtimeRefreshPending));
                             }
 
                             // Subscribe realtime untuk update antrian, status hari ini, dan rekap pasien
                             supabaseClient
                                 .channel('public:antrian')
                                 .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => {
-                                    scheduleRealtimeDashboardRefresh();
+                                    scheduleRealtimeDashboardRefresh('antrian');
                                 })
                                 .subscribe();
 
                             supabaseClient
                                 .channel('public:pasien_admin')
                                 .on('postgres_changes', { event: '*', schema: 'public', table: 'pasien' }, () => {
-                                    scheduleRealtimeDashboardRefresh();
+                                    scheduleRealtimeDashboardRefresh('pasien');
                                 })
                                 .subscribe();
 
                             window.setInterval(() => {
-                                scheduleRealtimeDashboardRefresh();
-                            }, 15000);
+                                scheduleRealtimeDashboardRefresh('all');
+                            }, 30000);
 
                             window.addEventListener('focus', () => {
-                                scheduleRealtimeDashboardRefresh();
+                                scheduleRealtimeDashboardRefresh('all');
                             });
 
                             document.addEventListener('visibilitychange', () => {
                                 if (!document.hidden) {
-                                    scheduleRealtimeDashboardRefresh();
+                                    scheduleRealtimeDashboardRefresh('all');
                                 }
                             });
 
