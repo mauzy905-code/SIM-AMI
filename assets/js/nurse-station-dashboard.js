@@ -317,7 +317,7 @@
                 '    <div class="nurse-station-dashboard-hero-main">',
                 '      <div class="nurse-station-dashboard-kicker">Nurse Station</div>',
                 '      <h2 class="nurse-station-dashboard-title">Dashboard Nurse Station</h2>',
-                '      <p class="nurse-station-dashboard-desc">Landing awal untuk memantau pasien poliklinik hari ini dan membuka daftar pasien yang akan masuk ke alur Nurse Station.</p>',
+                '      <p class="nurse-station-dashboard-desc">SIM-AMI</p>',
                 '      <div class="nurse-station-dashboard-cards">',
                 '        <div class="nurse-station-dashboard-stat-card"><div class="nurse-station-dashboard-stat-label">Petugas Aktif</div><div id="nurseDashStaffName" class="nurse-station-dashboard-stat-value">-</div></div>',
                 '        <div class="nurse-station-dashboard-stat-card"><div class="nurse-station-dashboard-stat-label">Peran</div><div id="nurseDashRoleLabel" class="nurse-station-dashboard-stat-value">-</div></div>',
