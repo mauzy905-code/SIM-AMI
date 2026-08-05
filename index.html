@@ -2355,18 +2355,18 @@
                                     supervisorMenuLinks.classList.add('hidden');
                                     drawerRoleEyebrow.textContent = 'Akses Nurse Station';
                                     drawerTitle.textContent = 'Menu Nurse Station';
-                                    drawerDescription.textContent = 'Fokus pada monitoring pasien poliklinik hari ini dan akses cepat ke daftar pasien Nurse Station.';
-                                    drawerRoleNote.textContent = 'Role Nurse Station versi awal difokuskan untuk monitoring pasien poliklinik hari ini. Kontrol antrean A/P akan disambungkan pada fase berikutnya.';
+                                    drawerDescription.textContent = 'monitoring pasien poliklinik hari ini dan akses daftar pasien Nurse Station.';
+                                    drawerRoleNote.textContent = 'Nurse Station';
                                     dashboardRolePill.textContent = 'Panel Nurse Station';
-                                    dashboardTitle.textContent = 'Dashboard Nurse Station';
-                                    dashboardDescription.textContent = 'Pantau pasien poliklinik hari ini lalu buka daftar pasien yang akan masuk ke alur Nurse Station.';
+                                    dashboardTitle.textContent = 'Nurse Station';
+                                    dashboardDescription.textContent = 'Pantau pasien poliklinik hari ini.';
                                     summaryBox1Label.textContent = 'Workflow';
                                     summaryBox1Value.textContent = 'Nurse Station';
                                     summaryBox2Label.textContent = 'Akses';
                                     summaryBox2Value.textContent = 'Monitoring';
                                     summaryBox3Label.textContent = 'Tahap';
                                     summaryBox3Value.textContent = 'Awal';
-                                    dashboardQuickHint.textContent = 'Gunakan dashboard ini sebagai landing akun Nurse Station, lalu buka daftar pasien hari ini dari menu rekap.';
+                                    dashboardQuickHint.textContent = 'Buka daftar pasien hari ini dari menu rekap.';
                                 } else if (isReadOnlyViewer) {
                                     const readOnlyRoleLabel = isBidan ? 'Bidan' : (isPerawat ? 'Perawat' : 'Dokter');
                                     supervisorMenuLinks.classList.add('hidden');
@@ -2516,7 +2516,7 @@
                                                 ? 'Daftar pasien poliklinik hari ini sesuai poli akun yang sedang login.'
                                                 : 'Cari dan filter semua pasien yang sudah masuk dari Poliklinik dan UGD.')
                                             : (isNurseStation
-                                                ? 'Daftar pasien poliklinik hari ini untuk kebutuhan alur Nurse Station sebelum pasien diteruskan ke poli.'
+                                                ? 'Daftar pasien poliklinik hari ini.'
                                                 : (isReadOnlyViewer
                                                 ? 'Cari dan lihat data pasien yang sudah masuk. Link Google Drive hanya dikelola oleh Admin RME.'
                                                 : 'Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.')));
@@ -2528,7 +2528,7 @@
                                             ? (scopedPetugasPoli
                                                 ? 'Cari Pasien Poli (Nama / NIK)'
                                                 : 'Cari (Nama / NIK)')
-                                            : (isNurseStation ? 'Cari Pasien Nurse Station (Nama / NIK / No RM)' : 'Cari (Nama / NIK)'));
+                                            : (isNurseStation ? 'Cari Pasien (Nama / NIK / No RM)' : 'Cari (Nama / NIK)'));
                                 }
                                 if (exportBtn) {
                                     exportBtn.classList.toggle('hidden', isPetugasPoli || isNurseStation || isReadOnlyViewer);
