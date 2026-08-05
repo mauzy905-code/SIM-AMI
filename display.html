@@ -367,9 +367,9 @@
                     </div>
                 </div>
                 <div id="focusedNurseStationPanel" class="hidden w-full">
-                    <div class="mb-6 text-center">
+                    <div class="mb-6 text-center sticky top-0 z-20 bg-[linear-gradient(180deg,_rgba(8,47,73,0.92)_0%,_rgba(8,47,73,0.72)_55%,_rgba(8,47,73,0)_100%)] backdrop-blur-md pt-2 pb-5">
                         <h3 class="bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.5rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">Informasi Dokter Poli</h3>
-                        <div id="focusedNurseDoctorMeta" class="mt-2 text-sm md:text-base font-bold tracking-[0.04em] text-cyan-100/80">Memuat data dokter poli...</div>
+                        <div id="focusedNurseDoctorMeta" class="hidden"></div>
                     </div>
                     <div id="focusedDoctorSpotlight" class="min-h-[420px]"></div>
                     <div id="focusedDoctorRotationDots" class="mt-5 flex items-center justify-center gap-2"></div>
@@ -935,7 +935,6 @@
                     const spotlightEl = document.getElementById('focusedDoctorSpotlight');
                     const container = document.getElementById('focusedDoctorStatusGrid');
                     const dotsEl = document.getElementById('focusedDoctorRotationDots');
-                    const metaEl = document.getElementById('focusedNurseDoctorMeta');
                     const items = currentNurseDoctorRows || [];
 
                     if (!spotlightEl || !container || !dotsEl) return;
@@ -944,9 +943,6 @@
                         spotlightEl.innerHTML = '<div class="rounded-[34px] border border-cyan-200/20 bg-white/5 px-8 py-8 text-center text-cyan-100/80 text-xl font-bold">Informasi dokter belum tersedia.</div>';
                         container.innerHTML = '';
                         dotsEl.innerHTML = '';
-                        if (metaEl) {
-                            metaEl.textContent = 'Data dokter poli belum tersedia.';
-                        }
                         return;
                     }
 
@@ -971,21 +967,7 @@
                             </div>
                             <div class="mt-8 rounded-[30px] border border-white/10 bg-white/5 px-7 py-7">
                                 <div class="text-cyan-100/80 text-[13px] md:text-[15px] font-extrabold uppercase tracking-[0.28em]">Dokter Bertugas</div>
-                                <div class="mt-4 text-white text-[2.1rem] md:text-[2.8rem] xl:text-[3.2rem] font-black leading-tight tracking-tight">${escapeHtml(active.nama_dokter || 'Belum diatur')}</div>
-                            </div>
-                            <div class="mt-7 flex flex-wrap items-center justify-between gap-4 text-base md:text-lg font-bold text-cyan-100/78">
-                                <div class="inline-flex items-center gap-3">
-                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <path d="M6.2 1.9v2.1M13.8 1.9v2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        <path d="M3.8 7.4h12.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        <path d="M5.6 4.9h8.8c1.4 0 2.6 1.2 2.6 2.6v8c0 1.4-1.2 2.6-2.6 2.6H5.6c-1.4 0-2.6-1.2-2.6-2.6v-8c0-1.4 1.2-2.6 2.6-2.6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    </svg>
-                                    <span>${escapeHtml(formatNurseDoctorUpdatedAt(active.updated_at))}</span>
-                                </div>
-                                <div class="inline-flex items-center gap-3 rounded-full border border-cyan-300/20 bg-white/5 px-4 py-2 text-sm md:text-base uppercase tracking-[0.18em]">
-                                    <span>Rotasi Otomatis</span>
-                                    <span>${safeIndex + 1}/${items.length}</span>
-                                </div>
+                                <div class="mt-4 text-white text-[1.9rem] md:text-[2.4rem] xl:text-[2.7rem] font-black leading-tight tracking-tight">${escapeHtml(active.nama_dokter || 'Belum diatur')}</div>
                             </div>
                         </div>
                     `;
@@ -1009,11 +991,6 @@
                         </div>
                     `).join('');
 
-                    if (metaEl) {
-                        metaEl.textContent = items.length > 1
-                            ? 'Informasi dokter ditampilkan bergantian otomatis agar lebih besar dan mudah dibaca dari ruang tunggu.'
-                            : 'Nama dokter dan status diambil dari akun poli masing-masing dan tampil realtime di sini.';
-                    }
                 }
 
                 function startNurseDoctorRotation(forceRestart = false) {
