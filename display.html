@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260728-display-nurse-station-1';
+            const DISPLAY_BUILD_VERSION = '20260805-display-nurse-station-rotating-doctor-1';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -90,6 +90,43 @@
         .waiting-priority-status {
             color: #fde68a;
             text-shadow: none;
+        }
+
+        @keyframes nurseDoctorSpotlightIn {
+            0% {
+                opacity: 0;
+                transform: translateY(12px) scale(0.985);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes nurseDoctorHaloPulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 0 1px rgba(103, 232, 249, 0.12),
+                    0 22px 54px rgba(14, 165, 233, 0.18);
+            }
+            50% {
+                box-shadow:
+                    0 0 0 1px rgba(125, 211, 252, 0.24),
+                    0 28px 68px rgba(34, 211, 238, 0.26);
+            }
+        }
+
+        .nurse-doctor-spotlight {
+            animation:
+                nurseDoctorSpotlightIn 520ms ease-out,
+                nurseDoctorHaloPulse 4.6s ease-in-out infinite;
+        }
+
+        .nurse-doctor-mini-card.is-active {
+            border-color: rgba(125, 211, 252, 0.4) !important;
+            background: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(34,211,238,0.10) 100%) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(8, 47, 73, 0.28);
         }
     </style>
     <script src="assets/js/queue-loket-utils.js"></script>
@@ -334,7 +371,9 @@
                         <h3 class="bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.5rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">Informasi Dokter Poli</h3>
                         <div id="focusedNurseDoctorMeta" class="mt-2 text-sm md:text-base font-bold tracking-[0.04em] text-cyan-100/80">Memuat data dokter poli...</div>
                     </div>
-                    <div id="focusedDoctorStatusGrid" class="flex flex-col gap-5"></div>
+                    <div id="focusedDoctorSpotlight" class="min-h-[420px]"></div>
+                    <div id="focusedDoctorRotationDots" class="mt-5 flex items-center justify-center gap-2"></div>
+                    <div id="focusedDoctorStatusGrid" class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
                 </div>
             </div>
 
@@ -387,6 +426,10 @@
                 let displayAccessGranted = false;
                 let displayRealtimeChannel = null;
                 let displayRefreshIntervalId = null;
+                let nurseDoctorRotationIndex = 0;
+                let nurseDoctorRotationTimer = null;
+                let nurseDoctorRotationSignature = '';
+                let currentNurseDoctorRows = [];
 
                 function normalizeDisplayUnit(unitValue) {
                     const value = String(unitValue || '').trim().toUpperCase();
@@ -859,54 +902,143 @@
                     return 'border-rose-300/35 bg-rose-400/12 text-rose-100';
                 }
 
-                function renderNurseDoctorCards(rows) {
+                function stopNurseDoctorRotation() {
+                    if (nurseDoctorRotationTimer) {
+                        window.clearInterval(nurseDoctorRotationTimer);
+                        nurseDoctorRotationTimer = null;
+                    }
+                }
+
+                function nurseDoctorSignature(rows) {
+                    return (rows || []).map((row) => [
+                        String(row?.poli_tujuan || '').trim(),
+                        String(row?.nama_dokter || '').trim(),
+                        String(row?.status_dokter || '').trim(),
+                        String(row?.updated_at || '').trim()
+                    ].join('|')).join('||');
+                }
+
+                function formatNurseDoctorUpdatedAt(value) {
+                    if (!value) return 'Belum ada update hari ini';
+                    const date = new Date(value);
+                    if (Number.isNaN(date.getTime())) return 'Belum ada update hari ini';
+                    return date.toLocaleString('id-ID', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+
+                function renderNurseDoctorRotationFrame() {
+                    const spotlightEl = document.getElementById('focusedDoctorSpotlight');
                     const container = document.getElementById('focusedDoctorStatusGrid');
+                    const dotsEl = document.getElementById('focusedDoctorRotationDots');
                     const metaEl = document.getElementById('focusedNurseDoctorMeta');
-                    if (!container) return;
-                    const items = mergeDoctorRows(rows);
-                    container.innerHTML = items.map((row) => `
-                        <div class="rounded-[32px] border border-cyan-200/20 bg-[linear-gradient(145deg,_rgba(255,255,255,0.10)_0%,_rgba(255,255,255,0.04)_50%,_rgba(2,132,199,0.08)_100%)] px-6 py-6 shadow-2xl">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex items-center gap-4">
-                                    <div class="shrink-0">${poliLogoSvg(row.poli_tujuan)}</div>
+                    const items = currentNurseDoctorRows || [];
+
+                    if (!spotlightEl || !container || !dotsEl) return;
+
+                    if (!items.length) {
+                        spotlightEl.innerHTML = '<div class="rounded-[34px] border border-cyan-200/20 bg-white/5 px-8 py-8 text-center text-cyan-100/80 text-xl font-bold">Informasi dokter belum tersedia.</div>';
+                        container.innerHTML = '';
+                        dotsEl.innerHTML = '';
+                        if (metaEl) {
+                            metaEl.textContent = 'Data dokter poli belum tersedia.';
+                        }
+                        return;
+                    }
+
+                    const safeIndex = ((nurseDoctorRotationIndex % items.length) + items.length) % items.length;
+                    nurseDoctorRotationIndex = safeIndex;
+                    const active = items[safeIndex];
+
+                    spotlightEl.innerHTML = `
+                        <div class="nurse-doctor-spotlight rounded-[38px] border border-cyan-200/20 bg-[linear-gradient(145deg,_rgba(255,255,255,0.14)_0%,_rgba(255,255,255,0.06)_50%,_rgba(2,132,199,0.12)_100%)] px-8 py-8 shadow-2xl">
+                            <div class="flex items-start justify-between gap-6">
+                                <div class="flex items-center gap-5">
+                                    <div class="shrink-0">${poliLogoSvg(active.poli_tujuan)}</div>
                                     <div>
-                                        <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Poli</div>
-                                        <div class="mt-1 text-white text-xl md:text-2xl font-black tracking-tight">${escapeHtml(poliLabel(row.poli_tujuan))}</div>
+                                        <div class="text-cyan-100/80 text-[13px] md:text-[15px] font-extrabold uppercase tracking-[0.32em]">Fokus Poli</div>
+                                        <div class="mt-2 text-white text-[2.3rem] md:text-[3rem] xl:text-[3.5rem] font-black tracking-tight leading-none">${escapeHtml(poliLabel(active.poli_tujuan))}</div>
                                     </div>
                                 </div>
-                                <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(row.status_dokter)}">
-                                    <span class="opacity-90">${statusIconSvg(row.status_dokter)}</span>
-                                    <span>${escapeHtml(row.status_dokter || 'Tidak Ada Dokter')}</span>
+                                <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm md:text-base font-extrabold uppercase tracking-[0.18em] ${nurseDoctorStatusClass(active.status_dokter)}">
+                                    <span class="opacity-90">${statusIconSvg(active.status_dokter)}</span>
+                                    <span>${escapeHtml(active.status_dokter || 'Tidak Ada Dokter')}</span>
                                 </div>
                             </div>
-                            <div class="mt-6 grid grid-cols-1 gap-4">
-                                <div class="rounded-[26px] border border-white/10 bg-white/5 px-5 py-4">
-                                    <div class="text-cyan-100/80 text-[11px] font-extrabold uppercase tracking-[0.26em]">Dokter Bertugas</div>
-                                    <div class="mt-2 text-white text-xl md:text-2xl font-black leading-snug">${escapeHtml(row.nama_dokter || 'Belum diatur')}</div>
+                            <div class="mt-8 rounded-[30px] border border-white/10 bg-white/5 px-7 py-7">
+                                <div class="text-cyan-100/80 text-[13px] md:text-[15px] font-extrabold uppercase tracking-[0.28em]">Dokter Bertugas</div>
+                                <div class="mt-4 text-white text-[2.1rem] md:text-[2.8rem] xl:text-[3.2rem] font-black leading-tight tracking-tight">${escapeHtml(active.nama_dokter || 'Belum diatur')}</div>
+                            </div>
+                            <div class="mt-7 flex flex-wrap items-center justify-between gap-4 text-base md:text-lg font-bold text-cyan-100/78">
+                                <div class="inline-flex items-center gap-3">
+                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M6.2 1.9v2.1M13.8 1.9v2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M3.8 7.4h12.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M5.6 4.9h8.8c1.4 0 2.6 1.2 2.6 2.6v8c0 1.4-1.2 2.6-2.6 2.6H5.6c-1.4 0-2.6-1.2-2.6-2.6v-8c0-1.4 1.2-2.6 2.6-2.6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>${escapeHtml(formatNurseDoctorUpdatedAt(active.updated_at))}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-cyan-100/70">
-                                    <div class="inline-flex items-center gap-2">
-                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M6.2 1.9v2.1M13.8 1.9v2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                            <path d="M3.8 7.4h12.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                            <path d="M5.6 4.9h8.8c1.4 0 2.6 1.2 2.6 2.6v8c0 1.4-1.2 2.6-2.6 2.6H5.6c-1.4 0-2.6-1.2-2.6-2.6v-8c0-1.4 1.2-2.6 2.6-2.6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        <span>${row.updated_at ? escapeHtml(new Date(row.updated_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'Belum ada update hari ini'}</span>
-                                    </div>
-                                    <div class="inline-flex items-center gap-2">
-                                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M10 18.2c4.5 0 8.2-3.7 8.2-8.2S14.5 1.8 10 1.8 1.8 5.5 1.8 10s3.7 8.2 8.2 8.2Z" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M10 6v4.4l2.8 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>Realtime</span>
-                                    </div>
+                                <div class="inline-flex items-center gap-3 rounded-full border border-cyan-300/20 bg-white/5 px-4 py-2 text-sm md:text-base uppercase tracking-[0.18em]">
+                                    <span>Rotasi Otomatis</span>
+                                    <span>${safeIndex + 1}/${items.length}</span>
                                 </div>
                             </div>
                         </div>
+                    `;
+
+                    dotsEl.innerHTML = items.map((_, index) => `
+                        <span class="${index === safeIndex ? 'w-10 bg-cyan-200' : 'w-3 bg-cyan-100/30'} h-3 rounded-full transition-all duration-300"></span>
                     `).join('');
+
+                    container.innerHTML = items.map((row, index) => `
+                        <div class="nurse-doctor-mini-card ${index === safeIndex ? 'is-active' : ''} rounded-[26px] border border-cyan-200/15 bg-white/5 px-5 py-5 transition-all duration-300">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="text-cyan-100/75 text-[11px] font-extrabold uppercase tracking-[0.24em]">Poli</div>
+                                    <div class="mt-1 text-white text-xl md:text-2xl font-black">${escapeHtml(poliLabel(row.poli_tujuan))}</div>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] md:text-xs font-extrabold uppercase tracking-[0.14em] ${nurseDoctorStatusClass(row.status_dokter)}">
+                                    <span>${escapeHtml(row.status_dokter || 'Tidak Ada Dokter')}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-cyan-50 text-lg md:text-xl font-black leading-snug">${escapeHtml(row.nama_dokter || 'Belum diatur')}</div>
+                        </div>
+                    `).join('');
+
                     if (metaEl) {
-                        metaEl.textContent = 'Nama dokter dan status diambil dari akun poli masing-masing dan tampil realtime di sini.';
+                        metaEl.textContent = items.length > 1
+                            ? 'Informasi dokter ditampilkan bergantian otomatis agar lebih besar dan mudah dibaca dari ruang tunggu.'
+                            : 'Nama dokter dan status diambil dari akun poli masing-masing dan tampil realtime di sini.';
                     }
+                }
+
+                function startNurseDoctorRotation() {
+                    stopNurseDoctorRotation();
+                    if ((currentNurseDoctorRows || []).length <= 1) return;
+
+                    nurseDoctorRotationTimer = window.setInterval(() => {
+                        if (document.hidden || selectedUnit !== 'NURSE_STATION') return;
+                        nurseDoctorRotationIndex = (nurseDoctorRotationIndex + 1) % currentNurseDoctorRows.length;
+                        renderNurseDoctorRotationFrame();
+                    }, 5000);
+                }
+
+                function renderNurseDoctorCards(rows) {
+                    const items = mergeDoctorRows(rows);
+                    const nextSignature = nurseDoctorSignature(items);
+                    currentNurseDoctorRows = items;
+                    if (nextSignature !== nurseDoctorRotationSignature) {
+                        nurseDoctorRotationSignature = nextSignature;
+                        nurseDoctorRotationIndex = 0;
+                    } else if (currentNurseDoctorRows.length > 0) {
+                        nurseDoctorRotationIndex = nurseDoctorRotationIndex % currentNurseDoctorRows.length;
+                    }
+                    renderNurseDoctorRotationFrame();
+                    startNurseDoctorRotation();
                 }
 
                 function renderNurseStationDisplay(queueRows, doctorRows) {
@@ -927,8 +1059,8 @@
                     nursePanel.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.NURSE_STATION;
                     document.getElementById('focusedNextTitle').textContent = 'Antrean Nurse Station';
-                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/3 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
-                    document.getElementById('focusedNextPanel').className = 'lg:w-2/3 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/2 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-1/2 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
 
                     renderNurseDoctorCards(doctorRows);
 
@@ -1710,6 +1842,7 @@
                 }
 
                 function renderFocusedPoliklinikDual(rows) {
+                    stopNurseDoctorRotation();
                     const currentByLoket = poliklinikCalledByLoket(rows);
                     const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id, currentByLoket.loket3?.id].filter(Boolean));
                     const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
@@ -1752,6 +1885,7 @@
                 }
 
                 function renderFocusedFarmasiDual(rows) {
+                    stopNurseDoctorRotation();
                     const currentByLoket = farmasiCalledByLoket(rows);
                     const currentIds = new Set([currentByLoket.loket1?.id, currentByLoket.loket2?.id].filter(Boolean));
                     const waiting = (rows || []).filter((item) => isDisplayQueueActive(item) && !currentIds.has(item.id));
@@ -1801,6 +1935,8 @@
                         return;
                     }
 
+                    stopNurseDoctorRotation();
+
                     document.querySelectorAll('.display-section').forEach(section => {
                         const unit = section.dataset.sectionUnit;
                         const shouldShow = true;
@@ -1833,6 +1969,7 @@
                         return;
                     }
 
+                    stopNurseDoctorRotation();
                     document.getElementById('focusedSingleCurrent').classList.remove('hidden');
                     document.getElementById('focusedPoliklinikDual').classList.add('hidden');
                     document.getElementById('focusedFarmasiDual').classList.add('hidden');
