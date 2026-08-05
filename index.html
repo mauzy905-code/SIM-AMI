@@ -5769,6 +5769,7 @@
                                     }
 
                                     await loadQueueControls();
+                                    await syncRegistrationLockWithCurrentQueue();
                                     await refreshStats();
                                     if (!viewRekap.classList.contains('hidden')) {
                                         await r_loadPage(r_currentPage);
@@ -6002,6 +6003,7 @@
                                     }
 
                                     await loadQueueControls();
+                                    await syncRegistrationLockWithCurrentQueue();
                                     await refreshStats();
                                     if (!viewRekap.classList.contains('hidden')) {
                                         await r_loadPage(r_currentPage);
@@ -6909,6 +6911,45 @@
                                 document.getElementById('r_refresh').textContent = isLoading ? 'Memuat...' : 'Refresh';
                             }
 
+                            function r_getSelectFields(options = {}) {
+                                const includeExactCount = options?.includeExactCount === true;
+                                const fields = [
+                                    'id',
+                                    'created_at',
+                                    'nama_pasien',
+                                    'no_rm',
+                                    'nik',
+                                    'no_bpjs',
+                                    'jenis_kelamin',
+                                    'tanggal_lahir',
+                                    'umur',
+                                    'unit',
+                                    'jenis_pasien',
+                                    'poli_tujuan',
+                                    'no_antrian'
+                                ];
+
+                                if (noRegistrasiColumnAvailable) fields.push('no_registrasi');
+                                if (alamatColumnAvailable) fields.push('alamat');
+                                if (teleponColumnAvailable) fields.push('no_telepon');
+                                if (pendidikanColumnAvailable) fields.push('pendidikan');
+                                if (pekerjaanColumnAvailable) fields.push('pekerjaan');
+                                if (statusPerkawinanColumnAvailable) fields.push('status_perkawinan');
+                                if (sukuColumnAvailable) fields.push('suku');
+                                if (petugasInputColumnAvailable) fields.push('petugas_input');
+                                if (petugasPoliColumnAvailable) fields.push('petugas_poli');
+                                if (riwayatLinkColumnAvailable) fields.push('riwayat_pasien_link');
+                                if (poliExamColumnsAvailable) {
+                                    fields.push('nama_dokter');
+                                    fields.push('diagnosa');
+                                }
+                                if (batalBerobatColumnAvailable) fields.push('batal_berobat_data');
+
+                                return includeExactCount
+                                    ? `${fields.join(',')}`
+                                    : fields.join(',');
+                            }
+
                             function r_applyFilters(query) {
                                 const shouldDefaultAllUnits = isRmeRole()
                                     || isSupervisorRole()
@@ -7226,7 +7267,7 @@
                                 let query = r_applySort(r_applyFilters(
                                     supabaseClient
                                         .from('pasien')
-                                        .select('*', { count: 'exact' })
+                                        .select(r_getSelectFields({ includeExactCount: true }), { count: 'exact' })
                                 )).range(from, to);
 
                                 const { data, error, count } = await query;
@@ -7319,7 +7360,7 @@
                                     const { data, error } = await r_applySort(r_applyFilters(
                                         supabaseClient
                                             .from('pasien')
-                                            .select('*')
+                                            .select(r_getSelectFields())
                                     ));
 
                                     if (error) {
