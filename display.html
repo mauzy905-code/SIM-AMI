@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260806-display-sound-ns-optimized-1';
+            const DISPLAY_BUILD_VERSION = '20260806-display-sound-ns-optimized-2';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -40,17 +40,13 @@
     <style>
         .priority-card {
             border-color: rgba(251, 191, 36, 0.5) !important;
-            background:
-                radial-gradient(circle at top, rgba(251, 191, 36, 0.12), transparent 38%),
-                linear-gradient(135deg, rgba(120, 53, 15, 0.6) 0%, rgba(127, 29, 29, 0.46) 100%);
-            box-shadow:
-                0 0 0 1px rgba(251, 191, 36, 0.14),
-                0 12px 28px rgba(244, 63, 94, 0.12);
+            background: rgba(120, 53, 15, 0.62);
+            box-shadow: none;
         }
 
         .priority-chip {
             border-color: rgba(253, 224, 71, 0.56) !important;
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.36), rgba(244, 63, 94, 0.32));
+            background: rgba(245, 158, 11, 0.42);
             color: #fff7ed !important;
             box-shadow: none;
             letter-spacing: 0.18em;
@@ -77,14 +73,10 @@
         }
 
         .waiting-priority-card {
-            background:
-                linear-gradient(90deg, rgba(120, 53, 15, 0.86), rgba(127, 29, 29, 0.72)),
-                rgba(15, 23, 42, 0.8);
+            background: rgba(120, 53, 15, 0.78);
             border-color: rgba(251, 191, 36, 0.5) !important;
             color: #fff7ed !important;
-            box-shadow:
-                0 0 0 1px rgba(251, 191, 36, 0.12),
-                0 10px 22px rgba(244, 63, 94, 0.12);
+            box-shadow: none;
         }
 
         .waiting-priority-status {
@@ -92,41 +84,17 @@
             text-shadow: none;
         }
 
-        @keyframes nurseDoctorSpotlightIn {
-            0% {
-                opacity: 0;
-                transform: translateY(12px) scale(0.985);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes nurseDoctorHaloPulse {
-            0%, 100% {
-                box-shadow:
-                    0 0 0 1px rgba(103, 232, 249, 0.12),
-                    0 22px 54px rgba(14, 165, 233, 0.18);
-            }
-            50% {
-                box-shadow:
-                    0 0 0 1px rgba(125, 211, 252, 0.24),
-                    0 28px 68px rgba(34, 211, 238, 0.26);
-            }
-        }
-
         .nurse-doctor-spotlight {
-            animation:
-                nurseDoctorSpotlightIn 520ms ease-out,
-                nurseDoctorHaloPulse 4.6s ease-in-out infinite;
+            animation: none;
+            transform: translateZ(0);
+            will-change: transform, opacity;
         }
 
         .nurse-doctor-mini-card.is-active {
             border-color: rgba(125, 211, 252, 0.4) !important;
-            background: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(34,211,238,0.10) 100%) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(8, 47, 73, 0.28);
+            background: rgba(8, 47, 73, 0.72) !important;
+            transform: none;
+            box-shadow: none;
         }
     </style>
     <script src="assets/js/queue-loket-utils.js"></script>
@@ -367,8 +335,8 @@
                     </div>
                 </div>
                 <div id="focusedNurseStationPanel" class="hidden w-full">
-                    <div class="mb-6 text-center sticky top-0 z-20 bg-[linear-gradient(180deg,_rgba(8,47,73,0.92)_0%,_rgba(8,47,73,0.72)_55%,_rgba(8,47,73,0)_100%)] backdrop-blur-md pt-2 pb-5">
-                        <h3 class="bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.5rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">Informasi Dokter Poli</h3>
+                    <div class="mb-6 text-center sticky top-0 z-20 bg-slate-950 pt-2 pb-5">
+                        <h3 class="text-white text-[2rem] md:text-[2.5rem] font-black tracking-[0.08em] uppercase">Informasi Dokter Poli</h3>
                         <div id="focusedNurseDoctorMeta" class="hidden"></div>
                     </div>
                     <div id="focusedDoctorSpotlight" class="min-h-[420px]"></div>
@@ -377,7 +345,7 @@
                 </div>
             </div>
 
-            <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-900/55 backdrop-blur-sm p-6 border-l border-emerald-800/50 overflow-y-auto">
+            <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-950 p-6 border-l border-slate-800/70 overflow-y-auto">
                 <h3 id="focusedNextTitle" class="mb-6 border-b border-cyan-500/25 pb-3 bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.4rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">ANTREAN BERIKUTNYA</h3>
                 <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.18)_0%,_rgba(37,99,235,0.2)_100%)] px-5 py-5 shadow-2xl">
                     <div class="text-cyan-200 text-xs font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
@@ -978,7 +946,7 @@
                     const active = items[safeIndex];
 
                     spotlightEl.innerHTML = `
-                        <div class="nurse-doctor-spotlight rounded-[38px] border border-cyan-200/20 bg-[linear-gradient(145deg,_rgba(255,255,255,0.14)_0%,_rgba(255,255,255,0.06)_50%,_rgba(2,132,199,0.12)_100%)] px-8 py-8 shadow-2xl">
+                        <div class="nurse-doctor-spotlight rounded-[38px] border border-cyan-200/20 bg-slate-900/70 px-8 py-8">
                             <div class="flex items-start justify-between gap-6">
                                 <div class="flex items-center gap-5">
                                     <div class="shrink-0">${poliLogoSvg(active.poli_tujuan)}</div>
@@ -1000,11 +968,11 @@
                     `;
 
                     dotsEl.innerHTML = items.map((_, index) => `
-                        <span class="${index === safeIndex ? 'w-10 bg-cyan-200' : 'w-3 bg-cyan-100/30'} h-3 rounded-full transition-all duration-300"></span>
+                        <span class="${index === safeIndex ? 'w-10 bg-cyan-200' : 'w-3 bg-cyan-100/30'} h-3 rounded-full"></span>
                     `).join('');
 
                     container.innerHTML = items.map((row, index) => `
-                        <div class="nurse-doctor-mini-card ${index === safeIndex ? 'is-active' : ''} rounded-[26px] border border-cyan-200/15 bg-white/5 px-5 py-5 transition-all duration-300">
+                        <div class="nurse-doctor-mini-card ${index === safeIndex ? 'is-active' : ''} rounded-[26px] border border-cyan-200/15 bg-white/5 px-5 py-5">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <div class="text-cyan-100/75 text-[11px] font-extrabold uppercase tracking-[0.24em]">Poli</div>
@@ -1083,8 +1051,8 @@
                     nursePanel.classList.remove('hidden');
                     document.getElementById('focusedUnit').textContent = unitNames.NURSE_STATION;
                     document.getElementById('focusedNextTitle').textContent = 'Antrean Nurse Station';
-                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/2 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
-                    document.getElementById('focusedNextPanel').className = 'lg:w-1/2 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
+                    document.getElementById('focusedCurrentPanel').className = 'lg:w-1/2 flex flex-col items-center justify-center p-7 bg-slate-950';
+                    document.getElementById('focusedNextPanel').className = 'lg:w-1/2 bg-slate-950 p-8 border-l border-slate-800/70 overflow-y-auto';
 
                     if (!skipDoctorRender) {
                         window.setTimeout(() => renderNurseDoctorCards(doctorRows), 0);
@@ -1130,7 +1098,7 @@
                     }
 
                     listContainer.innerHTML = waitingRows.slice(0, 8).map((item) => `
-                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-gradient-to-r from-cyan-950/75 to-blue-950/65 border-cyan-700/45 text-cyan-50'} border rounded-[26px] px-5 py-5 shadow-lg">
+                        <div class="${isNsPriorityQueue(item.queue_no) ? 'waiting-priority-card' : 'bg-slate-900/70 border-cyan-700/45 text-cyan-50'} border rounded-[26px] px-5 py-5">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <div class="text-4xl md:text-5xl font-extrabold tracking-tight">${escapeHtml(item.queue_no || '-')}</div>
