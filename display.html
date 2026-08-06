@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260805-display-nurse-station-rotating-doctor-2';
+            const DISPLAY_BUILD_VERSION = '20260806-display-sound-ns-optimized-1';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -426,10 +426,30 @@
                 let displayAccessGranted = false;
                 let displayRealtimeChannel = null;
                 let displayRefreshIntervalId = null;
+                let pendingLoadAntrianTimer = null;
+                let lastLoadAntrianAt = 0;
+                let lastNurseQueueSignature = '';
+                let lastNurseDoctorSignature = '';
                 let nurseDoctorRotationIndex = 0;
                 let nurseDoctorRotationTimer = null;
                 let nurseDoctorRotationSignature = '';
                 let currentNurseDoctorRows = [];
+
+                function scheduleLoadAntrian(force = false) {
+                    if (pendingLoadAntrianTimer) {
+                        window.clearTimeout(pendingLoadAntrianTimer);
+                        pendingLoadAntrianTimer = null;
+                    }
+                    const minGapMs = force ? 0 : 2500;
+                    const now = Date.now();
+                    const elapsed = now - lastLoadAntrianAt;
+                    const delay = elapsed >= minGapMs ? 0 : (minGapMs - elapsed);
+                    pendingLoadAntrianTimer = window.setTimeout(() => {
+                        pendingLoadAntrianTimer = null;
+                        lastLoadAntrianAt = Date.now();
+                        loadAntrian();
+                    }, delay);
+                }
 
                 function normalizeDisplayUnit(unitValue) {
                     const value = String(unitValue || '').trim().toUpperCase();
@@ -585,7 +605,13 @@
                         window.clearInterval(displayRefreshIntervalId);
                         displayRefreshIntervalId = null;
                     }
+                    if (pendingLoadAntrianTimer) {
+                        window.clearTimeout(pendingLoadAntrianTimer);
+                        pendingLoadAntrianTimer = null;
+                    }
 
+                    lastNurseQueueSignature = '';
+                    lastNurseDoctorSignature = '';
                     speechQueue.length = 0;
                     speechBusy = false;
                     setSyncStatus('Sinkron: login diperlukan', 'ok');
@@ -594,10 +620,11 @@
                 async function startDisplayRuntime() {
                     if (!displayAccessGranted) return;
                     setSectionVisibility();
+                    lastLoadAntrianAt = Date.now();
                     await loadAntrian();
                     subscribeToRealtime();
                     if (!displayRefreshIntervalId) {
-                        displayRefreshIntervalId = window.setInterval(() => loadAntrian(), 3000);
+                        displayRefreshIntervalId = window.setInterval(() => scheduleLoadAntrian(true), 5000);
                     }
                 }
 
@@ -1014,7 +1041,7 @@
 
                 function renderNurseDoctorCards(rows) {
                     const items = mergeDoctorRows(rows);
-                    const nextSignature = nurseDoctorSignature(items);
+                    const nextSignature = buildNurseDoctorSignature(items);
                     const signatureChanged = nextSignature !== nurseDoctorRotationSignature;
                     currentNurseDoctorRows = items;
                     if (signatureChanged) {
@@ -1035,7 +1062,10 @@
                     startNurseDoctorRotation(false);
                 }
 
-                function renderNurseStationDisplay(queueRows, doctorRows) {
+                function renderNurseStationDisplay(queueRows, doctorRows, options = null) {
+                    const safeOptions = options && typeof options === 'object' ? options : {};
+                    const skipDoctorRender = !!safeOptions.skipDoctorRender;
+
                     const singleCurrent = document.getElementById('focusedSingleCurrent');
                     const farmasiDual = document.getElementById('focusedFarmasiDual');
                     const poliklinikDual = document.getElementById('focusedPoliklinikDual');
@@ -1056,7 +1086,9 @@
                     document.getElementById('focusedCurrentPanel').className = 'lg:w-1/2 flex flex-col items-center justify-center p-7 bg-gradient-to-br from-cyan-950/85 to-blue-950/85';
                     document.getElementById('focusedNextPanel').className = 'lg:w-1/2 bg-slate-950/60 backdrop-blur-sm p-8 border-l border-cyan-800/45 overflow-y-auto';
 
-                    renderNurseDoctorCards(doctorRows);
+                    if (!skipDoctorRender) {
+                        window.setTimeout(() => renderNurseDoctorCards(doctorRows), 0);
+                    }
 
                     const normalizedRows = (queueRows || []).slice().sort((left, right) => {
                         const leftPriority = isNsPriorityQueue(left.queue_no || left.no_antrian) ? 0 : 1;
@@ -1112,6 +1144,17 @@
                     `).join('');
                 }
 
+                function buildNurseQueueSignature(rows) {
+                    const sorted = (rows || []).slice().sort((a, b) => String(a.id || '').localeCompare(String(b.id || '')));
+                    return sorted.map((r) => {
+                        const id = String(r.id || '');
+                        const q = String(r.queue_no || r.no_antrian || '');
+                        const s = String(r.ns_status || '');
+                        const c = String(r.ns_called_at || '');
+                        return `${id}|${q}|${s}|${c}`;
+                    }).join('||');
+                }
+
                 async function loadNurseStationDisplay() {
                     const { startISO, endISO } = getTodayRangeISO();
                     let doctorRows = getDefaultDoctorRows();
@@ -1164,8 +1207,32 @@
                         };
                     }).filter((row) => row.ns_status !== 'selesai' && !isCancelledRow(row));
 
-                    renderNurseStationDisplay(queueRows, doctorRows);
-                    announceNewNurseStationCalls(queueRows);
+                    const mergedDoctorRows = mergeDoctorRows(doctorData || doctorRows || []);
+                    const nextDoctorSignature = Array.isArray(mergedDoctorRows) ? buildNurseDoctorSignature(mergedDoctorRows) : '';
+                    const nextQueueSignature = buildNurseQueueSignature(queueRows);
+
+                    let didAnnounce = false;
+                    try {
+                        announceNewNurseStationCalls(queueRows);
+                        didAnnounce = true;
+                    } catch (_err) {}
+
+                    const queueChanged = nextQueueSignature !== lastNurseQueueSignature;
+                    const doctorChanged = nextDoctorSignature !== lastNurseDoctorSignature;
+
+                    if (queueChanged || doctorChanged) {
+                        lastNurseQueueSignature = nextQueueSignature;
+                        lastNurseDoctorSignature = nextDoctorSignature;
+                        renderNurseStationDisplay(queueRows, Array.isArray(mergedDoctorRows) ? mergedDoctorRows : doctorRows);
+                    } else {
+                        renderNurseStationDisplay(queueRows, Array.isArray(mergedDoctorRows) ? mergedDoctorRows : doctorRows, {
+                            skipDoctorRender: !doctorChanged
+                        });
+                    }
+
+                    if (!didAnnounce) {
+                        try { announceNewNurseStationCalls(queueRows); } catch (_err) {}
+                    }
 
                     const now = new Date();
                     const hh = String(now.getHours()).padStart(2, '0');
@@ -1557,7 +1624,20 @@
                     } else {
                         return;
                     }
-                    drainSpeechQueue();
+                    if (!speechBusy) {
+                        drainSpeechQueue();
+                    }
+                }
+
+                let pendingDrainTimer = null;
+                function scheduleDrainSpeechQueueSoon() {
+                    if (pendingDrainTimer) return;
+                    pendingDrainTimer = window.setTimeout(() => {
+                        pendingDrainTimer = null;
+                        if (!speechBusy && speechQueue.length > 0) {
+                            drainSpeechQueue();
+                        }
+                    }, 150);
                 }
 
                 async function drainSpeechQueue() {
@@ -1577,12 +1657,12 @@
                             }
                         } else {
                             await playAirportChime();
-                            await sleep(150);
+                            await sleep(120);
                             await speakText(nextItem);
                         }
                     } finally {
                         speechBusy = false;
-                        if (speechQueue.length > 0) drainSpeechQueue();
+                        scheduleDrainSpeechQueueSoon();
                     }
                 }
 
@@ -1656,6 +1736,17 @@
                     const noAntrian = String(item?.queue_no || item?.no_antrian || '').trim();
                     const calledAt = String(item?.ns_called_at || item?.called_at || '').trim();
                     return [rowId, noAntrian, calledAt].join('|');
+                }
+
+                function buildNurseDoctorSignature(rows) {
+                    const sorted = (rows || []).slice().sort((a, b) => String(a.poli_tujuan || '').localeCompare(String(b.poli_tujuan || '')));
+                    return sorted.map((r) => {
+                        const poli = String(r.poli_tujuan || '');
+                        const dokter = String(r.nama_dokter || '');
+                        const status = String(r.status_dokter || '');
+                        const updated = String(r.updated_at || '');
+                        return `${poli}|${dokter}|${status}|${updated}`;
+                    }).join('||');
                 }
 
                 function buildNurseStationAnnouncementText(item) {
@@ -2131,7 +2222,7 @@
                     try {
                         const { data: antrianData, error: antrianError } = await supabaseClient
                             .from('antrian')
-                            .select('*')
+                            .select('id,unit,no_antrian,nama_pasien,poli_tujuan,status,loket_tujuan,jenis_pasien,waktu_panggil,created_at')
                             .order('created_at', { ascending: false })
                             .limit(250);
 
@@ -2153,7 +2244,9 @@
                         const farmasiRows = mergedData.filter(a => a.unit_norm === 'FARMASI');
                         const poliklinikRows = mergedData.filter(a => a.unit_norm === 'POLIKLINIK');
 
-                        announceNewCalls(farmasiRows, poliklinikRows);
+                        try {
+                            announceNewCalls(farmasiRows, poliklinikRows);
+                        } catch (_err) {}
 
                         renderUnitQueue('FARMASI', farmasiRows);
                         renderUnitQueue('POLIKLINIK', poliklinikRows);
@@ -2178,12 +2271,12 @@
                     if (!displayAccessGranted || displayRealtimeChannel) return;
                     displayRealtimeChannel = supabaseClient
                         .channel('public:antrian_display')
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => loadAntrian())
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'antrian' }, () => scheduleLoadAntrian())
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'pasien' }, () => {
-                            if (selectedUnit === 'NURSE_STATION') loadAntrian();
+                            if (selectedUnit === 'NURSE_STATION') scheduleLoadAntrian();
                         })
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'poli_doctor_status' }, () => {
-                            if (selectedUnit === 'NURSE_STATION') loadAntrian();
+                            if (selectedUnit === 'NURSE_STATION') scheduleLoadAntrian();
                         })
                         .subscribe();
                 }
@@ -2209,7 +2302,8 @@
 
                         this.classList.add('ring-4', 'ring-white/25');
                         
-                        loadAntrian();
+                        loadAntrian = window.loadAntrian || loadAntrian;
+                        scheduleLoadAntrian(true);
                     });
                 });
 
@@ -2321,9 +2415,9 @@
                     }
                 });
 
-                window.addEventListener('focus', () => loadAntrian());
+                window.addEventListener('focus', () => scheduleLoadAntrian(true));
                 document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden) loadAntrian();
+                    if (!document.hidden) scheduleLoadAntrian(true);
                 });
 
                 restoreDisplaySession().catch(async (err) => {
