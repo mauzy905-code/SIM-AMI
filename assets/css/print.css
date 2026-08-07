@@ -1,14 +1,20 @@
 @media print {
                     body[data-print-mode="barcode"],
                     body[data-print-mode="wristband"],
-                    body[data-print-mode="nurse-station-ticket"] {
+                    body[data-print-mode="nurse-station-ticket"],
+                    body[data-print-mode="ugd-ticket"] {
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: hidden !important;
+                        background: #fff !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
                     }
                     body[data-print-mode="barcode"] > *,
                     body[data-print-mode="wristband"] > *,
-                    body[data-print-mode="nurse-station-ticket"] > * {
+                    body[data-print-mode="nurse-station-ticket"] > *,
+                    body[data-print-mode="ugd-ticket"] > * {
+                        visibility: hidden !important;
                         display: none !important;
                     }
                     body[data-print-mode="barcode"] {
@@ -24,15 +30,19 @@
                     }
                     body[data-print-mode="barcode"] #stickerContainer {
                         display: block !important;
+                        visibility: visible !important;
                         position: fixed;
-                        left: 0;
-                        top: 0;
-                        width: 80mm;
-                        height: 50mm;
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        box-sizing: border-box;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 80mm !important;
+                        height: 50mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        box-sizing: border-box !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
+                        page-break-after: avoid !important;
                     }
                     body[data-print-mode="barcode"] #sticker {
                         width: 80mm !important;
@@ -45,17 +55,25 @@
                     body[data-print-mode="wristband"] {
                         width: 90mm;
                         height: 25mm;
+                        min-width: 90mm;
+                        min-height: 25mm;
+                        max-width: 90mm;
+                        max-height: 25mm;
+                        background: #fff !important;
                     }
                     body[data-print-mode="wristband"] #wristbandContainer {
                         display: block !important;
+                        visibility: visible !important;
                         position: fixed;
-                        left: 0;
-                        top: 0;
-                        width: 90mm;
-                        height: 25mm;
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 90mm !important;
+                        height: 25mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
                     }
                     body[data-print-mode="wristband"] #wristband {
                         width: 90mm !important;
@@ -73,18 +91,22 @@
                         box-sizing: border-box;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                        background: #fff !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer {
                         display: block !important;
+                        visibility: visible !important;
                         position: fixed;
-                        left: 0;
-                        top: 0;
-                        width: 80mm;
-                        height: 60mm;
-                        margin: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        box-sizing: border-box;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 80mm !important;
+                        height: 60mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        box-sizing: border-box !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket {
                         width: 80mm !important;
@@ -93,6 +115,45 @@
                         overflow: hidden;
                         margin: 0 !important;
                         padding: 4mm 4mm 3mm !important;
+                    }
+                    body[data-print-mode="ugd-ticket"] {
+                        width: 80mm;
+                        height: 60mm;
+                        min-width: 80mm;
+                        min-height: 60mm;
+                        max-width: 80mm;
+                        max-height: 60mm;
+                        box-sizing: border-box;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        background: #fff !important;
+                    }
+                    body[data-print-mode="ugd-ticket"] #ugdTicketContainer {
+                        display: block !important;
+                        visibility: visible !important;
+                        position: fixed;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 80mm !important;
+                        height: 60mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        box-sizing: border-box !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
+                        page-break-after: avoid !important;
+                    }
+                    body[data-print-mode="ugd-ticket"] #ugdTicket {
+                        width: 80mm !important;
+                        height: 60mm !important;
+                        box-sizing: border-box !important;
+                        overflow: hidden !important;
+                        margin: 0 !important;
+                        padding: 3mm 3.5mm !important;
+                        font-family: "Courier New", Courier, monospace;
+                        color: #111;
+                        background: #fff;
                     }
                 }
 
