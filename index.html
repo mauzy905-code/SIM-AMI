@@ -653,14 +653,14 @@
                                             <div id="printActionPanel" class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
                                                 <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-slate-500">Cetak Dokumen</div>
                                                 <div id="printActionInfo" class="mt-2 text-sm font-semibold text-slate-500">
-                                                    Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, gelang, dan slip Nurse Station.
+                                                    Simpan data pasien terlebih dahulu untuk mengaktifkan cetak barcode, tiket UGD, dan slip Nurse Station.
                                                 </div>
                                                 <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                                                     <button id="printBarcodeBtn" type="button" class="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
                                                         Cetak Printer Barcode
                                                     </button>
-                                                    <button id="printWristbandBtn" type="button" class="rounded-2xl border border-rose-200 bg-white px-4 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
-                                                        Cetak Printer Gelang
+                                                    <button id="printWristbandBtn" type="button" class="rounded-2xl border border-orange-200 bg-white px-4 py-3 text-sm font-bold text-orange-700 shadow-sm transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
+                                                        Cetak Tiket UGD
                                                     </button>
                                                 </div>
                                                 <button id="printNurseStationTicketBtn" type="button" class="mt-3 w-full rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-violet-700 shadow-sm transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-50" disabled>
@@ -1202,6 +1202,45 @@
                         <div style="margin-top: 3mm; font-size: 9pt;"><b>Kategori</b>: <span id="ns_ticket_category"></span></div>
                         <div style="margin-top: 1mm; font-size: 9pt;"><b>Poli Tujuan</b>: <span id="ns_ticket_poli"></span></div>
                         <div style="margin-top: 2mm; font-size: 8pt; color: #475569;">Harap menunggu panggilan di Nurse Station.</div>
+                    </div>
+                </div>
+
+                <div id="ugdTicketContainer" class="hidden">
+                    <div id="ugdTicket" style="width: 80mm; height: 60mm; padding: 2.5mm 3mm; font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; line-height: 1.2; box-sizing: border-box; overflow: hidden; color: #111; background: #fff;">
+                        <div id="ugd_ticket_note" style="text-align: center; font-size: 9.5pt; font-weight: bold; letter-spacing: 0.2mm;">Harap Simpan Tiket Ini Sampai Pelayanan Selesai</div>
+                        <div id="ugd_ticket_rs" style="margin-top: 0.3mm; text-align: center; font-size: 9pt; font-weight: bold;">#RSUDAMI MUARA BADAK</div>
+                        <div style="margin-top: 1.2mm; border-top: 1px dashed #6b7280;"></div>
+                        <div style="margin-top: 1mm; text-align: center; font-size: 7.5pt; font-weight: bold; letter-spacing: 0.2mm;">
+                            Tanggal/Jam Cetak
+                            <span style="display: block; margin-top: 0.4mm; font-size: 9pt; letter-spacing: 0.12mm;" id="ugd_ticket_cetak">-</span>
+                        </div>
+                        <div style="margin-top: 0.8mm; border-top: 1px dashed #6b7280;"></div>
+                        <div id="ugd_ticket_unit" style="margin-top: 1mm; text-align: center; font-size: 32pt; line-height: 1; font-weight: 900; letter-spacing: 2mm;">UGD</div>
+                        <div style="margin-top: 0.8mm; border-top: 1px dashed #6b7280;"></div>
+                        <div style="margin-top: 0.9mm; text-align: center; font-size: 9pt; font-weight: bold; letter-spacing: 0.3mm;">NAMA PASIEN</div>
+                        <div id="ugd_ticket_nama" style="margin-top: 0.3mm; text-align: center; font-size: 11pt; font-weight: 900;">-</div>
+                        <div style="margin-top: 0.6mm; border-top: 1px dashed #6b7280;"></div>
+                        <div style="margin-top: 0.6mm; text-align: center; font-size: 8pt;">
+                            <span id="ugd_ticket_umur">-</span>
+                            <span style="display: inline-block; margin: 0 0.8mm;">/</span>
+                            <span>Jenis Kelamin (<span id="ugd_ticket_jk">-</span>)</span>
+                            <span style="display: inline-block; margin: 0 0.8mm;">/</span>
+                            <span>Tanggal Lahir (<span id="ugd_ticket_tgllahir">-</span>)</span>
+                        </div>
+                        <div style="margin-top: 0.6mm; text-align: center; font-size: 9pt; font-weight: bold; letter-spacing: 0.12mm;">
+                            Nomor Rekam Medik<span style="display: inline-block; margin: 0 0.8mm;">/</span>Nomor Registrasi<span style="display: inline-block; margin: 0 0.8mm;">/</span>UGD
+                        </div>
+                        <div style="margin-top: 0.3mm; text-align: center; font-size: 9pt;">
+                            <b id="ugd_ticket_no_rm">-</b>
+                            <span style="display: inline-block; margin: 0 1mm; opacity: 0.45;">|</span>
+                            <b id="ugd_ticket_no_registrasi">-</b>
+                            <span style="display: inline-block; margin: 0 1mm; opacity: 0.45;">|</span>
+                            <b id="ugd_ticket_no_antrian">-</b>
+                        </div>
+                        <div id="ugd_ticket_bpjs_row" style="margin-top: 0.8mm; display: none; text-align: center;">
+                            <div style="font-size: 9pt; font-weight: bold; letter-spacing: 0.15mm;">No BPJS</div>
+                            <div id="ugd_ticket_no_bpjs" style="margin-top: 0.2mm; font-size: 10pt; font-weight: 900;">-</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1861,6 +1900,7 @@
                                     set_petugas_aktif: 'Set petugas aktif',
                                     print_barcode: 'Cetak barcode',
                                     print_gelang: 'Cetak gelang',
+                                    print_tiket_ugd: 'Cetak tiket UGD',
                                     next_antrean: 'Panggil antrean',
                                     next_prioritas: 'Panggil prioritas',
                                     panggil_prioritas: 'Panggil prioritas',
@@ -1949,10 +1989,12 @@
                                 const currentUnit = String(lastRegisteredPrintPayload?.unit || '').trim().toUpperCase();
                                 const canPrintNurseStationTicket = nextEnabled
                                     && currentUnit === 'POLIKLINIK';
+                                const canPrintUgdTicket = nextEnabled
+                                    && currentUnit === 'UGD';
                                 const canPrintGeneralConsent = nextEnabled
                                     && currentUnit === 'UGD';
                                 printBarcodeBtn.disabled = !nextEnabled;
-                                printWristbandBtn.disabled = !nextEnabled;
+                                printWristbandBtn.disabled = !canPrintUgdTicket;
                                 if (printNurseStationTicketBtn) {
                                     printNurseStationTicketBtn.disabled = !canPrintNurseStationTicket;
                                 }
@@ -1961,24 +2003,50 @@
                                 }
                                 printActionPanel.classList.toggle('border-emerald-200', nextEnabled);
                                 printActionPanel.classList.toggle('bg-emerald-50/60', nextEnabled);
-                                printActionInfo.textContent = message || (nextEnabled
-                                    ? 'Dokumen siap dicetak. Klik tombol sesuai printer yang akan dipakai.'
-                                    : 'Simpan data pasien terlebih dahulu untuk mengaktifkan tombol cetak yang tersedia.');
+                                if (message) {
+                                    printActionInfo.textContent = message;
+                                } else if (!nextEnabled) {
+                                    printActionInfo.textContent = 'Simpan data pasien terlebih dahulu untuk mengaktifkan tombol cetak yang tersedia.';
+                                } else if (currentUnit === 'UGD') {
+                                    printActionInfo.textContent = 'Dokumen siap dicetak. Klik Cetak Tiket UGD untuk mencetak tiket pendaftaran UGD.';
+                                } else if (currentUnit === 'POLIKLINIK') {
+                                    printActionInfo.textContent = 'Dokumen siap dicetak. Klik Cetak Antrean Nurse Station untuk mencetak slip antrean Nurse Station.';
+                                } else {
+                                    printActionInfo.textContent = 'Dokumen siap dicetak. Klik tombol sesuai printer yang akan dipakai.';
+                                }
                                 printActionInfo.classList.toggle('text-emerald-700', nextEnabled);
                                 printActionInfo.classList.toggle('text-slate-500', !nextEnabled);
+                            }
+
+                            function formatDetailedAgeSafe(tanggalLahir, fallbackUmur) {
+                                const fmt = typeof formatDetailedAge === 'function'
+                                    ? formatDetailedAge(tanggalLahir || '', fallbackUmur ?? '')
+                                    : '';
+                                if (!fmt) {
+                                    const fb = String(fallbackUmur || '').trim();
+                                    return fb ? `${fb}th 0bln 0hri` : '';
+                                }
+                                return String(fmt).trim();
+                            }
+
+                            function formatDetailedAge(tanggalLahir, fallbackUmur) {
+                                return formatDetailedAgeSafe(tanggalLahir, fallbackUmur);
                             }
 
                             function buildPrintPayload(payload = {}) {
                                 const noAntrian = String(payload.no_antrian || '').trim();
                                 const isPriorityQueue = isPrioritasNoAntrian(noAntrian) || /^P-/i.test(noAntrian);
                                 const nurseStationQueueNo = normalizeNurseStationQueueNo(payload.nurse_station_queue_no || noAntrian);
+                                const tanggalLahirRaw = String(payload.tanggal_lahir || '').trim();
                                 return {
                                     nama_pasien: String(payload.nama_pasien || '').trim(),
-                                    tanggal_lahir: formatDateSlash(payload.tanggal_lahir || ''),
-                                    umur_formatted: formatDetailedAge(payload.tanggal_lahir || '', payload.umur ?? ''),
+                                    tanggal_lahir: formatDateSlash(tanggalLahirRaw),
+                                    _tanggal_lahir_raw: tanggalLahirRaw,
+                                    umur_formatted: formatDetailedAgeSafe(tanggalLahirRaw, payload.umur ?? ''),
                                     jenis_kelamin: String(payload.jenis_kelamin || '').trim(),
                                     no_rm: String(payload.no_rm || '').trim(),
                                     no_registrasi: String(payload.no_registrasi || '').trim(),
+                                    no_bpjs: String(payload.no_bpjs || '').trim(),
                                     unit: String(payload.unit || '').trim(),
                                     no_antrian: noAntrian,
                                     nurse_station_queue_no: nurseStationQueueNo,
@@ -2031,6 +2099,72 @@
                                 document.getElementById('ns_ticket_poli').textContent = payload.poli_tujuan_label || '-';
                             }
 
+                            function formatDetailedAgeCompact(tanggalLahir, fallbackUmur) {
+                                const out = formatDetailedAgeSafe(tanggalLahir, fallbackUmur);
+                                if (!out) {
+                                    const fb = String(fallbackUmur || '').trim();
+                                    return fb ? fb : '-';
+                                }
+                                return String(out)
+                                    .replace(/\s*th\s*/gi, ' Th ')
+                                    .replace(/\s*bln\s*/gi, ' Bl ')
+                                    .replace(/\s*hri\s*/gi, ' hr')
+                                    .replace(/\s+/g, ' ')
+                                    .trim();
+                            }
+
+                            function populateUgdTicketTemplate(payload) {
+                                const namaRs = '#RSUDAMI MUARA BADAK';
+                                const noteLine = 'Harap Simpan Tiket Ini Sampai Pelayanan Selesai';
+                                const noteEl = document.getElementById('ugd_ticket_note');
+                                const rsEl = document.getElementById('ugd_ticket_rs');
+                                if (noteEl) noteEl.textContent = noteLine;
+                                if (rsEl) rsEl.textContent = namaRs;
+                                const cetakEl = document.getElementById('ugd_ticket_cetak');
+                                if (cetakEl) {
+                                    const now = new Date();
+                                    const pad = (n) => String(n).padStart(2, '0');
+                                    cetakEl.textContent = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}  ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                                }
+                                const unitEl = document.getElementById('ugd_ticket_unit');
+                                if (unitEl) unitEl.textContent = 'UGD';
+                                const namaEl = document.getElementById('ugd_ticket_nama');
+                                if (namaEl) namaEl.textContent = payload.nama_pasien || '-';
+                                const umurEl = document.getElementById('ugd_ticket_umur');
+                                if (umurEl) {
+                                    const umurTeks = formatDetailedAgeCompact(payload.tanggal_lahir || '', payload._tanggal_lahir_raw || payload.umur ?? '');
+                                    umurEl.textContent = umurTeks || '-';
+                                }
+                                const jkEl = document.getElementById('ugd_ticket_jk');
+                                if (jkEl) {
+                                    const jkRaw = String(payload.jenis_kelamin || '').trim().toUpperCase();
+                                    if (jkRaw.startsWith('L')) jkEl.textContent = 'L';
+                                    else if (jkRaw.startsWith('P')) jkEl.textContent = 'P';
+                                    else jkEl.textContent = jkRaw || '-';
+                                }
+                                const tglEl = document.getElementById('ugd_ticket_tgllahir');
+                                if (tglEl) tglEl.textContent = payload.tanggal_lahir || '-';
+                                const rmEl = document.getElementById('ugd_ticket_no_rm');
+                                if (rmEl) rmEl.textContent = payload.no_rm || '-';
+                                const regEl = document.getElementById('ugd_ticket_no_registrasi');
+                                if (regEl) regEl.textContent = payload.no_registrasi || '-';
+                                const antEl = document.getElementById('ugd_ticket_no_antrian');
+                                if (antEl) antEl.textContent = payload.no_antrian || payload.ugd_queue_no || '-';
+                                const bpjsRow = document.getElementById('ugd_ticket_bpjs_row');
+                                const bpjsVal = String(payload.no_bpjs || '').trim();
+                                if (bpjsRow) {
+                                    if (bpjsVal) {
+                                        bpjsRow.style.display = 'block';
+                                        const bpjsEl = document.getElementById('ugd_ticket_no_bpjs');
+                                        if (bpjsEl) bpjsEl.textContent = bpjsVal;
+                                    } else {
+                                        bpjsRow.style.display = 'none';
+                                        const bpjsEl = document.getElementById('ugd_ticket_no_bpjs');
+                                        if (bpjsEl) bpjsEl.textContent = '-';
+                                    }
+                                }
+                            }
+
                             function updatePrintPayload(payload) {
                                 lastRegisteredPrintPayload = payload ? buildPrintPayload(payload) : null;
                                 if (!lastRegisteredPrintPayload) {
@@ -2040,6 +2174,7 @@
                                 populateBarcodeTemplate(lastRegisteredPrintPayload);
                                 populateWristbandTemplate(lastRegisteredPrintPayload);
                                 populateNurseStationTicketTemplate(lastRegisteredPrintPayload);
+                                populateUgdTicketTemplate(lastRegisteredPrintPayload);
                                 const patientName = lastRegisteredPrintPayload.nama_pasien || 'Pasien terakhir';
                                 setPrintButtonsState(true, `Dokumen siap dicetak untuk ${patientName}. Pilih tombol sesuai printer.`);
                             }
@@ -2066,6 +2201,22 @@
                                 document.getElementById('ns_ticket_queue_no').textContent = '';
                                 document.getElementById('ns_ticket_category').textContent = '';
                                 document.getElementById('ns_ticket_poli').textContent = '';
+                                const ugdNama = document.getElementById('ugd_ticket_nama');
+                                if (ugdNama) ugdNama.textContent = '-';
+                                const ugdCetak = document.getElementById('ugd_ticket_cetak');
+                                if (ugdCetak) ugdCetak.textContent = '-';
+                                const ugdUmur = document.getElementById('ugd_ticket_umur');
+                                if (ugdUmur) ugdUmur.textContent = '-';
+                                const ugdJk = document.getElementById('ugd_ticket_jk');
+                                if (ugdJk) ugdJk.textContent = '-';
+                                const ugdTgl = document.getElementById('ugd_ticket_tgllahir');
+                                if (ugdTgl) ugdTgl.textContent = '-';
+                                const ugdRm = document.getElementById('ugd_ticket_no_rm');
+                                if (ugdRm) ugdRm.textContent = '-';
+                                const ugdReg = document.getElementById('ugd_ticket_no_registrasi');
+                                if (ugdReg) ugdReg.textContent = '-';
+                                const ugdAnt = document.getElementById('ugd_ticket_no_antrian');
+                                if (ugdAnt) ugdAnt.textContent = '-';
                                 setPrintButtonsState(false);
                             }
 
@@ -2113,17 +2264,31 @@
                                         unit: lastRegisteredPrintPayload.unit,
                                         poli_tujuan: lastRegisteredPrintPayload.poli_tujuan_label
                                     });
-                                } else {
-                                    populateWristbandTemplate(lastRegisteredPrintPayload);
-                                    activePrintMode = 'wristband';
-                                    document.body.setAttribute('data-print-mode', 'wristband');
-                                    setPrintPageSize('90mm 25mm');
-                                    appendStaffActivity('print_gelang', {
-                                        no_rm: lastRegisteredPrintPayload.no_rm,
-                                        no_registrasi: lastRegisteredPrintPayload.no_registrasi,
-                                        no_antrian: lastRegisteredPrintPayload.no_antrian,
-                                        unit: lastRegisteredPrintPayload.unit
-                                    });
+                                } else if (mode === 'wristband') {
+                                    const currentUnit = String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase();
+                                    if (currentUnit === 'UGD') {
+                                        populateUgdTicketTemplate(lastRegisteredPrintPayload);
+                                        activePrintMode = 'ugd-ticket';
+                                        document.body.setAttribute('data-print-mode', 'ugd-ticket');
+                                        setPrintPageSize('80mm 60mm');
+                                        appendStaffActivity('print_tiket_ugd', {
+                                            no_rm: lastRegisteredPrintPayload.no_rm,
+                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                            unit: lastRegisteredPrintPayload.unit
+                                        });
+                                    } else {
+                                        populateWristbandTemplate(lastRegisteredPrintPayload);
+                                        activePrintMode = 'wristband';
+                                        document.body.setAttribute('data-print-mode', 'wristband');
+                                        setPrintPageSize('90mm 25mm');
+                                        appendStaffActivity('print_gelang', {
+                                            no_rm: lastRegisteredPrintPayload.no_rm,
+                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                            unit: lastRegisteredPrintPayload.unit
+                                        });
+                                    }
                                 }
 
                                 window.setTimeout(() => window.print(), 30);
@@ -2355,18 +2520,18 @@
                                     supervisorMenuLinks.classList.add('hidden');
                                     drawerRoleEyebrow.textContent = 'Akses Nurse Station';
                                     drawerTitle.textContent = 'Menu Nurse Station';
-                                    drawerDescription.textContent = 'monitoring pasien poliklinik hari ini dan akses daftar pasien Nurse Station.';
+                                    drawerDescription.textContent = 'Fokus pada monitoring pasien poliklinik hari ini dan akses cepat ke daftar pasien Nurse Station.';
                                     drawerRoleNote.textContent = 'Nurse Station';
                                     dashboardRolePill.textContent = 'Panel Nurse Station';
-                                    dashboardTitle.textContent = 'Nurse Station';
-                                    dashboardDescription.textContent = 'Pantau pasien poliklinik hari ini.';
+                                    dashboardTitle.textContent = 'Dashboard Nurse Station';
+                                    dashboardDescription.textContent = 'Pantau pasien poliklinik hari ini lalu buka daftar pasien yang akan masuk ke alur Nurse Station.';
                                     summaryBox1Label.textContent = 'Workflow';
                                     summaryBox1Value.textContent = 'Nurse Station';
                                     summaryBox2Label.textContent = 'Akses';
                                     summaryBox2Value.textContent = 'Monitoring';
                                     summaryBox3Label.textContent = 'Tahap';
                                     summaryBox3Value.textContent = 'Awal';
-                                    dashboardQuickHint.textContent = 'Buka daftar pasien hari ini dari menu rekap.';
+                                    dashboardQuickHint.textContent = 'Gunakan dashboard ini sebagai landing akun Nurse Station, lalu buka daftar pasien hari ini dari menu rekap.';
                                 } else if (isReadOnlyViewer) {
                                     const readOnlyRoleLabel = isBidan ? 'Bidan' : (isPerawat ? 'Perawat' : 'Dokter');
                                     supervisorMenuLinks.classList.add('hidden');
@@ -2528,7 +2693,7 @@
                                             ? (scopedPetugasPoli
                                                 ? 'Cari Pasien Poli (Nama / NIK)'
                                                 : 'Cari (Nama / NIK)')
-                                            : (isNurseStation ? 'Cari Pasien (Nama / NIK / No RM)' : 'Cari (Nama / NIK)'));
+                                            : (isNurseStation ? 'Cari Pasien Nurse Station (Nama / NIK / No RM)' : 'Cari (Nama / NIK)'));
                                 }
                                 if (exportBtn) {
                                     exportBtn.classList.toggle('hidden', isPetugasPoli || isNurseStation || isReadOnlyViewer);
@@ -6680,9 +6845,11 @@
                                     updatePrintPayload({
                                         nama_pasien,
                                         tanggal_lahir,
+                                        umur,
                                         jenis_kelamin,
                                         no_rm,
                                         no_registrasi,
+                                        no_bpjs,
                                         unit,
                                         no_antrian,
                                         poli_tujuan,
