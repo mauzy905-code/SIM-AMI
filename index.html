@@ -2019,18 +2019,14 @@
                             }
 
                             function formatDetailedAgeSafe(tanggalLahir, fallbackUmur) {
-                                const fmt = typeof formatDetailedAge === 'function'
-                                    ? formatDetailedAge(tanggalLahir || '', fallbackUmur ?? '')
+                                const fmt = typeof window.formatDetailedAge === 'function'
+                                    ? window.formatDetailedAge(tanggalLahir || '', fallbackUmur ?? '')
                                     : '';
                                 if (!fmt) {
                                     const fb = String(fallbackUmur || '').trim();
                                     return fb ? `${fb}th 0bln 0hri` : '';
                                 }
                                 return String(fmt).trim();
-                            }
-
-                            function formatDetailedAge(tanggalLahir, fallbackUmur) {
-                                return formatDetailedAgeSafe(tanggalLahir, fallbackUmur);
                             }
 
                             function buildPrintPayload(payload = {}) {
@@ -2395,7 +2391,9 @@
 
                             function syncUmurFromTanggalLahir() {
                                 if (!umurInput) return;
-                                umurInput.value = formatDetailedAge(tanggalLahirInput?.value || '', '');
+                                umurInput.value = (typeof window.formatDetailedAge === 'function'
+                                    ? window.formatDetailedAge(tanggalLahirInput?.value || '', '')
+                                    : '');
                             }
 
                             function applyRolePresentation() {
@@ -5350,7 +5348,9 @@
                                 document.getElementById('no_telepon').value = patient?.no_telepon || '';
                                 document.getElementById('jenis_kelamin').value = patient?.jenis_kelamin || '';
                                 tanggalLahirInput.value = patient?.tanggal_lahir || '';
-                                umurInput.value = formatDetailedAge(tanggalLahirInput.value, patient?.umur ?? '');
+                                umurInput.value = (typeof window.formatDetailedAge === 'function'
+                                    ? window.formatDetailedAge(tanggalLahirInput.value, patient?.umur ?? '')
+                                    : '');
                                 document.getElementById('pendidikan').value = patient?.pendidikan || '';
                                 document.getElementById('pekerjaan').value = patient?.pekerjaan || '';
                                 document.getElementById('status_perkawinan').value = patient?.status_perkawinan || '';
@@ -8631,7 +8631,9 @@
                                 document.getElementById('gc_tgl_lahir').textContent = formattedBirthDate;
                                 const umurEl = document.getElementById('gc_umur');
                                 if (umurEl) {
-                                    const umurText = formatDetailedAge(patientData.tanggal_lahir || '', patientData.umur ?? '');
+                                    const umurText = (typeof window.formatDetailedAge === 'function'
+                                        ? window.formatDetailedAge(patientData.tanggal_lahir || '', patientData.umur ?? '')
+                                        : '');
                                     umurEl.textContent = umurText || '';
                                 }
                                 
@@ -8705,7 +8707,9 @@
                                 document.getElementById('t_tgl_lahir').textContent = formattedBirthDate;
                                 const umurEl = document.getElementById('t_umur');
                                 if (umurEl) {
-                                    const umurText = formatDetailedAge(patientData?.tanggal_lahir || '', patientData?.umur ?? '');
+                                    const umurText = (typeof window.formatDetailedAge === 'function'
+                                        ? window.formatDetailedAge(patientData?.tanggal_lahir || '', patientData?.umur ?? '')
+                                        : '');
                                     umurEl.textContent = umurText || '';
                                 }
                             }
