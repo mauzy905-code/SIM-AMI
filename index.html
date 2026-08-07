@@ -2132,7 +2132,7 @@
                                 if (namaEl) namaEl.textContent = payload.nama_pasien || '-';
                                 const umurEl = document.getElementById('ugd_ticket_umur');
                                 if (umurEl) {
-                                    const umurTeks = formatDetailedAgeCompact(payload.tanggal_lahir || '', payload._tanggal_lahir_raw || payload.umur ?? '');
+                                    const umurTeks = formatDetailedAgeCompact(payload.tanggal_lahir || '', (payload._tanggal_lahir_raw || payload.umur) ?? '');
                                     umurEl.textContent = umurTeks || '-';
                                 }
                                 const jkEl = document.getElementById('ugd_ticket_jk');
