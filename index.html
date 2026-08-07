@@ -2216,7 +2216,21 @@
                                 setPrintButtonsState(false);
                             }
 
+                            let lastPrintContainerEl = null;
+
+                            const PRINT_MODE_TO_CONTAINER_ID = {
+                                'barcode': 'stickerContainer',
+                                'wristband': 'wristbandContainer',
+                                'nurse-station-ticket': 'nurseStationTicketContainer',
+                                'ugd-ticket': 'ugdTicketContainer'
+                            };
+
                             function clearActivePrintMode() {
+                                if (lastPrintContainerEl) {
+                                    lastPrintContainerEl.classList.add('hidden');
+                                    lastPrintContainerEl.removeAttribute('style');
+                                    lastPrintContainerEl = null;
+                                }
                                 activePrintMode = '';
                                 document.body.removeAttribute('data-print-mode');
                                 setPrintPageSize('');
@@ -2227,6 +2241,23 @@
                                 clearActivePrintMode();
                             });
 
+                            function preparePrintContainer(mode) {
+                                const containerId = PRINT_MODE_TO_CONTAINER_ID[mode];
+                                if (!containerId) return;
+                                const el = document.getElementById(containerId);
+                                if (!el) return;
+                                lastPrintContainerEl = el;
+                                el.classList.remove('hidden');
+                                el.style.setProperty('display', 'block', 'important');
+                                el.style.setProperty('visibility', 'visible', 'important');
+                                el.style.setProperty('z-index', '99999', 'important');
+                                el.style.setProperty('position', 'fixed');
+                                el.style.setProperty('left', '0');
+                                el.style.setProperty('top', '0');
+                                el.style.setProperty('margin', '0');
+                                el.style.setProperty('padding', '0');
+                            }
+
                             async function triggerPatientPrint(mode) {
                                 if (!lastRegisteredPrintPayload) {
                                     setPrintButtonsState(false);
@@ -2236,6 +2267,7 @@
                                 if (mode === 'barcode') {
                                     populateBarcodeTemplate(lastRegisteredPrintPayload);
                                     activePrintMode = 'barcode';
+                                    preparePrintContainer('barcode');
                                     document.body.setAttribute('data-print-mode', 'barcode');
                                     setPrintPageSize('80mm 50mm');
                                     appendStaffActivity('print_barcode', {
@@ -2251,6 +2283,7 @@
                                     }
                                     populateNurseStationTicketTemplate(lastRegisteredPrintPayload);
                                     activePrintMode = 'nurse-station-ticket';
+                                    preparePrintContainer('nurse-station-ticket');
                                     document.body.setAttribute('data-print-mode', 'nurse-station-ticket');
                                     setPrintPageSize('80mm 60mm');
                                     appendStaffActivity('print_antrean_nurse_station', {
@@ -2265,6 +2298,7 @@
                                     if (currentUnit === 'UGD') {
                                         populateUgdTicketTemplate(lastRegisteredPrintPayload);
                                         activePrintMode = 'ugd-ticket';
+                                        preparePrintContainer('ugd-ticket');
                                         document.body.setAttribute('data-print-mode', 'ugd-ticket');
                                         setPrintPageSize('80mm 60mm');
                                         appendStaffActivity('print_tiket_ugd', {
@@ -2276,6 +2310,7 @@
                                     } else {
                                         populateWristbandTemplate(lastRegisteredPrintPayload);
                                         activePrintMode = 'wristband';
+                                        preparePrintContainer('wristband');
                                         document.body.setAttribute('data-print-mode', 'wristband');
                                         setPrintPageSize('90mm 25mm');
                                         appendStaffActivity('print_gelang', {
@@ -2287,7 +2322,7 @@
                                     }
                                 }
 
-                                window.setTimeout(() => window.print(), 30);
+                                window.setTimeout(() => window.print(), 250);
                             }
 
                             function showStaffNameError(message) {
