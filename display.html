@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         (function() {
-            const DISPLAY_BUILD_VERSION = '20260806-display-sound-ns-optimized-2';
+            const DISPLAY_BUILD_VERSION = '20260807-display-isolate-unit-sound-1';
             const BUILD_KEY = 'simami-display-build-version';
             const RELOAD_KEY = 'simami-display-force-reload-once';
 
@@ -1724,70 +1724,90 @@
                     return `No antrean ${spokenCode}. Menuju meja pemeriksaan.`;
                 }
 
+                function announcementKeyPrefix() {
+                    const unit = String(selectedUnit || 'ALL').trim().toUpperCase();
+                    if (unit === 'FARMASI') return 'FARMASI:';
+                    if (unit === 'POLIKLINIK') return 'POLIKLINIK:';
+                    if (unit === 'NURSE_STATION') return 'NURSE_STATION:';
+                    return 'ALL:';
+                }
+
                 function announceNewCalls(farmasiRows, poliklinikRows) {
                     if (!soundEnabled) return;
-                    const farmasiByLoket = farmasiCalledByLoket(farmasiRows || []);
-                    const farmasiLoket1 = farmasiByLoket.loket1;
-                    const farmasiLoket2 = farmasiByLoket.loket2;
-                    if (farmasiLoket1?.no_antrian) {
-                        const key = 'FARMASI:1';
-                        const fixedRow = { ...farmasiLoket1, loket_tujuan: 'FARMASI_1' };
-                        const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_1');
-                        if (lastAnnounced[key] !== nextVal) {
-                            lastAnnounced[key] = nextVal;
-                            persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
+                    const currentUnit = String(selectedUnit || 'ALL').trim().toUpperCase();
+                    const allowFarmasi = currentUnit === 'ALL' || currentUnit === 'FARMASI';
+                    const allowPoliklinik = currentUnit === 'ALL' || currentUnit === 'POLIKLINIK';
+                    const prefix = announcementKeyPrefix();
+
+                    if (allowFarmasi) {
+                        const farmasiByLoket = farmasiCalledByLoket(farmasiRows || []);
+                        const farmasiLoket1 = farmasiByLoket.loket1;
+                        const farmasiLoket2 = farmasiByLoket.loket2;
+                        if (farmasiLoket1?.no_antrian) {
+                            const key = prefix + 'FARMASI:1';
+                            const fixedRow = { ...farmasiLoket1, loket_tujuan: 'FARMASI_1' };
+                            const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_1');
+                            if (lastAnnounced[key] !== nextVal) {
+                                lastAnnounced[key] = nextVal;
+                                persistLastAnnounced();
+                                enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
+                            }
                         }
-                    }
-                    if (farmasiLoket2?.no_antrian) {
-                        const key = 'FARMASI:2';
-                        const fixedRow = { ...farmasiLoket2, loket_tujuan: 'FARMASI_2' };
-                        const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_2');
-                        if (lastAnnounced[key] !== nextVal) {
-                            lastAnnounced[key] = nextVal;
-                            persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
+                        if (farmasiLoket2?.no_antrian) {
+                            const key = prefix + 'FARMASI:2';
+                            const fixedRow = { ...farmasiLoket2, loket_tujuan: 'FARMASI_2' };
+                            const nextVal = buildAnnouncementSignature(fixedRow, 'FARMASI_2');
+                            if (lastAnnounced[key] !== nextVal) {
+                                lastAnnounced[key] = nextVal;
+                                persistLastAnnounced();
+                                enqueueAnnouncement(buildAnnouncementPayload('FARMASI', fixedRow) || buildAnnouncementText('FARMASI', fixedRow));
+                            }
                         }
                     }
 
-                    const byLoket = poliklinikCalledByLoket(poliklinikRows || []);
-                    const loket1 = byLoket.loket1;
-                    const loket2 = byLoket.loket2;
-                    const loket3 = byLoket.loket3;
-                    if (loket1?.no_antrian) {
-                        const key = 'POLIKLINIK:A';
-                        const nextVal = buildAnnouncementSignature(loket1, 'A');
-                        if (lastAnnounced[key] !== nextVal) {
-                            lastAnnounced[key] = nextVal;
-                            persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket1, loket_tujuan: 'A' }) || buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'A' }));
+                    if (allowPoliklinik) {
+                        const byLoket = poliklinikCalledByLoket(poliklinikRows || []);
+                        const loket1 = byLoket.loket1;
+                        const loket2 = byLoket.loket2;
+                        const loket3 = byLoket.loket3;
+                        if (loket1?.no_antrian) {
+                            const key = prefix + 'POLIKLINIK:A';
+                            const nextVal = buildAnnouncementSignature(loket1, 'A');
+                            if (lastAnnounced[key] !== nextVal) {
+                                lastAnnounced[key] = nextVal;
+                                persistLastAnnounced();
+                                enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket1, loket_tujuan: 'A' }) || buildAnnouncementText('POLIKLINIK', { ...loket1, loket_tujuan: 'A' }));
+                            }
                         }
-                    }
-                    if (loket2?.no_antrian) {
-                        const key = 'POLIKLINIK:B';
-                        const nextVal = buildAnnouncementSignature(loket2, 'B');
-                        if (lastAnnounced[key] !== nextVal) {
-                            lastAnnounced[key] = nextVal;
-                            persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket2, loket_tujuan: 'B' }) || buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'B' }));
+                        if (loket2?.no_antrian) {
+                            const key = prefix + 'POLIKLINIK:B';
+                            const nextVal = buildAnnouncementSignature(loket2, 'B');
+                            if (lastAnnounced[key] !== nextVal) {
+                                lastAnnounced[key] = nextVal;
+                                persistLastAnnounced();
+                                enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket2, loket_tujuan: 'B' }) || buildAnnouncementText('POLIKLINIK', { ...loket2, loket_tujuan: 'B' }));
+                            }
                         }
-                    }
-                    if (loket3?.no_antrian) {
-                        const key = 'POLIKLINIK:C';
-                        const nextVal = buildAnnouncementSignature(loket3, 'C');
-                        if (lastAnnounced[key] !== nextVal) {
-                            lastAnnounced[key] = nextVal;
-                            persistLastAnnounced();
-                            enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }) || buildAnnouncementText('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }));
+                        if (loket3?.no_antrian) {
+                            const key = prefix + 'POLIKLINIK:C';
+                            const nextVal = buildAnnouncementSignature(loket3, 'C');
+                            if (lastAnnounced[key] !== nextVal) {
+                                lastAnnounced[key] = nextVal;
+                                persistLastAnnounced();
+                                enqueueAnnouncement(buildAnnouncementPayload('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }) || buildAnnouncementText('POLIKLINIK', { ...loket3, loket_tujuan: 'C' }));
+                            }
                         }
                     }
                 }
 
                 function announceNewNurseStationCalls(queueRows) {
                     if (!soundEnabled) return;
+                    const currentUnit = String(selectedUnit || 'ALL').trim().toUpperCase();
+                    if (currentUnit !== 'ALL' && currentUnit !== 'NURSE_STATION') return;
                     const current = (queueRows || []).find((row) => row?.ns_status === 'dipanggil') || null;
                     if (!current) return;
-                    const key = 'NURSE_STATION:CURRENT';
+                    const prefix = announcementKeyPrefix();
+                    const key = prefix + 'NURSE_STATION:CURRENT';
                     const nextVal = buildNurseStationAnnouncementSignature(current);
                     if (lastAnnounced[key] === nextVal) return;
                     lastAnnounced[key] = nextVal;
@@ -2216,11 +2236,16 @@
                             announceNewCalls(farmasiRows, poliklinikRows);
                         } catch (_err) {}
 
-                        renderUnitQueue('FARMASI', farmasiRows);
-                        renderUnitQueue('POLIKLINIK', poliklinikRows);
-                        if (selectedUnit === 'FARMASI') {
+                        const currentUnit = String(selectedUnit || 'ALL').trim().toUpperCase();
+                        const unitAll = currentUnit === 'ALL';
+                        const unitFarmasi = currentUnit === 'FARMASI';
+                        const unitPoliklinik = currentUnit === 'POLIKLINIK';
+
+                        if (unitAll || unitFarmasi) renderUnitQueue('FARMASI', farmasiRows);
+                        if (unitAll || unitPoliklinik) renderUnitQueue('POLIKLINIK', poliklinikRows);
+                        if (unitFarmasi) {
                             renderFocusedQueue('FARMASI', farmasiRows);
-                        } else if (selectedUnit === 'POLIKLINIK') {
+                        } else if (unitPoliklinik) {
                             renderFocusedQueue('POLIKLINIK', poliklinikRows);
                         }
                         setSectionVisibility();
