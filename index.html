@@ -20,7 +20,7 @@
                 <link rel="stylesheet" href="assets/css/nurse-station-dashboard.css">
             <link rel="stylesheet" href="assets/css/poli-dashboard.css?v=20260810-eressep-shortcut">
             <link rel="stylesheet" href="assets/css/poli-doctor-settings.css">
-                <link rel="stylesheet" href="assets/css/print.css">
+                <link rel="stylesheet" href="assets/css/print.css?v=20260810-ticket-80x60-fit">
             </head>
             <body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
                 <div id="globalLoadingShell" class="pointer-events-none fixed inset-x-0 top-0 z-[70] opacity-0 transition-all duration-300">
@@ -1158,25 +1158,22 @@
                 </div>
                 
                 <div id="stickerContainer" class="hidden">
-                    <div id="sticker" style="width: 80mm; height: 50mm; padding: 3mm; font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; box-sizing: border-box; overflow: hidden;">
+                    <div id="sticker" style="width: 80mm; height: 60mm; box-sizing: border-box; overflow: hidden; font-family: Arial, sans-serif;">
                         <div style="text-align: center; font-weight: bold; font-size: 10pt;">RSUD AJI MUHAMMAD IDRIS</div>
-                        <div style="margin-top: 1.5mm;">
-                            <div>
-                                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b>Nama</b>: <span id="sticker_nama"></span></div>
-                                <div><b>Tgl Lahir</b>: <span id="sticker_tgl_lahir"></span></div>
-                                <div><b>Umur</b>: <span id="sticker_umur"></span></div>
-                                <div><b>JK</b>: <span id="sticker_jk"></span></div>
-                            </div>
+                        <div style="margin-top: 1mm;">
+                            <div><b>Nama</b>: <span id="sticker_nama"></span></div>
+                            <div><b>Tgl Lahir</b>: <span id="sticker_tgl_lahir"></span></div>
+                            <div><b>Umur</b>: <span id="sticker_umur"></span></div>
+                            <div><b>JK</b>: <span id="sticker_jk"></span></div>
                         </div>
-                        <div style="margin-top: 2mm; display: flex; justify-content: space-between; gap: 4mm; align-items: flex-start;">
+                        <div class="row-meta" style="margin-top: 1.5mm;">
                             <div style="font-size: 8pt;"><b>No RM</b>: <span id="sticker_no_rm"></span></div>
-                            <div style="font-size: 8pt; text-align: right;">
-                                <div><b>Waktu</b></div>
-                                <div><span id="sticker_waktu"></span></div>
+                            <div class="col-right" style="font-size: 8pt;">
+                                <div><b>Waktu</b> <span id="sticker_waktu"></span></div>
                             </div>
                         </div>
-                        <div style="margin-top: 3mm;">
-                            <svg id="barcode" style="width: 100%; height: 17mm;"></svg>
+                        <div style="margin-top: 2.5mm;">
+                            <svg id="barcode" style="width: 100%; height: 14mm;"></svg>
                         </div>
                     </div>
                 </div>
@@ -1199,20 +1196,20 @@
                     </div>
                 </div>
                 <div id="nurseStationTicketContainer" class="hidden">
-                    <div id="nurseStationTicket" style="width: 80mm; height: 60mm; padding: 4mm 4mm 3mm; font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.2; box-sizing: border-box; overflow: hidden;">
-                        <div style="text-align: center; font-size: 10pt; font-weight: bold;">RSUD AJI MUHAMMAD IDRIS</div>
-                        <div style="margin-top: 1mm; text-align: center; font-size: 8pt; font-weight: bold;">ANTREAN NURSE STATION</div>
-                        <div style="margin-top: 2.5mm; display: flex; justify-content: space-between; gap: 3mm; font-size: 8pt;">
+                    <div id="nurseStationTicket" style="width: 80mm; height: 60mm; box-sizing: border-box; overflow: hidden; font-family: Arial, sans-serif;">
+                        <div class="ns-head-title" style="text-align: center; font-weight: bold;">RSUD AJI MUHAMMAD IDRIS</div>
+                        <div class="ns-head-sub" style="text-align: center; font-weight: bold;">ANTREAN NURSE STATION</div>
+                        <div class="ns-reg-row">
                             <div><b>No Reg</b>: <span id="ns_ticket_no_registrasi"></span></div>
-                            <div><b>No RM</b>: <span id="ns_ticket_no_rm"></span></div>
+                            <div class="col-right"><b>No RM</b>: <span id="ns_ticket_no_rm"></span></div>
                         </div>
-                        <div style="margin-top: 3mm; border: 1px dashed #64748b; border-radius: 3mm; padding: 3mm 2mm; text-align: center;">
-                            <div style="font-size: 8pt; font-weight: bold;">Nomor Nurse Station</div>
-                            <div id="ns_ticket_queue_no" style="margin-top: 1.5mm; font-size: 24pt; line-height: 1; font-weight: bold; letter-spacing: 1.2mm;">-</div>
+                        <div class="ns-queue-box">
+                            <div class="ns-queue-label">Nomor Nurse Station</div>
+                            <div id="ns_ticket_queue_no" class="ns-queue-no">-</div>
                         </div>
-                        <div style="margin-top: 3mm; font-size: 9pt;"><b>Kategori</b>: <span id="ns_ticket_category"></span></div>
-                        <div style="margin-top: 1mm; font-size: 9pt;"><b>Poli Tujuan</b>: <span id="ns_ticket_poli"></span></div>
-                        <div style="margin-top: 2mm; font-size: 8pt; color: #475569;">Harap menunggu panggilan di Nurse Station.</div>
+                        <div class="ns-meta-row"><b>Kategori</b>: <span id="ns_ticket_category"></span></div>
+                        <div class="ns-meta-row"><b>Poli Tujuan</b>: <span id="ns_ticket_poli"></span></div>
+                        <div class="ns-foot-note">Harap menunggu panggilan di Nurse Station.</div>
                     </div>
                 </div>
 
