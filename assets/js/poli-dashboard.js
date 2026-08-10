@@ -56,15 +56,38 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function openResepSimAmi(pasien) {
+            try {
+                if (window.SIMAMI_CONFIG && window.SIMAMI_CONFIG.ERESSEP) {
+                    if (pasien && typeof pasien === 'object' && pasien.id) {
+                        const opened = window.SIMAMI_CONFIG.ERESSEP.openForPasien(pasien);
+                        if (opened) return;
+                    }
+                    window.SIMAMI_CONFIG.ERESSEP.openBase();
+                    return;
+                }
+            } catch (_e) {}
+            const fallbackUrl = 'https://script.google.com/macros/s/AKfycbwv-vBV07IgWmgHoEQ-mKNgLWI-N6paGVfO5f_57D6SiFSOBavWq5YDOMj-M3hND5Ippw/exec?t=' + encodeURIComponent(String(Date.now()));
+            try {
+                window.open(fallbackUrl, 'simami_eressep', 'noopener,noreferrer');
+            } catch (_e) {
+                window.location.href = fallbackUrl;
+            }
+        }
+
         function ensureMounted() {
             if (mounted) return;
             containerEl.innerHTML = [
                 '<div class="poli-dashboard">',
+                '  <button id="poliDashFabResep" type="button" class="poli-dashboard-fab" aria-label="Buka RESEP SIM-AMI" title="Buka RESEP SIM-AMI">',
+                '    <span class="poli-dashboard-fab-icon">📋</span>',
+                '    <span class="poli-dashboard-fab-label">RESEP SIM-AMI</span>',
+                '  </button>',
                 '  <section class="poli-dashboard-hero">',
                 '    <div class="poli-dashboard-hero-main">',
                 '      <div class="poli-dashboard-kicker">Panel Poli</div>',
-                '      <h2 class="poli-dashboard-title">POLIKLINIK</h2>',
-                '      <p class="poli-dashboard-desc">Daftar pasien hari ini, dengan penanda umum dan prioritas agar petugas bisa mendahulukan pasien yang perlu diprioritaskan.</p>',
+                '      <h2 class="poli-dashboard-title">Worklist Pasien Poliklinik</h2>',
+                '      <p class="poli-dashboard-desc">Daftar pasien hari ini per poli, dengan penanda umum dan prioritas agar petugas bisa mendahulukan pasien yang perlu diprioritaskan.</p>',
                 '      <div class="poli-dashboard-cards">',
                 '        <div class="poli-dashboard-stat-card"><div class="poli-dashboard-stat-label">Petugas Aktif</div><div id="poliDashStaffName" class="poli-dashboard-stat-value">-</div></div>',
                 '        <div class="poli-dashboard-stat-card"><div class="poli-dashboard-stat-label">Peran</div><div id="poliDashRoleLabel" class="poli-dashboard-stat-value">-</div></div>',
@@ -88,6 +111,7 @@
                 '        <button id="poliDashTabDone" type="button" class="poli-dashboard-tab">Sudah Dilayani</button>',
                 '      </div>',
                 '      <div class="poli-dashboard-actions">',
+                '        <button id="poliDashResepBtn" type="button" class="poli-dashboard-btn poli-dashboard-btn-resep">📋 RESEP SIM-AMI</button>',
                 '        <button id="poliDashOpenRekapAll" type="button" class="poli-dashboard-btn poli-dashboard-btn-secondary">Lihat Rekap Semua</button>',
                 '        <button id="poliDashRefreshBtn" type="button" class="poli-dashboard-btn poli-dashboard-btn-primary">Refresh</button>',
                 '      </div>',
@@ -108,6 +132,8 @@
                 priorityCount: containerEl.querySelector('#poliDashPriorityCount'),
                 tabPending: containerEl.querySelector('#poliDashTabPending'),
                 tabDone: containerEl.querySelector('#poliDashTabDone'),
+                resepBtn: containerEl.querySelector('#poliDashResepBtn'),
+                fabResep: containerEl.querySelector('#poliDashFabResep'),
                 refreshBtn: containerEl.querySelector('#poliDashRefreshBtn'),
                 openRekapAllBtn: containerEl.querySelector('#poliDashOpenRekapAll'),
                 message: containerEl.querySelector('#poliDashMessage'),
@@ -121,6 +147,12 @@
             els.tabDone?.addEventListener('click', () => {
                 state.activeTab = 'done';
                 renderList();
+            });
+            els.resepBtn?.addEventListener('click', () => {
+                openResepSimAmi(null);
+            });
+            els.fabResep?.addEventListener('click', () => {
+                openResepSimAmi(null);
             });
             els.refreshBtn?.addEventListener('click', async () => {
                 await loadRows();
@@ -136,6 +168,13 @@
                     if (target) {
                         await Promise.resolve(config?.openHistory?.(target));
                     }
+                    return;
+                }
+                const resepRowBtn = event.target.closest('[data-action="resep"]');
+                if (resepRowBtn) {
+                    const rowId = String(resepRowBtn.getAttribute('data-row-id') || '');
+                    const target = state.rows.find((item) => String(item.id || '') === rowId);
+                    openResepSimAmi(target || null);
                     return;
                 }
                 const examBtn = event.target.closest('[data-action="exam"]');
@@ -465,6 +504,7 @@
                 const examButton = `<button type="button" class="poli-dashboard-action-btn is-exam" data-action="exam" data-row-id="${escapeHtml(String(row.id || ''))}">Isi Dokter & Diagnosa</button>`;
                 const openDisabled = row.no_rm ? '' : ' disabled';
                 const openLabel = 'Riwayat';
+                const resepButton = `<button type="button" class="poli-dashboard-action-btn is-resep" data-action="resep" data-row-id="${escapeHtml(String(row.id || ''))}">📋 Resep</button>`;
                 const completeButton = row.serviceData?.status === 'selesai'
                     ? ''
                     : `<button type="button" class="poli-dashboard-action-btn is-complete" data-action="complete" data-row-id="${escapeHtml(String(row.id || ''))}">Selesai</button>`;
@@ -486,6 +526,7 @@
                     '  <div class="poli-dashboard-item-actions">',
                     `    ${examButton}`,
                     `    <button type="button" class="poli-dashboard-action-btn is-open" data-action="open" data-row-id="${escapeHtml(String(row.id || ''))}"${openDisabled}>${escapeHtml(openLabel)}</button>`,
+                    `    ${resepButton}`,
                     `    ${completeButton}`,
                     '  </div>',
                     '</article>'
