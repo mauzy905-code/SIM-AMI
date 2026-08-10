@@ -1,4 +1,26 @@
-@media print {
+@page barcode {
+                        size: 80mm 60mm;
+                        margin: 0mm;
+                    }
+                    @page nurse-station-ticket {
+                        size: 80mm 60mm;
+                        margin: 0mm;
+                    }
+                    @page ugd-ticket {
+                        size: 80mm 60mm;
+                        margin: 0mm;
+                    }
+                    @page wristband {
+                        size: 90mm 25mm;
+                        margin: 0mm;
+                    }
+
+                @media print {
+                    body[data-print-mode="barcode"] { page: barcode; }
+                    body[data-print-mode="nurse-station-ticket"] { page: nurse-station-ticket; }
+                    body[data-print-mode="ugd-ticket"] { page: ugd-ticket; }
+                    body[data-print-mode="wristband"] { page: wristband; }
+
                     body[data-print-mode="barcode"],
                     body[data-print-mode="wristband"],
                     body[data-print-mode="nurse-station-ticket"],
@@ -9,6 +31,12 @@
                         background: #fff !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                        width: 80mm;
+                        max-width: 80mm;
+                    }
+                    body[data-print-mode="wristband"] {
+                        width: 90mm;
+                        max-width: 90mm;
                     }
                     body[data-print-mode="barcode"] > *,
                     body[data-print-mode="wristband"] > *,
@@ -18,15 +46,11 @@
                         display: none !important;
                     }
                     body[data-print-mode="barcode"] {
-                        width: 80mm;
-                        height: 50mm;
+                        height: 60mm;
                         min-width: 80mm;
-                        min-height: 50mm;
-                        max-width: 80mm;
-                        max-height: 50mm;
+                        min-height: 60mm;
+                        max-height: 60mm;
                         box-sizing: border-box;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
                     }
                     body[data-print-mode="barcode"] #stickerContainer {
                         display: block !important;
@@ -35,7 +59,7 @@
                         left: 0 !important;
                         top: 0 !important;
                         width: 80mm !important;
-                        height: 50mm !important;
+                        height: 60mm !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: hidden !important;
@@ -46,11 +70,34 @@
                     }
                     body[data-print-mode="barcode"] #sticker {
                         width: 80mm !important;
-                        height: 50mm !important;
+                        height: 60mm !important;
                         box-sizing: border-box;
                         overflow: hidden;
                         margin: 0 !important;
-                        padding: 3mm !important;
+                        padding: 2mm 2mm 2mm 2mm !important;
+                        font-size: 8.5pt !important;
+                        line-height: 1.15 !important;
+                    }
+                    body[data-print-mode="barcode"] #sticker * {
+                        box-sizing: border-box;
+                        max-width: 100%;
+                    }
+                    body[data-print-mode="barcode"] #sticker .row-meta {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        gap: 2mm;
+                        flex-wrap: nowrap;
+                    }
+                    body[data-print-mode="barcode"] #sticker .row-meta > * {
+                        min-width: 0;
+                        flex: 1 1 0;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    body[data-print-mode="barcode"] #sticker .row-meta .col-right {
+                        text-align: right;
                     }
                     body[data-print-mode="wristband"] {
                         width: 90mm;
@@ -114,7 +161,68 @@
                         box-sizing: border-box;
                         overflow: hidden;
                         margin: 0 !important;
-                        padding: 4mm 4mm 3mm !important;
+                        padding: 2mm 2mm 1.8mm 2mm !important;
+                        font-size: 8pt !important;
+                        line-height: 1.15 !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket * {
+                        box-sizing: border-box;
+                        max-width: 100%;
+                        overflow-wrap: anywhere;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-title {
+                        font-size: 10pt;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-sub {
+                        font-size: 7.5pt;
+                        margin-top: 0.5mm;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        gap: 2mm;
+                        flex-wrap: nowrap;
+                        margin-top: 1.8mm;
+                        font-size: 7.5pt;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row > * {
+                        min-width: 0;
+                        flex: 1 1 0;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row .col-right {
+                        text-align: right;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-box {
+                        margin-top: 2mm;
+                        border: 1px dashed #64748b;
+                        border-radius: 2mm;
+                        padding: 2mm 1.5mm;
+                        text-align: center;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-label {
+                        font-size: 7pt;
+                        font-weight: bold;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-no {
+                        margin-top: 1mm;
+                        font-size: 20pt;
+                        line-height: 1;
+                        font-weight: bold;
+                        letter-spacing: 0.8mm;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-meta-row {
+                        margin-top: 1.8mm;
+                        font-size: 8pt;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-foot-note {
+                        margin-top: 1mm;
+                        font-size: 7pt;
+                        color: #475569;
+                        line-height: 1.1;
                     }
                     body[data-print-mode="ugd-ticket"] {
                         width: 80mm;
