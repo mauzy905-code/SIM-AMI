@@ -344,6 +344,14 @@ class QueueSoundSystem {
         return match ? match[0].split('') : [];
     }
 
+    getQueueNumberDigits(noAntrian) {
+        const raw = String(noAntrian || '').trim();
+        if (!raw) return [];
+        const normalized = raw.split(/[-_\s]/).slice(1).join('') || raw.replace(/^\D+/, '');
+        const digits = normalized.replace(/\D/g, '').split('').filter(Boolean);
+        return digits;
+    }
+
     getQueueNumberValue(noAntrian) {
         const digits = String(noAntrian || '').replace(/\D/g, '');
         if (!digits) return null;
@@ -365,9 +373,15 @@ class QueueSoundSystem {
         return match ? match[0].split('') : [];
     }
 
+    buildDigitByDigitTokens(digitsArray) {
+        if (!Array.isArray(digitsArray) || digitsArray.length === 0) return [];
+        return digitsArray.map((d) => String(d));
+    }
+
     buildNumberTokens(value) {
         const num = Number(value);
-        if (!Number.isFinite(num) || num <= 0) return [];
+        if (!Number.isFinite(num) || num < 0) return [];
+        if (num === 0) return ['0'];
         if (num <= 19) return [String(num)];
         if (num < 100) {
             const tens = Math.floor(num / 10) * 10;
@@ -407,10 +421,10 @@ class QueueSoundSystem {
             if (letterPath.length) sequence.push(letterPath);
         }
 
-        const queueNumberValue = this.getQueueNumberValue(noAntrian);
-        const numberTokens = this.buildNumberTokens(queueNumberValue);
-        for (let i = 0; i < numberTokens.length; i++) {
-            const numberPath = this.getNumberSound(numberTokens[i]);
+        const digits = this.getQueueNumberDigits(noAntrian);
+        const digitTokens = this.buildDigitByDigitTokens(digits);
+        for (let i = 0; i < digitTokens.length; i++) {
+            const numberPath = this.getNumberSound(digitTokens[i]);
             if (numberPath.length) sequence.push(numberPath);
         }
 
@@ -458,10 +472,10 @@ class QueueSoundSystem {
             if (letterPath.length) sequence.push(letterPath);
         }
 
-        const queueNumberValue = this.getQueueNumberValue(noAntrian);
-        const numberTokens = this.buildNumberTokens(queueNumberValue);
-        for (let i = 0; i < numberTokens.length; i++) {
-            const numberPath = this.getNumberSound(numberTokens[i]);
+        const digits = this.getQueueNumberDigits(noAntrian);
+        const digitTokens = this.buildDigitByDigitTokens(digits);
+        for (let i = 0; i < digitTokens.length; i++) {
+            const numberPath = this.getNumberSound(digitTokens[i]);
             if (numberPath.length) sequence.push(numberPath);
         }
 
