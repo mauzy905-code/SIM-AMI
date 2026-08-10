@@ -208,38 +208,42 @@ class QueueSoundSystem {
 
     /**
      * Memainkan satu file suara
+     * @returns {Promise<boolean>} true jika berhasil dimainkan
      */
     async playSound(filePath) {
         if (!this.soundEnabled) {
-            return;
+            return false;
         }
 
         const candidates = this.normalizeCandidates(filePath);
-        if (candidates.length === 0) return;
+        if (candidates.length === 0) return false;
 
         for (let index = 0; index < candidates.length; index++) {
             const currentPath = candidates[index];
             try {
                 const buffer = await this.preloadAudioBuffer(currentPath);
                 await this.playAudioBuffer(buffer);
-                return;
+                return true;
             } catch (webAudioErr) {
                 try {
                     await this.playHtmlAudio(currentPath);
-                    return;
+                    return true;
                 } catch (htmlAudioErr) {
                 }
             }
         }
 
         console.warn('⚠️ Tidak dapat memainkan kandidat suara:', candidates);
+        return false;
     }
 
     /**
      * Memainkan antrian suara secara berurutan
+     * @returns {Promise<boolean>} true jika SEMUA suara berhasil dimainkan
      */
     async playSequence(soundFiles) {
-        if (!this.soundEnabled || soundFiles.length === 0) return;
+        if (!this.soundEnabled || soundFiles.length === 0) return false;
+        let anyFail = false;
         try {
             await this.ensureAudioContext();
         } catch (e) {}
@@ -253,13 +257,15 @@ class QueueSoundSystem {
 
         for (let i = 0; i < soundFiles.length; i++) {
             if (!this.soundEnabled) break;
-            await this.playSound(soundFiles[i]);
+            const ok = await this.playSound(soundFiles[i]);
+            if (!ok) anyFail = true;
             if (this.transitionGapMs > 0 && i < soundFiles.length - 1) {
                 await this.sleep(this.transitionGapMs);
             }
         }
 
         this.isPlaying = false;
+        return !anyFail;
     }
 
     /**
@@ -488,12 +494,13 @@ class QueueSoundSystem {
         const previewSequence = [
             this.getOpeningSound(this.soundFiles.opening),
             this.getWordSound(this.soundFiles.attention)
-        ];
-        await this.playSequence(previewSequence.filter((item) => Array.isArray(item) ? item.length > 0 : !!item));
+        ].filter((item) => Array.isArray(item) ? item.length > 0 : !!item);
+        return this.playSequence(previewSequence);
     }
 
     /**
      * Memanggil antrian farmasi
+     * @returns {Promise<boolean>} true jika semua suara berhasil dimainkan
      */
     async announceFarmasi(queueData) {
         console.log('📢 Memanggil antrian Farmasi:', queueData.noAntrian);
@@ -501,11 +508,12 @@ class QueueSoundSystem {
             ...queueData,
             unit: 'FARMASI'
         });
-        await this.playSequence(sequence);
+        return this.playSequence(sequence);
     }
 
     /**
      * Memanggil antrian poliklinik
+     * @returns {Promise<boolean>} true jika semua suara berhasil dimainkan
      */
     async announcePoliklinik(queueData) {
         console.log('📢 Memanggil antrian Poliklinik:', queueData.noAntrian);
@@ -513,16 +521,20 @@ class QueueSoundSystem {
             ...queueData,
             unit: 'POLIKLINIK'
         });
-        await this.playSequence(sequence);
+        return this.playSequence(sequence);
     }
 
+    /**
+     * Memanggil antrian Nurse Station
+     * @returns {Promise<boolean>} true jika semua suara berhasil dimainkan
+     */
     async announceNurseStation(queueData) {
         console.log('📢 Memanggil antrian Nurse Station:', queueData.noAntrian);
         const sequence = this.buildNurseStationSequence({
             ...queueData,
             unit: 'NURSE_STATION'
         });
-        await this.playSequence(sequence);
+        return this.playSequence(sequence);
     }
 
     /**
