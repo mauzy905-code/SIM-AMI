@@ -1610,6 +1610,16 @@
                             let pendingStaffResolver = null;
                             let lastRegisteredPrintPayload = null;
                             let activePrintMode = '';
+                            let printInFlight = false;
+                            let printUnlockTimer = null;
+                            const PRINT_MODE_TO_PAGE_SIZE = {
+                                'barcode': '80mm 60mm',
+                                'wristband': '90mm 25mm',
+                                'nurse-station-ticket': '80mm 60mm',
+                                'ugd-ticket': '80mm 60mm'
+                            };
+                            const WEBOS_USER_AGENT_HINT = /Web0S|webOS|LG Browser|NetCast/i.test(navigator.userAgent || '');
+                            const MOBILE_USER_AGENT_HINT = /Android|iPhone|iPad|iPod|HarmonyOS|Silk|Opera Mini|UCBrowser|MIUI|OPPO|vivo|Huawei/i.test(navigator.userAgent || '');
                             let triaseUgdMode = 'patient';
                             let currentTriaseUgdDraftId = '';
                             let currentTriaseUgdDraftMeta = null;
@@ -2238,6 +2248,52 @@
                                 'ugd-ticket': 'ugdTicketContainer'
                             };
 
+                            function lockPrintState() {
+                                printInFlight = true;
+                                if (printUnlockTimer) {
+                                    clearTimeout(printUnlockTimer);
+                                    printUnlockTimer = null;
+                                }
+                                if (printBarcodeBtn) printBarcodeBtn.disabled = true;
+                                if (printWristbandBtn) printWristbandBtn.disabled = true;
+                                if (printNurseStationTicketBtn) printNurseStationTicketBtn.disabled = true;
+                                if (printGeneralConsentFromFormBtn) printGeneralConsentFromFormBtn.disabled = true;
+                                const originalInfoText = String(printActionInfo?.textContent || '');
+                                try {
+                                    printActionInfo.setAttribute('data-print-original-text', originalInfoText);
+                                } catch (_e) {}
+                                if (printActionInfo) {
+                                    printActionInfo.classList.remove('text-emerald-700', 'text-slate-500');
+                                    printActionInfo.classList.add('text-sky-700');
+                                    printActionInfo.textContent = 'Menyiapkan dokumen cetak...';
+                                }
+                            }
+
+                            function unlockPrintState(restoreInfo = true) {
+                                printInFlight = false;
+                                if (printUnlockTimer) {
+                                    clearTimeout(printUnlockTimer);
+                                    printUnlockTimer = null;
+                                }
+                                try {
+                                    setPrintButtonsState(!!lastRegisteredPrintPayload, '');
+                                } catch (_e) {}
+                                const originalText = printActionInfo?.getAttribute?.('data-print-original-text');
+                                if (restoreInfo && printActionInfo && originalText) {
+                                    printActionInfo.classList.remove('text-sky-700');
+                                    try {
+                                        printActionInfo.removeAttribute('data-print-original-text');
+                                    } catch (_e) {}
+                                    printActionInfo.textContent = originalText;
+                                    if (lastRegisteredPrintPayload) {
+                                        printActionInfo.classList.add('text-emerald-700');
+                                    }
+                                }
+                                if (activePrintMode) {
+                                    try { clearActivePrintMode(); } catch (_e) {}
+                                }
+                            }
+
                             function clearActivePrintMode() {
                                 if (lastPrintContainerEl) {
                                     lastPrintContainerEl.classList.add('hidden');
@@ -2250,9 +2306,15 @@
                             }
 
                             window.addEventListener('afterprint', () => {
-                                if (!activePrintMode) return;
-                                clearActivePrintMode();
+                                unlockPrintState(true);
                             });
+
+                            window.addEventListener('focus', () => {
+                                if (!printInFlight) return;
+                                printUnlockTimer = setTimeout(() => {
+                                    if (printInFlight) unlockPrintState(true);
+                                }, 300);
+                            }, true);
 
                             function preparePrintContainer(mode) {
                                 const containerId = PRINT_MODE_TO_CONTAINER_ID[mode];
@@ -2272,70 +2334,101 @@
                             }
 
                             async function triggerPatientPrint(mode) {
+                                if (printInFlight) return;
                                 if (!lastRegisteredPrintPayload) {
                                     setPrintButtonsState(false);
                                     return;
                                 }
 
-                                if (mode === 'barcode') {
-                                    populateBarcodeTemplate(lastRegisteredPrintPayload);
-                                    activePrintMode = 'barcode';
-                                    preparePrintContainer('barcode');
-                                    document.body.setAttribute('data-print-mode', 'barcode');
-                                    setPrintPageSize('80mm 50mm');
-                                    appendStaffActivity('print_barcode', {
-                                        no_rm: lastRegisteredPrintPayload.no_rm,
-                                        no_registrasi: lastRegisteredPrintPayload.no_registrasi,
-                                        no_antrian: lastRegisteredPrintPayload.no_antrian,
-                                        unit: lastRegisteredPrintPayload.unit
-                                    });
-                                } else if (mode === 'nurse-station-ticket') {
-                                    if (String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase() !== 'POLIKLINIK') {
-                                        setPrintButtonsState(true, 'Slip Nurse Station hanya tersedia untuk pendaftaran Poliklinik.');
-                                        return;
-                                    }
-                                    populateNurseStationTicketTemplate(lastRegisteredPrintPayload);
-                                    activePrintMode = 'nurse-station-ticket';
-                                    preparePrintContainer('nurse-station-ticket');
-                                    document.body.setAttribute('data-print-mode', 'nurse-station-ticket');
-                                    setPrintPageSize('80mm 60mm');
-                                    appendStaffActivity('print_antrean_nurse_station', {
-                                        no_rm: lastRegisteredPrintPayload.no_rm,
-                                        no_registrasi: lastRegisteredPrintPayload.no_registrasi,
-                                        no_antrian: lastRegisteredPrintPayload.nurse_station_queue_no,
-                                        unit: lastRegisteredPrintPayload.unit,
-                                        poli_tujuan: lastRegisteredPrintPayload.poli_tujuan_label
-                                    });
-                                } else if (mode === 'wristband') {
+                                const modeKey = String(mode || '').trim();
+                                const pageSize = PRINT_MODE_TO_PAGE_SIZE[modeKey];
+                                if (!pageSize) return;
+
+                                lockPrintState();
+
+                                if (modeKey === 'nurse-station-ticket') {
                                     const currentUnit = String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase();
-                                    if (currentUnit === 'UGD') {
-                                        populateUgdTicketTemplate(lastRegisteredPrintPayload);
-                                        activePrintMode = 'ugd-ticket';
-                                        preparePrintContainer('ugd-ticket');
-                                        document.body.setAttribute('data-print-mode', 'ugd-ticket');
-                                        setPrintPageSize('80mm 60mm');
-                                        appendStaffActivity('print_tiket_ugd', {
-                                            no_rm: lastRegisteredPrintPayload.no_rm,
-                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
-                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
-                                            unit: lastRegisteredPrintPayload.unit
-                                        });
-                                    } else {
-                                        populateWristbandTemplate(lastRegisteredPrintPayload);
-                                        activePrintMode = 'wristband';
-                                        preparePrintContainer('wristband');
-                                        document.body.setAttribute('data-print-mode', 'wristband');
-                                        setPrintPageSize('90mm 25mm');
-                                        appendStaffActivity('print_gelang', {
-                                            no_rm: lastRegisteredPrintPayload.no_rm,
-                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
-                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
-                                            unit: lastRegisteredPrintPayload.unit
-                                        });
+                                    if (currentUnit !== 'POLIKLINIK') {
+                                        setPrintButtonsState(true, 'Slip Nurse Station hanya tersedia untuk pendaftaran Poliklinik.');
+                                        unlockPrintState(true);
+                                        return;
                                     }
                                 }
 
-                                window.setTimeout(() => window.print(), 250);
+                                if (modeKey === 'wristband') {
+                                    const currentUnit = String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase();
+                                    if (currentUnit === 'UGD') {
+                                        try { populateUgdTicketTemplate(lastRegisteredPrintPayload); } catch (_e) {}
+                                        activePrintMode = 'ugd-ticket';
+                                        preparePrintContainer('ugd-ticket');
+                                        document.body.setAttribute('data-print-mode', 'ugd-ticket');
+                                        setPrintPageSize(PRINT_MODE_TO_PAGE_SIZE['ugd-ticket']);
+                                        try {
+                                            appendStaffActivity('print_tiket_ugd', {
+                                                no_rm: lastRegisteredPrintPayload.no_rm,
+                                                no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                                no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                                unit: lastRegisteredPrintPayload.unit
+                                            });
+                                        } catch (_e) {}
+                                    } else {
+                                        activePrintMode = 'wristband';
+                                        preparePrintContainer('wristband');
+                                        document.body.setAttribute('data-print-mode', 'wristband');
+                                        setPrintPageSize(PRINT_MODE_TO_PAGE_SIZE['wristband']);
+                                        try {
+                                            appendStaffActivity('print_gelang', {
+                                                no_rm: lastRegisteredPrintPayload.no_rm,
+                                                no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                                no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                                unit: lastRegisteredPrintPayload.unit
+                                            });
+                                        } catch (_e) {}
+                                    }
+                                } else if (modeKey === 'barcode') {
+                                    activePrintMode = modeKey;
+                                    try {
+                                        const waktuEl = document.getElementById('sticker_waktu');
+                                        if (waktuEl) waktuEl.textContent = formatLocalDateTime(new Date());
+                                    } catch (_e) {}
+                                    preparePrintContainer(modeKey);
+                                    document.body.setAttribute('data-print-mode', modeKey);
+                                    setPrintPageSize(pageSize);
+                                    try {
+                                        appendStaffActivity('print_barcode', {
+                                            no_rm: lastRegisteredPrintPayload.no_rm,
+                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                            unit: lastRegisteredPrintPayload.unit
+                                        });
+                                    } catch (_e) {}
+                                } else if (modeKey === 'nurse-station-ticket') {
+                                    activePrintMode = modeKey;
+                                    preparePrintContainer(modeKey);
+                                    document.body.setAttribute('data-print-mode', modeKey);
+                                    setPrintPageSize(pageSize);
+                                    try {
+                                        appendStaffActivity('print_antrean_nurse_station', {
+                                            no_rm: lastRegisteredPrintPayload.no_rm,
+                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                            no_antrian: lastRegisteredPrintPayload.nurse_station_queue_no,
+                                            unit: lastRegisteredPrintPayload.unit,
+                                            poli_tujuan: lastRegisteredPrintPayload.poli_tujuan_label
+                                        });
+                                    } catch (_e) {}
+                                } else {
+                                    unlockPrintState(true);
+                                    return;
+                                }
+
+                                const adaptiveDelay = WEBOS_USER_AGENT_HINT ? 200 : (MOBILE_USER_AGENT_HINT ? 150 : 20);
+                                window.setTimeout(() => {
+                                    try {
+                                        window.print();
+                                    } catch (_e) {
+                                        unlockPrintState(true);
+                                    }
+                                }, adaptiveDelay);
                             }
 
                             function showStaffNameError(message) {
