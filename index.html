@@ -7587,9 +7587,14 @@
                                         </div>`;
                                     const cancelVisitCell = showCancelVisitColumn && String(p.id || '').trim()
                                         ? (isCancelled
-                                            ? `<span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-700 whitespace-nowrap">BATAL</span>`
+                                            ? `<div class="flex flex-col items-stretch gap-1 whitespace-nowrap">
+                                                <span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-extrabold text-rose-700 whitespace-nowrap">KUNJUNGAN BATAL</span>
+                                                <button type="button" class="unmark-batal-btn inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:from-emerald-100 hover:to-teal-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-nama="${escapeHtml(nama)}" data-unit="${escapeHtml(String(p.unit || ''))}">↺ Pulihkan Pasien</button>
+                                            </div>`
                                             : `<button type="button" class="cancel-visit-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-800 transition hover:bg-rose-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-nama="${escapeHtml(nama)}" data-unit="${escapeHtml(String(p.unit || ''))}">Batal Berobat</button>`)
-                                        : (isCancelled ? `<span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-700 whitespace-nowrap">BATAL</span>` : `<span class="text-xs font-semibold text-slate-400">-</span>`);
+                                        : (isCancelled
+                                            ? `<span class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-700 whitespace-nowrap">BATAL</span>`
+                                            : `<span class="text-xs font-semibold text-slate-400">-</span>`);
                                     if (isRme) {
                                         const actionCell = noRm !== '-'
                                             ? riwayatLinkCell
@@ -7762,6 +7767,51 @@
                                 return true;
                             }
 
+                            async function r_unmarkBatalBerobat(patientId, patientName, patientUnit) {
+                                if (!canManageBatalBerobat()) return false;
+                                const pid = String(patientId || '').trim();
+                                if (!pid) return false;
+                                const nama = String(patientName || '').trim() || 'pasien ini';
+                                const unit = String(patientUnit || '').trim();
+                                const ok = confirm(`Pulihkan status kunjungan ${nama} menjadi NORMAL kembali?${unit ? `\nUnit: ${unit}` : ''}\n\nStatus "BATAL BEROBAT" akan dihapus, dan pasien kembali muncul di Nurse Station / Poli.`);
+                                if (!ok) return false;
+
+                                const altKeyBase = [
+                                    getBatalBerobatStorageKey({ id: pid }),
+                                ].filter(Boolean);
+                                try {
+                                    window.localStorage.removeItem(`${BATAL_BEROBAT_STORAGE_PREFIX}id:${pid}`);
+                                } catch (_e) {}
+                                try {
+                                    if (altKeyBase.length && altKeyBase[0]) window.localStorage.removeItem(altKeyBase[0]);
+                                } catch (_e) {}
+
+                                if (batalBerobatColumnAvailable) {
+                                    try {
+                                        const { error } = await withTimeout(
+                                            supabaseClient
+                                                .from('pasien')
+                                                .update({ batal_berobat_data: null })
+                                                .eq('id', pid),
+                                            15000,
+                                            'Pulihkan Batal Berobat'
+                                        );
+                                        if (error) {
+                                            if (/batal_berobat_data/i.test(error.message || '')) {
+                                                batalBerobatColumnAvailable = false;
+                                                return true;
+                                            }
+                                            throw new Error(error.message);
+                                        }
+                                    } catch (err) {
+                                        console.warn('Gagal memulihkan status batal berobat di database:', err);
+                                        throw err;
+                                    }
+                                }
+
+                                return true;
+                            }
+
                             async function r_exportExcel() {
                                 const exportBtn = document.getElementById('r_export');
                                 exportBtn.disabled = true;
@@ -7900,6 +7950,25 @@
                                     } finally {
                                         cancelVisitBtn.disabled = false;
                                         cancelVisitBtn.textContent = originalText;
+                                    }
+                                    return;
+                                }
+
+                                const unmarkBatalBtn = event.target.closest('.unmark-batal-btn');
+                                if (unmarkBatalBtn) {
+                                    const originalText = unmarkBatalBtn.textContent;
+                                    unmarkBatalBtn.disabled = true;
+                                    unmarkBatalBtn.textContent = 'Memproses...';
+                                    try {
+                                        const restored = await r_unmarkBatalBerobat(unmarkBatalBtn.dataset.id, unmarkBatalBtn.dataset.nama, unmarkBatalBtn.dataset.unit);
+                                        if (restored && !viewRekap.classList.contains('hidden')) {
+                                            await r_loadPage(r_currentPage);
+                                        }
+                                    } catch (err) {
+                                        alert('Gagal memulihkan status pasien: ' + (err?.message || String(err)));
+                                    } finally {
+                                        unmarkBatalBtn.disabled = false;
+                                        unmarkBatalBtn.textContent = originalText;
                                     }
                                     return;
                                 }
