@@ -111,7 +111,6 @@
                 '        <button id="poliDashTabDone" type="button" class="poli-dashboard-tab">Sudah Dilayani</button>',
                 '      </div>',
                 '      <div class="poli-dashboard-actions">',
-                '        <button id="poliDashResepBtn" type="button" class="poli-dashboard-btn poli-dashboard-btn-resep">📋 RESEP SIM-AMI</button>',
                 '        <button id="poliDashOpenRekapAll" type="button" class="poli-dashboard-btn poli-dashboard-btn-secondary">Lihat Rekap Semua</button>',
                 '        <button id="poliDashRefreshBtn" type="button" class="poli-dashboard-btn poli-dashboard-btn-primary">Refresh</button>',
                 '      </div>',
@@ -132,7 +131,6 @@
                 priorityCount: containerEl.querySelector('#poliDashPriorityCount'),
                 tabPending: containerEl.querySelector('#poliDashTabPending'),
                 tabDone: containerEl.querySelector('#poliDashTabDone'),
-                resepBtn: containerEl.querySelector('#poliDashResepBtn'),
                 fabResep: containerEl.querySelector('#poliDashFabResep'),
                 refreshBtn: containerEl.querySelector('#poliDashRefreshBtn'),
                 openRekapAllBtn: containerEl.querySelector('#poliDashOpenRekapAll'),
@@ -147,9 +145,6 @@
             els.tabDone?.addEventListener('click', () => {
                 state.activeTab = 'done';
                 renderList();
-            });
-            els.resepBtn?.addEventListener('click', () => {
-                openResepSimAmi(null);
             });
             els.fabResep?.addEventListener('click', () => {
                 openResepSimAmi(null);
