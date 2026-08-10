@@ -362,3 +362,73 @@
         justify-content: flex-start;
     }
 }
+
+.poli-dashboard-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px 14px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 146, 60, 0.45);
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 42%, #f97316 100%);
+    box-shadow: 0 18px 40px -18px rgba(234, 88, 12, 0.55), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.poli-dashboard-fab:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 22px 48px -18px rgba(234, 88, 12, 0.62), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.poli-dashboard-fab:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+.poli-dashboard-fab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.poli-dashboard-fab-label {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    color: #7c2d12;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.poli-dashboard-btn-resep {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid rgba(251, 146, 60, 0.45);
+    color: #9a3412;
+    font-weight: 800;
+}
+
+.poli-dashboard-btn-resep:hover {
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    border-color: rgba(249, 115, 22, 0.6);
+}
+
+.poli-dashboard-action-btn.is-resep {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid rgba(251, 146, 60, 0.45);
+    color: #9a3412;
+}
+
+.poli-dashboard-action-btn.is-resep:hover {
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    border-color: rgba(249, 115, 22, 0.6);
+}
