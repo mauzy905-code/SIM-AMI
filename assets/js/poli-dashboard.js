@@ -63,7 +63,7 @@
                 '  <section class="poli-dashboard-hero">',
                 '    <div class="poli-dashboard-hero-main">',
                 '      <div class="poli-dashboard-kicker">Panel Poli</div>',
-                '      <h2 class="poli-dashboard-title">KLINIK PENYAKIT DALAM</h2>',
+                '      <h2 class="poli-dashboard-title">POLIKLINIK</h2>',
                 '      <p class="poli-dashboard-desc">Daftar pasien hari ini, dengan penanda umum dan prioritas agar petugas bisa mendahulukan pasien yang perlu diprioritaskan.</p>',
                 '      <div class="poli-dashboard-cards">',
                 '        <div class="poli-dashboard-stat-card"><div class="poli-dashboard-stat-label">Petugas Aktif</div><div id="poliDashStaffName" class="poli-dashboard-stat-value">-</div></div>',
