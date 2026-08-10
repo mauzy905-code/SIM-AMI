@@ -99,7 +99,7 @@
     </style>
     <script src="assets/js/queue-loket-utils.js"></script>
     <!-- Sistem Suara Antrian -->
-    <script src="js/queue-sound.js?v=20260810-zero-digit-read-1"></script>
+    <script src="js/queue-sound.js?v=20260810-zero-digit-read-2-ttsfallback"></script>
 </head>
 <body class="bg-gradient-to-br from-emerald-950 to-blue-950 min-h-screen antialiased">
     <div id="displayAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
@@ -1615,13 +1615,33 @@
                     speechBusy = true;
                     const nextItem = speechQueue.shift();
                     try {
-                        if (nextItem && typeof nextItem === 'object' && window.queueSound) {
-                            if (nextItem.unit === 'FARMASI') {
-                                await window.queueSound.announceFarmasi(nextItem);
-                            } else if (nextItem.unit === 'POLIKLINIK') {
-                                await window.queueSound.announcePoliklinik(nextItem);
-                            } else if (nextItem.unit === 'NURSE_STATION' && typeof window.queueSound.announceNurseStation === 'function') {
-                                await window.queueSound.announceNurseStation(nextItem);
+                        if (nextItem && typeof nextItem === 'object') {
+                            const unit = String(nextItem.unit || '').trim().toUpperCase();
+                            let playedOk = false;
+                            try {
+                                if (window.queueSound && typeof window.queueSound.setEnabled === 'function') {
+                                    window.queueSound.setEnabled(soundEnabled);
+                                }
+                                if (window.queueSound) {
+                                    if (unit === 'FARMASI' && typeof window.queueSound.announceFarmasi === 'function') {
+                                        playedOk = Boolean(await window.queueSound.announceFarmasi(nextItem));
+                                    } else if (unit === 'POLIKLINIK' && typeof window.queueSound.announcePoliklinik === 'function') {
+                                        playedOk = Boolean(await window.queueSound.announcePoliklinik(nextItem));
+                                    } else if (unit === 'NURSE_STATION' && typeof window.queueSound.announceNurseStation === 'function') {
+                                        playedOk = Boolean(await window.queueSound.announceNurseStation(nextItem));
+                                    }
+                                }
+                            } catch (_errSound) {
+                                playedOk = false;
+                            }
+                            if (!playedOk) {
+                                const fallbackText = buildAnnouncementText(nextItem.unit, nextItem);
+                                const safeText = String(fallbackText || '').trim();
+                                if (safeText) {
+                                    try { await playAirportChime(); } catch (_e) {}
+                                    await sleep(120);
+                                    await speakText(safeText);
+                                }
                             }
                         } else {
                             await playAirportChime();
@@ -1668,13 +1688,19 @@
                     const noAntrian = String(item?.no_antrian || '').trim();
                     if (!noAntrian) return '';
                     const spokenCode = speakQueueCode(noAntrian);
-                    const jalur = antreanJalurLabel(item, unit);
-                    const loketLabel = loketTujuanLabel(item?.loket_tujuan, unit);
-                    if (unit === 'POLIKLINIK') {
+                    const normalizedUnit = String(unit || '').trim().toUpperCase();
+                    const jalur = antreanJalurLabel(item, normalizedUnit === 'NURSE_STATION' ? 'POLIKLINIK' : normalizedUnit);
+                    const loketLabel = loketTujuanLabel(item?.loket_tujuan, normalizedUnit);
+                    if (normalizedUnit === 'NURSE_STATION') {
+                        const raw = noAntrian.trim().toUpperCase();
+                        const isPrioritas = /^(P|B)-/.test(raw);
+                        return `Perhatian. Nomor antrean. ${isPrioritas ? 'Prioritas' : 'Umum'}. ${spokenCode}. Menuju Meja Pemeriksaan.`;
+                    }
+                    if (normalizedUnit === 'POLIKLINIK') {
                         const loketText = loketLabel ? `. ${loketLabel}.` : '.';
                         return `Perhatian. Nomor antrean ${spokenCode}. ${jalur}${loketText}`;
                     }
-                    if (unit === 'FARMASI') {
+                    if (normalizedUnit === 'FARMASI') {
                         const loketText = loketLabel ? ` ${loketLabel}.` : '.';
                         return `Perhatian. Nomor antrean Farmasi ${spokenCode}.${loketText}`;
                     }
