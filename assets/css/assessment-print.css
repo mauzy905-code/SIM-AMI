@@ -467,4 +467,74 @@
         background: #fff !important;
         text-align: left;
     }
+
+    /* ---------------- Cetak Status Lokalis 4 Gambar Tubuh ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-wrap {
+        border: 1.2px solid #000 !important;
+        background: #fff !important;
+        border-radius: 0 !important;
+        padding: 2mm 2mm 2.2mm !important;
+        page-break-inside: avoid;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 2mm;
+        margin-top: 0.8mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-card {
+        border-color: #111111 !important;
+        background: #ffffff !important;
+        border-radius: 0 !important;
+        padding: 1mm !important;
+        min-height: auto;
+        min-width: 0;
+        gap: 0;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-title {
+        font-size: 6.5pt !important;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        padding-bottom: 0.6mm !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-figure {
+        max-height: 112px !important;
+        border-radius: 0 !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-marker {
+        fill: rgba(220,38,38,0.15) !important;
+        stroke: #dc2626 !important;
+        stroke-width: 3 !important;
+        vector-effect: non-scaling-stroke !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-toolbar {
+        border-top: 0 !important;
+        padding-top: 1mm !important;
+        margin-top: 1.2mm !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-count {
+        font-size: 8pt !important;
+        color: #000 !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-count span[data-count] {
+        background: #fff !important;
+        color: #000 !important;
+        border: 1px solid #000 !important;
+        font-weight: 800 !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-btn-body-clear { display: none !important; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-note-row {
+        margin-top: 1.6mm;
+        gap: 1mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-note-row .assessment-shared-field-label {
+        color: #000 !important;
+        font-size: 8.5pt !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-map-note-row .assessment-shared-textarea {
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        min-height: 24mm !important;
+        resize: none !important;
+    }
 }
