@@ -1,0 +1,795 @@
+/* ============================================================
+   ASSESSMENT SHARED CSS (Form UI)
+   Opsi B - Standar RSUD AJI MUHAMMAD IDRIS
+   ============================================================ */
+
+.assessment-shared-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: stretch;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+.assessment-shared-modal.is-open { display: flex; }
+.assessment-shared-overlay { position: absolute; inset: 0; background: transparent; cursor: pointer; }
+.assessment-shared-dialog {
+    position: relative;
+    width: min(1240px, 96vw);
+    max-width: 96vw;
+    margin: 24px auto;
+    background: #f8fafc;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+.assessment-shared-panel, .assessment-shared-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.assessment-shared-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px 14px;
+    background: linear-gradient(135deg, #0f766e 0%, #0284c7 100%);
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+.assessment-shared-toolbar-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.assessment-shared-kicker {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+}
+.assessment-shared-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+}
+.assessment-shared-subtitle {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.assessment-shared-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.assessment-shared-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.assessment-shared-ews-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+}
+.assessment-shared-ews-badge.is-low {
+    background: #dcfce7; color: #166534; border-color: #bbf7d0;
+}
+.assessment-shared-ews-badge.is-medium {
+    background: #fef3c7; color: #92400e; border-color: #fde68a;
+}
+.assessment-shared-ews-badge.is-high {
+    background: #fee2e2; color: #991b1b; border-color: #fecaca;
+    animation: simami-pulse-red 1.2s ease-in-out infinite;
+}
+@keyframes simami-pulse-red {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.32); }
+    50%     { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+}
+.assessment-shared-kategori-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid transparent;
+}
+.assessment-shared-kategori-badge.is-k1 { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.assessment-shared-kategori-badge.is-k2 { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+.assessment-shared-kategori-badge.is-k3 { background: #fefce8; color: #854d0e; border-color: #fde68a; }
+.assessment-shared-kategori-badge.is-k4 { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+.assessment-shared-kategori-badge.is-k5 { background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe; }
+
+.assessment-shared-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.assessment-shared-status {
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    max-width: 260px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.assessment-shared-status.is-loading { background: rgba(59, 130, 246, 0.35); }
+.assessment-shared-status.is-ready   { background: rgba(34, 197, 94, 0.35); }
+.assessment-shared-status.is-saving  { background: rgba(234, 179, 8, 0.35); }
+.assessment-shared-status.is-saved   { background: rgba(22, 163, 74, 0.42); }
+.assessment-shared-status.is-error   { background: rgba(239, 68, 68, 0.4); }
+.assessment-shared-status.is-sync    { background: rgba(14, 165, 233, 0.4); }
+
+.assessment-shared-btn {
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+.assessment-shared-btn-primary {
+    background: #fff;
+    color: #0369a1;
+    border-color: #e0f2fe;
+}
+.assessment-shared-btn-primary:hover { background: #f0f9ff; transform: translateY(-1px); }
+.assessment-shared-btn-secondary {
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    border-color: rgba(255,255,255,0.22);
+}
+.assessment-shared-btn-secondary:hover { background: rgba(255,255,255,0.22); }
+.assessment-shared-btn-print {
+    background: linear-gradient(135deg, #facc15, #fb923c);
+    color: #7c2d12;
+    border-color: #fdba74;
+}
+.assessment-shared-btn-print:hover { filter: brightness(1.04); transform: translateY(-1px); }
+.assessment-shared-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.assessment-shared-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 18px 22px 22px;
+    background:
+        radial-gradient(1200px 300px at 0% -10%, rgba(14,165,233,0.08), transparent 60%),
+        radial-gradient(900px 280px at 100% 0%, rgba(13,148,136,0.08), transparent 60%),
+        #f1f5f9;
+}
+.assessment-shared-document {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Header Kop RS (khusus cetak dan bagian atas) */
+.assessment-shared-kop {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+.assessment-shared-kop-logo {
+    width: 64px; height: 64px; border-radius: 12px;
+    background: #fff; padding: 4px; flex-shrink: 0;
+    border: 1px solid #e2e8f0; overflow: hidden;
+}
+.assessment-shared-kop-logo img { width: 100%; height: 100%; object-fit: contain; }
+.assessment-shared-kop-body { flex: 1 1 auto; text-align: center; color: #0f172a; }
+.assessment-shared-kop-body .line { display: block; font-size: 11px; letter-spacing: 0.02em; }
+.assessment-shared-kop-body .line.strong { font-weight: 900; }
+.assessment-shared-kop-body .title { font-size: 16px; font-weight: 900; display: block; margin: 2px 0; }
+.assessment-shared-kop-body .address { font-size: 11px; color: #334155; }
+.assessment-shared-kop-patient {
+    flex: 0 0 38%;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    color: #0f172a;
+}
+.assessment-shared-kop-patient table { width: 100%; border-collapse: collapse; }
+.assessment-shared-kop-patient td { padding: 1.5px 2px; vertical-align: top; }
+.assessment-shared-kop-patient td:first-child { width: 26%; font-weight: 700; color: #334155; }
+.assessment-shared-kop-patient td:nth-child(2) { width: 4%; color: #64748b; }
+
+/* Sections */
+.assessment-shared-section {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+    overflow: hidden;
+}
+.assessment-shared-section-head {
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #ecfeff, #e0f2fe);
+    border-bottom: 1px solid #bae6fd;
+    color: #0c4a6e;
+}
+.assessment-shared-section-title {
+    font-size: 13.5px;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+.assessment-shared-section-hint {
+    margin: 4px 0 0;
+    font-size: 11.5px;
+    color: #0369a1;
+    font-weight: 600;
+}
+.assessment-shared-section-body {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Vital Sign Table */
+.assessment-shared-vital-table-wrap {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+}
+.assessment-shared-vital-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-weight: 900;
+    color: #0f766e;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.assessment-shared-vital-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+}
+.assessment-shared-vital-table th, .assessment-shared-vital-table td {
+    border: 1px solid #cbd5e1;
+    text-align: center;
+    padding: 6px 4px;
+    vertical-align: middle;
+}
+.assessment-shared-vital-table th {
+    background: #f1f5f9;
+    font-size: 11px;
+    color: #0f172a;
+    font-weight: 800;
+}
+.assessment-shared-vital-table th .muted { color: #64748b; font-weight: 600; font-size: 10px; margin-left: 2px; }
+.assessment-shared-vital-table td { background: #fff; font-size: 13px; }
+.assessment-shared-vital-input {
+    width: 100%;
+    min-height: 32px;
+    padding: 4px 6px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0369a1;
+    outline: none;
+}
+.assessment-shared-vital-input:focus { background: #eff6ff; border-radius: 8px; }
+
+/* Field rows */
+.assessment-shared-field-row {
+    display: grid;
+    grid-template-columns: minmax(190px, 28%) 1fr;
+    gap: 14px;
+    align-items: flex-start;
+}
+.assessment-shared-field-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #1e293b;
+    padding-top: 8px;
+}
+.assessment-shared-field-label .is-required { color: #dc2626; margin-left: 2px; font-weight: 900; }
+.assessment-shared-field-control { min-width: 0; }
+
+.assessment-shared-line, .assessment-shared-textarea, .assessment-shared-vital-input {
+    font-family: inherit;
+}
+.assessment-shared-line {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 11px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.18s ease;
+}
+.assessment-shared-line:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.16);
+}
+.assessment-shared-textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 8px 11px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: all 0.18s ease;
+}
+.assessment-shared-textarea:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.16);
+}
+.assessment-shared-suffix-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.assessment-shared-suffix-wrap .assessment-shared-line {
+    flex: 1 1 auto;
+}
+.assessment-shared-suffix {
+    flex-shrink: 0;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: #e0f2fe;
+    color: #075985;
+    font-size: 11.5px;
+    font-weight: 800;
+    border: 1px solid #bae6fd;
+    min-width: 58px;
+    text-align: center;
+}
+
+/* Radio / Checkbox groups */
+.assessment-shared-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 6px 2px 4px;
+}
+.assessment-shared-options.is-checkbox { gap: 10px 16px; }
+.assessment-shared-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: #0f172a;
+    font-weight: 600;
+    transition: all 0.18s ease;
+}
+.assessment-shared-option:hover { background: #eff6ff; border-color: #bfdbfe; }
+.assessment-shared-option input { margin: 0; accent-color: #0284c7; }
+.assessment-shared-other {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 700;
+    padding: 6px 2px;
+}
+.assessment-shared-other .assessment-shared-line { min-height: 30px; min-width: 240px; }
+
+/* Wong-Baker */
+.assessment-shared-field-row.is-wong-baker {
+    grid-template-columns: minmax(190px, 28%) 1fr;
+}
+.assessment-shared-wong-baker {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+}
+.assessment-shared-wb-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: center;
+    position: relative;
+}
+.assessment-shared-wb-item:hover { background: #fff7ed; border-color: #fdba74; }
+.assessment-shared-wb-item input[type="radio"] {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    accent-color: #0284c7;
+}
+.assessment-shared-wb-item:has(input:checked) {
+    background: linear-gradient(135deg, #fef3c7, #fed7aa);
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.18);
+}
+.assessment-shared-wb-face { font-size: 30px; line-height: 1; }
+.assessment-shared-wb-label { font-size: 10.5px; color: #334155; font-weight: 700; line-height: 1.2; }
+
+/* Signature section */
+.assessment-shared-sign-section {
+    background: #fff;
+    border: 1px dashed #94a3b8;
+    border-radius: 16px;
+    padding: 14px 16px 16px;
+}
+.assessment-shared-sign-head {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    color: #15803d;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #cbd5e1;
+    margin-bottom: 12px;
+}
+.assessment-shared-sign-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.assessment-shared-sign-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.assessment-shared-sign-title {
+    font-size: 12px;
+    font-weight: 900;
+    color: #0c4a6e;
+}
+.assessment-shared-sign-meta {
+    font-size: 11.5px;
+    color: #334155;
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+.assessment-shared-sign-meta .assessment-shared-line {
+    min-height: 30px;
+    padding: 4px 8px;
+    max-width: 140px;
+    min-width: 120px;
+}
+.assessment-shared-sign-space {
+    flex: 1 1 auto;
+    min-height: 60px;
+    border-bottom: 1px dashed #94a3b8;
+    margin-bottom: 4px;
+}
+.assessment-shared-sign-name-row {
+    font-size: 12px;
+    color: #0f172a;
+    font-weight: 700;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.assessment-shared-sign-name-row .assessment-shared-line {
+    min-height: 32px;
+    flex: 1 1 auto;
+}
+
+/* ============================================================
+   GC STYLE HEADER (SERAGAM DENGAN GENERAL CONSENT & TRIASE)
+   ============================================================ */
+.gc-header-box {
+    display: grid;
+    grid-template-columns: 1fr 49mm;
+    gap: 2mm;
+    align-items: stretch;
+    border: 1.5px solid #111111;
+    padding: 3.6mm 3.2mm 3.2mm;
+    margin-bottom: 3.2mm;
+    background: #fff;
+    border-radius: 6px;
+}
+.gc-patient-col {
+    padding-left: 1.4mm;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+.gc-header-left {
+    display: grid;
+    grid-template-columns: 19mm 1fr;
+    gap: 3mm;
+    align-items: start;
+    padding-top: 2.8mm;
+}
+.gc-logo-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2.8mm;
+}
+.gc-logo {
+    width: 16.8mm;
+    height: auto;
+}
+.gc-header-center {
+    text-align: center;
+    line-height: 1.2;
+    padding-right: 1mm;
+}
+.gc-header-line {
+    font-size: 10pt;
+    display: block;
+}
+.gc-header-strong {
+    font-weight: 700;
+}
+.gc-header-title {
+    font-size: 11pt;
+    font-weight: 700;
+    margin-top: 1mm;
+    white-space: nowrap;
+    display: block;
+}
+.gc-header-address {
+    font-size: 7pt;
+    margin-top: 0.4mm;
+    white-space: nowrap;
+    display: block;
+}
+.gc-patient-box {
+    border: 1.5px solid #111111;
+    border-radius: 5mm;
+    width: 47.5mm;
+    padding: 2.2mm 2.1mm;
+    align-self: start;
+    margin-left: 0;
+    box-sizing: border-box;
+    background: #ffffff;
+}
+.gc-patient-meta,
+.gc-identity-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.gc-patient-meta { table-layout: fixed; }
+.gc-patient-meta td {
+    font-size: 8.2pt;
+    padding: 0.3mm 0;
+    vertical-align: top;
+}
+.gc-patient-meta td:first-child {
+    width: 18.5mm;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.gc-patient-meta td:nth-child(2) { width: 2.5mm; }
+
+/* Print Title Box bawah kop */
+.assessment-shared-print-title-box {
+    border: 1.5px solid #111111;
+    border-radius: 6px;
+    text-align: center;
+    padding: 2.8mm 3mm;
+    font-size: 12.5pt;
+    font-weight: 700;
+    margin-bottom: 1.4mm;
+    background: #ffffff;
+}
+.assessment-shared-print-title {
+    font-size: 13pt;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0c4a6e;
+}
+.assessment-shared-print-subtitle {
+    margin-top: 1.2mm;
+    font-size: 10.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #334155;
+}
+
+/* Section head top (title + role pill) */
+.assessment-shared-section-head-top {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.assessment-shared-role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.assessment-shared-role-pill.is-nurse {
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    color: #5b21b6;
+    border-color: #c4b5fd;
+}
+.assessment-shared-role-pill.is-doctor {
+    background: linear-gradient(135deg, #cffafe, #a5f3fc);
+    color: #155e75;
+    border-color: #67e8f9;
+}
+.assessment-shared-readonly-note {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #fef2f2, #fef3c7);
+    color: #7f1d1d;
+    border-left: 4px solid #ef4444;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+/* Locked section visual */
+.assessment-shared-section.is-locked { opacity: 0.94; }
+.assessment-shared-section.is-locked .assessment-shared-section-body.is-locked-body {
+    background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 8px, #f1f5f9 8px, #f1f5f9 16px);
+}
+.assessment-shared-section .assessment-shared-line.is-readonly,
+.assessment-shared-section textarea.is-readonly {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+.assessment-shared-field-row.is-locked-field label {
+    color: #475569 !important;
+}
+/* Nurse / Doctor section tone border */
+.assessment-shared-section.is-nurse-section { border-left: 8px solid #a78bfa; }
+.assessment-shared-section.is-doctor-section { border-left: 8px solid #06b6d4; }
+
+/* Page break (print only) */
+.assessment-shared-section.is-page-break-before {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 2px dashed #94a3b8;
+}
+
+/* Computed field IMT */
+.assessment-shared-field-row.is-computed label {
+    font-style: italic;
+    font-weight: 700;
+    color: #0369a1;
+}
+.assessment-shared-field-row.is-computed .assessment-shared-line {
+    background: #f0f9ff !important;
+    font-weight: 700;
+    color: #075985 !important;
+    border-color: #7dd3fc !important;
+}
+
+/* Custom signature (schema.signature config) */
+.assessment-shared-sign-meta-row {
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #cbd5e1;
+}
+.assessment-shared-sign-location {
+    text-align: right;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 0 6px 6px;
+    letter-spacing: 0.01em;
+}
+.assessment-shared-sign-name,
+.assessment-shared-sign-nip {
+    font-size: 12px;
+    color: #0f172a;
+    font-weight: 700;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.assessment-shared-sign-name .assessment-shared-line,
+.assessment-shared-sign-nip .assessment-shared-line {
+    min-height: 32px;
+    flex: 1 1 auto;
+    border-bottom: 1px dotted #111111 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border-top: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    box-shadow: none !important;
+}
+.assessment-shared-sign-space.is-short {
+    flex: 1 1 auto;
+    min-height: 38px;
+    border-bottom: 1px dashed #94a3b8;
+    margin-bottom: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE: Tablet & kecil
+   ============================================================ */
+@media (max-width: 900px) {
+    .assessment-shared-field-row { grid-template-columns: 1fr; gap: 4px; }
+    .assessment-shared-field-label { padding-top: 4px; }
+    .assessment-shared-sign-row { grid-template-columns: 1fr; gap: 16px; }
+    .assessment-shared-toolbar { flex-direction: column; gap: 12px; }
+    .assessment-shared-toolbar-actions { width: 100%; flex-wrap: wrap; }
+    .assessment-shared-kop { flex-direction: column; }
+    .assessment-shared-kop-patient { flex: 1 1 auto; width: 100%; }
+    .assessment-shared-wong-baker { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+@media (max-width: 620px) {
+    .assessment-shared-dialog { margin: 0; border-radius: 0; max-height: 100vh; width: 100vw; }
+    .assessment-shared-vital-table th, .assessment-shared-vital-table td { padding: 4px 2px; font-size: 11px; }
+    .assessment-shared-vital-input { font-size: 12px; }
+}

@@ -1,0 +1,470 @@
+/* ============================================================
+   ASSESSMENT SHARED PRINT CSS (F4 FOLIO 22cm x 33cm)
+   Opsi B - Standar RSUD AJI MUHAMMAD IDRIS
+   Ukuran F4 = Folio Indonesia = 220mm × 330mm (8.66" × 13")
+   ============================================================ */
+
+@page assessment-shared-page {
+    size: 220mm 330mm;
+    margin: 14mm 12mm 15mm 12mm;
+}
+
+@media print {
+    body[data-print-mode="shared-assessment"] {
+        visibility: hidden;
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page: assessment-shared-page;
+        color: #0f172a;
+        font-family: Arial, Helvetica, sans-serif !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    body[data-print-mode="shared-assessment"] > *:not(#assessmentSharedModal) {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    body[data-print-mode="shared-assessment"] #assessmentSharedModal,
+    body[data-print-mode="shared-assessment"] .assessment-shared-modal.is-open,
+    body[data-print-mode="shared-assessment"] #assessmentSharedForm {
+        visibility: visible !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-modal {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        background: #fff !important;
+        backdrop-filter: none !important;
+        z-index: 1 !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-dialog {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #fff !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-panel,
+    body[data-print-mode="shared-assessment"] .assessment-shared-shell {
+        display: block !important;
+        flex: none !important;
+        min-height: auto !important;
+        background: #fff !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-toolbar,
+    body[data-print-mode="shared-assessment"] .assessment-shared-toolbar-actions,
+    body[data-print-mode="shared-assessment"] .assessment-shared-kicker,
+    body[data-print-mode="shared-assessment"] .assessment-shared-status,
+    body[data-print-mode="shared-assessment"] .assessment-shared-badges,
+    body[data-print-mode="shared-assessment"] .assessment-shared-overlay {
+        display: none !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body {
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-document {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        display: block !important;
+        gap: 0 !important;
+    }
+
+    /* -- Injected KOP RS saat mode print -- */
+    body[data-print-mode="shared-assessment"] .assessment-print-kop {
+        display: flex !important;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 0 0 8px;
+        border-bottom: 3px double #0f172a;
+        margin-bottom: 10px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-logo {
+        width: 50px; height: 50px; flex: 0 0 50px;
+        overflow: hidden;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-logo img {
+        width: 100%; height: 100%; object-fit: contain;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-body {
+        flex: 1 1 auto; text-align: center; color: #0f172a;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-body .kop-line {
+        display: block; font-size: 9.5pt; letter-spacing: 0.02em; line-height: 1.25;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-body .kop-line.strong { font-weight: bold; }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-body .kop-title {
+        font-size: 13pt; font-weight: 900; display: block; margin: 1px 0; letter-spacing: 0.02em;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-kop-body .kop-address {
+        font-size: 8.5pt; color: #334155;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-title {
+        text-align: center;
+        font-size: 12pt;
+        font-weight: 900;
+        text-decoration: underline;
+        letter-spacing: 0.02em;
+        margin: 8px 0 4px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-subtitle {
+        text-align: center;
+        font-size: 9pt;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-patient-meta {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #0f172a;
+        margin-bottom: 10px;
+        font-size: 9pt;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-patient-meta th,
+    body[data-print-mode="shared-assessment"] .assessment-print-patient-meta td {
+        border: 1px solid #0f172a;
+        padding: 3px 6px;
+        vertical-align: top;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-print-patient-meta th {
+        background: #e2e8f0;
+        font-weight: bold;
+        text-align: left;
+        width: 16%;
+    }
+
+    /* Section */
+    body[data-print-mode="shared-assessment"] .assessment-shared-section {
+        background: #fff !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        margin-bottom: 8px;
+        page-break-inside: avoid;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section-head {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1;
+        border-radius: 3px;
+        padding: 4px 8px;
+        margin-bottom: 6px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section-title {
+        font-size: 10pt;
+        font-weight: 900;
+        color: #0f172a;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section-hint {
+        font-size: 8pt; color: #475569; margin-top: 2px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section-body {
+        padding: 0 2px;
+        gap: 6px;
+    }
+
+    /* Vital sign table cetak */
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-table-wrap {
+        border: 1px solid #0f172a;
+        padding: 4px;
+        border-radius: 0;
+        background: #fff;
+        margin: 0 0 6px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-label {
+        font-size: 8.5pt;
+        font-weight: 900;
+        color: #0f172a;
+        margin-bottom: 3px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-table {
+        border: 1px solid #0f172a;
+        font-size: 9pt;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-table th,
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-table td {
+        border: 1px solid #0f172a;
+        padding: 3px 4px;
+        text-align: center;
+        font-size: 9pt;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-table th {
+        background: #e2e8f0;
+        font-weight: bold;
+        font-size: 8.5pt;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-vital-input {
+        font-weight: 800;
+        color: #0f172a;
+        text-align: center;
+        background: #fff;
+    }
+
+    /* Field cetak */
+    body[data-print-mode="shared-assessment"] .assessment-shared-field-row {
+        grid-template-columns: 28% 72%;
+        gap: 6px;
+        padding: 2px 0;
+        border-bottom: 1px dotted #cbd5e1;
+        page-break-inside: avoid;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-field-label {
+        font-size: 9pt;
+        color: #0f172a;
+        padding-top: 4px;
+        font-weight: 800;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-line,
+    body[data-print-mode="shared-assessment"] .assessment-shared-textarea {
+        border: none !important;
+        background: #fff !important;
+        padding: 4px 0;
+        min-height: auto !important;
+        box-shadow: none !important;
+        outline: none !important;
+        resize: none;
+        font-size: 9.5pt;
+        color: #0f172a;
+        line-height: 1.35;
+        border-bottom: 1px solid #94a3b8 !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-textarea {
+        border-bottom: none !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-suffix-wrap {
+        border-bottom: 1px solid #94a3b8;
+        padding-bottom: 2px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-suffix-wrap .assessment-shared-line {
+        border-bottom: none !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-suffix {
+        border: none !important;
+        background: transparent !important;
+        color: #0f172a;
+        font-size: 8.5pt;
+        padding: 0 4px;
+        min-width: auto;
+    }
+
+    /* Option cetak: radio checkbox jadi ☑ / ☐ */
+    body[data-print-mode="shared-assessment"] .assessment-shared-options {
+        padding: 2px 0;
+        gap: 6px 10px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-option {
+        background: #fff !important;
+        border: none !important;
+        padding: 0 !important;
+        font-size: 9pt !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-option input { display: none !important; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-option::before {
+        content: '☐';
+        display: inline-block;
+        width: 14px;
+        text-align: center;
+        margin-right: 4px;
+        color: #0f172a;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-option:has(input:checked)::before {
+        content: '☑';
+        color: #065f46;
+        font-weight: bold;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-other {
+        padding: 2px 0;
+        width: 100%;
+        border-bottom: 1px dotted #cbd5e1;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-other .assessment-shared-line {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    /* Wong baker cetak */
+    body[data-print-mode="shared-assessment"] .assessment-shared-wong-baker {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-item {
+        background: #fff !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 4px 2px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-item input[type="radio"] { display: none; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-item {
+        position: relative;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-item::before {
+        content: '☐';
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 11px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-item:has(input:checked)::before { content: '☑'; color: #065f46; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-face { font-size: 22px; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-wb-label { font-size: 8pt; }
+
+    /* Signature */
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-section {
+        margin-top: 12px;
+        border: none !important;
+        padding: 4px 0;
+        page-break-inside: avoid;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-head {
+        display: none;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-col {
+        text-align: center;
+        font-size: 9pt;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-title {
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-meta {
+        justify-content: center;
+        margin-bottom: 40px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-space {
+        border-bottom: 1px solid #0f172a;
+        min-height: 30px;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-name-row {
+        border-top: 1px solid #0f172a;
+        padding-top: 2px;
+        font-weight: 600;
+        justify-content: center;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-name-row .assessment-shared-line {
+        border: none !important;
+        text-align: center;
+    }
+
+    /* Page break hindari di tengah tabel */
+    body[data-print-mode="shared-assessment"] table,
+    body[data-print-mode="shared-assessment"] tr,
+    body[data-print-mode="shared-assessment"] td,
+    body[data-print-mode="shared-assessment"] th {
+        page-break-inside: avoid !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section { page-break-inside: avoid; }
+
+    /* ---------------- GC STYLE KOP & KOTAK PASIEN ---------------- */
+    body[data-print-mode="shared-assessment"] .gc-header-box,
+    body[data-print-mode="shared-assessment"] .gc-patient-box,
+    body[data-print-mode="shared-assessment"] .assessment-shared-print-title-box {
+        border-radius: 0 !important;
+        background: #fff !important;
+        border: 1.2px solid #000 !important;
+        box-shadow: none !important;
+    }
+    body[data-print-mode="shared-assessment"] .gc-logo { filter: grayscale(1) contrast(1.1); }
+    body[data-print-mode="shared-assessment"] .gc-header-line,
+    body[data-print-mode="shared-assessment"] .gc-header-strong,
+    body[data-print-mode="shared-assessment"] .gc-header-title,
+    body[data-print-mode="shared-assessment"] .gc-header-address,
+    body[data-print-mode="shared-assessment"] .gc-patient-meta td {
+        color: #000 !important;
+    }
+    body[data-print-mode="shared-assessment"] .gc-patient-meta td:first-child { font-weight: 700; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-print-title,
+    body[data-print-mode="shared-assessment"] .assessment-shared-print-subtitle { color: #000 !important; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-print-title-box { padding: 2.4mm 3mm; margin-bottom: 2.2mm; }
+
+    /* ---------------- Page break halaman 2 dokter ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-section.is-page-break-before {
+        page-break-before: always !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border-top: 0 !important;
+    }
+
+    /* ---------------- Hide elemen UI-only (tidak dicetak) ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-role-pill,
+    body[data-print-mode="shared-assessment"] .assessment-shared-readonly-note,
+    body[data-print-mode="shared-assessment"] .assessment-shared-toolbar,
+    body[data-print-mode="shared-assessment"] .assessment-shared-overlay,
+    body[data-print-mode="shared-assessment"] .assessment-shared-status {
+        display: none !important;
+    }
+
+    /* ---------------- Hapus locked background/tone di print ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-section.is-nurse-section,
+    body[data-print-mode="shared-assessment"] .assessment-shared-section.is-doctor-section { border-left: 0 !important; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-section-body.is-locked-body {
+        background: #fff !important;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-line.is-readonly,
+    body[data-print-mode="shared-assessment"] textarea.is-readonly {
+        background: #fff !important;
+        border-color: #94a3b8 !important;
+    }
+
+    /* ---------------- Computed field IMT cetak ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-field-row.is-computed label { color: #0f172a !important; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-field-row.is-computed .assessment-shared-line {
+        background: #fff !important;
+        border-color: #94a3b8 !important;
+        color: #0f172a !important;
+    }
+
+    /* ---------------- Custom signature (schema.signature) cetak ---------------- */
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-section {
+        border: none !important;
+        padding: 12px 0 0;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-meta-row {
+        border-bottom: 0 !important;
+        margin-bottom: 4px;
+        padding-bottom: 0;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-location {
+        text-align: right;
+        font-size: 9.5pt;
+        color: #000;
+        padding-right: 6mm;
+        letter-spacing: 0.03em;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-row.is-two-col {
+        grid-template-columns: 1fr 1fr;
+        gap: 18mm;
+        margin-top: 8mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-col {
+        text-align: center;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-title {
+        font-size: 9pt;
+        font-weight: 700;
+        margin-bottom: 1mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-space.is-short {
+        min-height: 22mm;
+        border-bottom: 1px solid #000 !important;
+        margin-bottom: 1.5mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-name,
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-nip {
+        justify-content: flex-start;
+        padding: 0 3mm;
+    }
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-name .assessment-shared-line,
+    body[data-print-mode="shared-assessment"] .assessment-shared-sign-nip .assessment-shared-line {
+        border-bottom: 1px dotted #000 !important;
+        background: #fff !important;
+        text-align: left;
+    }
+}
