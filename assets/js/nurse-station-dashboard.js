@@ -452,6 +452,18 @@
                     }
                     return;
                 }
+                const resetBtn = event.target.closest('[data-action="reset-filter"]');
+                if (resetBtn) {
+                    state.activePoliCard = null;
+                    state.selectedSubmenuSchemaId = null;
+                    state.selectedSubmenuTitle = null;
+                    state.selectedPoliKeyword = null;
+                    state.selectedPoliId = null;
+                    refreshPoliMenuVisual();
+                    renderFilterBar();
+                    renderList();
+                    return;
+                }
                 const submenuBtn = event.target.closest('[data-poli-menu-item="1"]');
                 if (submenuBtn) {
                     const itemType = String(submenuBtn.getAttribute('data-item-type') || '').trim();
@@ -889,11 +901,47 @@
 
             if (!tabRows.length) {
                 const filterActive = state.selectedPoliId || state.selectedPoliKeyword;
-                els.list.innerHTML = filterActive
-                    ? `<div class="nurse-station-dashboard-empty is-filtered">Tidak ada pasien di Poli ${escapeHtml(String(state.selectedSubmenuTitle ? state.selectedSubmenuTitle + ' • ' : '') + (state.selectedPoliId === 'anak' ? 'Anak' : 'Penyakit Dalam'))} hari ini sesuai filter.<br><small>👉 Klik <b>Reset Filter</b> untuk melihat semua pasien di worklist.</small></div>`
-                    : (state.activeTab === 'done'
+                if (filterActive) {
+                    const poliLabel = state.selectedPoliId === 'anak' ? 'Anak / Pediatrik' : 'Penyakit Dalam';
+                    const formulirLabel = state.selectedSubmenuTitle || (state.selectedSubmenuSchemaId ? (getSchemaById(state.selectedSubmenuSchemaId) || {}).label || '' : '');
+                    const allInPoliNoTab = (function () {
+                        const oldPoliId = state.selectedPoliId, oldKw = state.selectedPoliKeyword, oldSchema = state.selectedSubmenuSchemaId, oldTitle = state.selectedSubmenuTitle;
+                        state.selectedSubmenuSchemaId = null;
+                        state.selectedSubmenuTitle = null;
+                        const res = getFilteredRows(false);
+                        state.selectedPoliId = oldPoliId;
+                        state.selectedPoliKeyword = oldKw;
+                        state.selectedSubmenuSchemaId = oldSchema;
+                        state.selectedSubmenuTitle = oldTitle;
+                        return res;
+                    })();
+                    const totalPoliAll = allInPoliNoTab.length;
+                    const poliPending = allInPoliNoTab.filter(function (r) { return !(r && r.nsData && r.nsData.status === 'selesai'); }).length;
+                    const poliDone = totalPoliAll - poliPending;
+                    els.list.innerHTML = `
+<div class="nurse-station-dashboard-empty is-filtered" style="text-align:left;padding:18px 20px;">
+  <div style="font-size:14px;font-weight:700;margin-bottom:6px;">🔎 Filter Aktif — Tidak ada pasien yang cocok.</div>
+  <div style="font-size:13px;color:#334155;line-height:1.6;margin-bottom:8px;">
+    Poli Tujuan : <b>${escapeHtml(poliLabel)}</b>${formulirLabel ? ` • Formulir : <b>${escapeHtml(formulirLabel)}</b>` : ''}
+    <br>
+    Total pasien di poli ini hari ini: <b>${totalPoliAll}</b> orang — Menunggu: <b>${poliPending}</b> • Selesai: <b>${poliDone}</b>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+    <button type="button" class="nurse-station-dashboard-filter-btn-reset" data-action="reset-filter" style="border-radius:10px;padding:8px 12px;border:1px solid #cbd5e1;background:#fff;font-weight:600;cursor:pointer;">✖ Hapus Filter — Tampilkan Semua Pasien</button>
+    <button type="button" data-action="toggle-poli" data-poli-id="${escapeHtml(state.activePoliCard || state.selectedPoliId || '')}" style="border-radius:10px;padding:8px 12px;border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;font-weight:600;cursor:pointer;">📋 Pilih Formulir Lain di Menu Poli</button>
+  </div>
+  <div style="font-size:12px;color:#64748b;margin-top:10px;line-height:1.55;">
+    💡 <b>Alur yang benar menurut alur RSUD:</b><br>
+    1. Lihat <b>Worklist</b> di bawah (klik tombol <i>Hapus Filter</i>)<br>
+    2. Klik tombol <b>PANGGIL</b> pada kartu pasien yang akan diperiksa<br>
+    3. Pada kartu pasien yang sama, klik tombol berwarna <b>📋 Asesmen Rawat Jalan</b> / <b>🩺 Awal Medis</b> / <b>📝 CPPT</b> untuk mulai isi data.
+  </div>
+</div>`;
+                } else {
+                    els.list.innerHTML = state.activeTab === 'done'
                         ? '<div class="nurse-station-dashboard-empty">Belum ada pasien yang selesai asesmen Nurse Station hari ini.</div>'
-                        : '<div class="nurse-station-dashboard-empty">Tidak ada pasien menunggu Nurse Station hari ini.</div>');
+                        : '<div class="nurse-station-dashboard-empty">Tidak ada pasien menunggu Nurse Station hari ini.</div>';
+                }
                 return;
             }
 
