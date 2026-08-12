@@ -19,7 +19,12 @@
             batalColumnAvailable: null,
             poliServiceColumnAvailable: null,
             message: '',
-            messageTone: 'info'
+            messageTone: 'info',
+            activePoliCard: null,
+            selectedSubmenuSchemaId: null,
+            selectedSubmenuTitle: null,
+            selectedPoliKeyword: null,
+            selectedPoliId: null
         };
         const STORAGE_PREFIX = 'sim-ami:nurse-station:';
 
@@ -334,6 +339,47 @@
                 '    <div class="nurse-station-dashboard-summary-card"><div class="nurse-station-dashboard-summary-label">Poli Tujuan Aktif</div><div id="nurseDashPoliCount" class="nurse-station-dashboard-summary-value">0</div></div>',
                 '  </section>',
                 '  <section class="nurse-station-dashboard-panel">',
+                '    <div class="nurse-station-dashboard-poli-grid">',
+                '      <div class="nurse-station-dashboard-poli-card is-expanded-dewasa" id="nurseDashPoliCardPenyakitDalam" data-poli-id="penyakit_dalam">',
+                '        <button type="button" class="nurse-station-dashboard-poli-card-header" data-action="toggle-poli" data-poli-id="penyakit_dalam">',
+                '          <span class="nurse-station-dashboard-poli-icon">🫀</span>',
+                '          <span class="nurse-station-dashboard-poli-title-wrap">',
+                '            <span class="nurse-station-dashboard-poli-title">Poliklinik Penyakit Dalam</span>',
+                '            <span class="nurse-station-dashboard-poli-subtitle">Poli Umum — Dewasa > 18 Tahun</span>',
+                '          </span>',
+                '          <span class="nurse-station-dashboard-poli-toggle" id="nurseDashPoliTogglePenyakitDalam">▼</span>',
+                '        </button>',
+                '        <div class="nurse-station-dashboard-poli-expand" id="nurseDashPoliExpandPenyakitDalam">',
+                '        </div>',
+                '      </div>',
+                '      <div class="nurse-station-dashboard-poli-card is-expanded-pediatrik is-disabled" id="nurseDashPoliCardAnak" data-poli-id="anak">',
+                '        <button type="button" class="nurse-station-dashboard-poli-card-header" data-action="toggle-poli" data-poli-id="anak">',
+                '          <span class="nurse-station-dashboard-poli-icon">🧸</span>',
+                '          <span class="nurse-station-dashboard-poli-title-wrap">',
+                '            <span class="nurse-station-dashboard-poli-title">Poliklinik Anak</span>',
+                '            <span class="nurse-station-dashboard-poli-subtitle">Pediatrik — Bayi, Balita & Anak < 18 Tahun</span>',
+                '          </span>',
+                '          <span class="nurse-station-dashboard-poli-badge-soon">Segera Hadir</span>',
+                '        </button>',
+                '        <div class="nurse-station-dashboard-poli-expand" id="nurseDashPoliExpandAnak">',
+                '          <div class="nurse-station-dashboard-soon-card">',
+                '            <span class="nurse-station-dashboard-soon-icon">🚧</span>',
+                '            <span class="nurse-station-dashboard-soon-text">Formulir asesmen Poli Anak (Pediatrik) sedang disiapkan tim SIM-AMI dan akan segera aktif pada tahap berikutnya.</span>',
+                '          </div>',
+                '        </div>',
+                '      </div>',
+                '    </div>',
+                '    <div id="nurseDashFilterBar" class="nurse-station-dashboard-filter-bar hidden">',
+                '      <div class="nurse-station-dashboard-filter-info">',
+                '        <span class="nurse-station-dashboard-filter-label">Filter Aktif</span>',
+                '        <span class="nurse-station-dashboard-filter-pill" id="nurseDashFilterPoliPill">Poli: Penyakit Dalam</span>',
+                '        <span class="nurse-station-dashboard-filter-divider">•</span>',
+                '        <span class="nurse-station-dashboard-filter-pill is-formulir" id="nurseDashFilterFormulirPill">Formulir: -</span>',
+                '      </div>',
+                '      <div class="nurse-station-dashboard-filter-actions">',
+                '        <button type="button" class="nurse-station-dashboard-filter-btn-reset" id="nurseDashFilterResetBtn">✖ Reset Filter</button>',
+                '      </div>',
+                '    </div>',
                 '    <div class="nurse-station-dashboard-toolbar">',
                 '      <div>',
                 '        <div class="nurse-station-dashboard-panel-title">Worklist Nurse Station</div>',
@@ -368,7 +414,16 @@
                 message: containerEl.querySelector('#nurseDashMessage'),
                 list: containerEl.querySelector('#nurseDashList'),
                 openRekapBtn: containerEl.querySelector('#nurseDashOpenRekapBtn'),
-                refreshBtn: containerEl.querySelector('#nurseDashRefreshBtn')
+                refreshBtn: containerEl.querySelector('#nurseDashRefreshBtn'),
+                poliCardPenyakitDalam: containerEl.querySelector('#nurseDashPoliCardPenyakitDalam'),
+                poliCardAnak: containerEl.querySelector('#nurseDashPoliCardAnak'),
+                poliExpandPenyakitDalam: containerEl.querySelector('#nurseDashPoliExpandPenyakitDalam'),
+                poliExpandAnak: containerEl.querySelector('#nurseDashPoliExpandAnak'),
+                poliTogglePenyakitDalam: containerEl.querySelector('#nurseDashPoliTogglePenyakitDalam'),
+                filterBar: containerEl.querySelector('#nurseDashFilterBar'),
+                filterPoliPill: containerEl.querySelector('#nurseDashFilterPoliPill'),
+                filterFormulirPill: containerEl.querySelector('#nurseDashFilterFormulirPill'),
+                filterResetBtn: containerEl.querySelector('#nurseDashFilterResetBtn')
             };
 
             els.openRekapBtn?.addEventListener('click', async () => {
@@ -376,6 +431,55 @@
             });
             els.refreshBtn?.addEventListener('click', async () => {
                 await loadRows();
+            });
+            els.filterResetBtn?.addEventListener('click', () => {
+                state.activePoliCard = null;
+                state.selectedSubmenuSchemaId = null;
+                state.selectedSubmenuTitle = null;
+                state.selectedPoliKeyword = null;
+                state.selectedPoliId = null;
+                refreshPoliMenuVisual();
+                renderFilterBar();
+                renderList();
+            });
+            // Delegated click untuk toggle kartu poli & submenu item
+            containerEl.addEventListener('click', async (event) => {
+                const toggleBtn = event.target.closest('[data-action="toggle-poli"]');
+                if (toggleBtn && !toggleBtn.closest('.is-disabled')) {
+                    const poliId = String(toggleBtn.getAttribute('data-poli-id') || '').trim();
+                    if (poliId) {
+                        togglePoliCard(poliId);
+                    }
+                    return;
+                }
+                const submenuBtn = event.target.closest('[data-poli-menu-item="1"]');
+                if (submenuBtn) {
+                    const itemType = String(submenuBtn.getAttribute('data-item-type') || '').trim();
+                    if (itemType === 'assessment') {
+                        const schemaId = String(submenuBtn.getAttribute('data-schema-id') || '').trim();
+                        const poliId = String(submenuBtn.getAttribute('data-poli-id') || '').trim();
+                        const poliKeyword = String(submenuBtn.getAttribute('data-poli-keyword') || '').trim();
+                        const label = String(submenuBtn.getAttribute('data-label') || '').trim();
+                        if (schemaId) {
+                            state.activePoliCard = poliId || state.activePoliCard;
+                            state.selectedSubmenuSchemaId = schemaId;
+                            state.selectedSubmenuTitle = label;
+                            state.selectedPoliId = poliId;
+                            state.selectedPoliKeyword = poliKeyword;
+                            refreshPoliMenuVisual();
+                            renderFilterBar();
+                            renderList();
+                            if (els.list) {
+                                els.list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                            return;
+                        }
+                    }
+                    if (itemType === 'action_placeholder' || itemType === 'coming_soon') {
+                        alert('Fitur ini sedang dalam persiapan & akan segera aktif. \n\nFitur selanjutnya: Pengajuan Laboratorium • Pengajuan Radiologi • Asesmen Poli Anak');
+                        return;
+                    }
+                }
             });
             els.tabPending?.addEventListener('click', () => {
                 state.activeTab = 'pending';
@@ -386,6 +490,31 @@
                 renderList();
             });
             els.list?.addEventListener('click', async (event) => {
+                const assessmentBtn = event.target.closest('.assessment-shared-btn');
+                if (assessmentBtn) {
+                    const rowId = String(assessmentBtn.getAttribute('data-row-id') || '').trim();
+                    let schemaId = String(assessmentBtn.getAttribute('data-assessment-schema') || assessmentBtn.getAttribute('data-schema-id') || '').trim();
+                    let patientPayload = null;
+                    const patientRaw = assessmentBtn.getAttribute('data-patient');
+                    if (patientRaw) {
+                        try { patientPayload = JSON.parse(patientRaw); } catch (_e) { patientPayload = null; }
+                    }
+                    if (!schemaId && patientPayload?.schemaId) {
+                        schemaId = String(patientPayload.schemaId || '').trim();
+                    }
+                    let target = state.rows.find((item) => String(item.id || '') === rowId) || null;
+                    if (!target && patientPayload) {
+                        target = patientPayload;
+                    }
+                    if (target && schemaId) {
+                        if (typeof config?.handleAssessmentButtonClick === 'function') {
+                            await Promise.resolve(config.handleAssessmentButtonClick(assessmentBtn, target, schemaId));
+                        } else {
+                            await Promise.resolve(config?.openAssessmentShared?.(target, schemaId));
+                        }
+                    }
+                    return;
+                }
                 const callBtn = event.target.closest('[data-action="call"]');
                 if (callBtn) {
                     const rowId = String(callBtn.getAttribute('data-row-id') || '');
@@ -417,6 +546,238 @@
             mounted = true;
         }
 
+        function getPoliMenuConfig() {
+            const registry = (window.SIMAMI_POLI_MENU && typeof window.SIMAMI_POLI_MENU === 'object') ? window.SIMAMI_POLI_MENU : null;
+            const fallbackPenyakitDalam = {
+                id: 'penyakit_dalam',
+                title: 'Poliklinik Penyakit Dalam',
+                tone: 'dewasa',
+                categories: [
+                    {
+                        id: 'asesmen_medis',
+                        title: '📑 Asesmen Medis',
+                        hint: 'Formulir standar poli dewasa',
+                        items: [
+                            { type: 'assessment', schemaId: 'rawat_jalan_pd', icon: '📋' },
+                            { type: 'assessment', schemaId: 'asesmen_awal_medis_pd', icon: '🩺' },
+                            { type: 'assessment', schemaId: 'cppti_pd', icon: '📝' }
+                        ]
+                    },
+                    {
+                        id: 'permintaan_penunjang',
+                        title: '🧪 Permintaan Penunjang',
+                        hint: 'Akan segera hadir',
+                        items: [
+                            { type: 'action_placeholder', id: 'lab', label: 'Pengajuan Laboratorium', icon: '🧪', status: 'soon' },
+                            { type: 'action_placeholder', id: 'radio', label: 'Pengajuan Radiologi', icon: '🩻', status: 'soon' }
+                        ]
+                    }
+                ]
+            };
+            return {
+                penyakit_dalam: (registry && registry.PENYAKIT_DALAM) ? registry.PENYAKIT_DALAM : fallbackPenyakitDalam,
+                anak: (registry && registry.ANAK) ? registry.ANAK : { id: 'anak', title: 'Poliklinik Anak', tone: 'pediatrik', active: false, comingSoon: true, categories: [] }
+            };
+        }
+
+        function getSchemaById(schemaId) {
+            if (!schemaId) return null;
+            if (window.SIMAMI_ASSESSMENT_SCHEMAS && typeof window.SIMAMI_ASSESSMENT_SCHEMAS.getById === 'function') {
+                const s = window.SIMAMI_ASSESSMENT_SCHEMAS.getById(schemaId);
+                if (s) return s;
+            }
+            if (window.SIMAMI_ASSESSMENT_SCHEMAS && Array.isArray(window.SIMAMI_ASSESSMENT_SCHEMAS.listAll)) {
+                return window.SIMAMI_ASSESSMENT_SCHEMAS.listAll().find(function (s) { return String(s && s.id) === String(schemaId); }) || null;
+            }
+            return null;
+        }
+
+        function togglePoliCard(poliId) {
+            if (!poliId) return;
+            if (poliId === 'anak') {
+                // Poli anak placeholder disabled (boleh expand tapi isinya teks soon)
+                if (state.activePoliCard === 'anak') {
+                    state.activePoliCard = null;
+                } else {
+                    state.activePoliCard = 'anak';
+                }
+                refreshPoliMenuVisual();
+                return;
+            }
+            if (state.activePoliCard === poliId) {
+                state.activePoliCard = null;
+            } else {
+                state.activePoliCard = poliId;
+            }
+            refreshPoliMenuVisual();
+        }
+
+        function refreshPoliMenuVisual() {
+            const cardPd = els.poliCardPenyakitDalam;
+            const cardAnak = els.poliCardAnak;
+            const expandPd = els.poliExpandPenyakitDalam;
+            const expandAnak = els.poliExpandAnak;
+            const togglePd = els.poliTogglePenyakitDalam;
+
+            const activePd = state.activePoliCard === 'penyakit_dalam';
+            const activeAnak = state.activePoliCard === 'anak';
+
+            if (cardPd) {
+                cardPd.classList.toggle('is-expanded', activePd);
+                cardPd.classList.toggle('is-collapsed', !activePd && state.activePoliCard !== null);
+            }
+            if (cardAnak) {
+                cardAnak.classList.toggle('is-expanded', activeAnak);
+                cardAnak.classList.toggle('is-collapsed', !activeAnak && state.activePoliCard !== null);
+            }
+            if (expandPd) {
+                if (activePd) {
+                    expandPd.style.display = 'block';
+                    if (window.getComputedStyle(expandPd).maxHeight === '0px' || !expandPd.style.maxHeight) {
+                        requestAnimationFrame(function () {
+                            expandPd.style.maxHeight = expandPd.scrollHeight + 'px';
+                            expandPd.style.opacity = '1';
+                        });
+                    }
+                } else {
+                    expandPd.style.maxHeight = '0px';
+                    expandPd.style.opacity = '0';
+                    setTimeout(function () { if (!state.activePoliCard) { expandPd.style.display = 'none'; } }, 120);
+                }
+            }
+            if (expandAnak) {
+                expandAnak.style.display = activeAnak ? 'block' : 'none';
+            }
+            if (togglePd) {
+                togglePd.textContent = activePd ? '▲' : '▼';
+            }
+        }
+
+        function renderPoliExpandMenus() {
+            const menuCfg = getPoliMenuConfig();
+            const expandPd = els.poliExpandPenyakitDalam;
+            if (expandPd) {
+                const cfg = menuCfg.penyakit_dalam;
+                const html = renderCategoriesHtml(cfg, 'penyakit_dalam');
+                expandPd.innerHTML = html;
+            }
+            refreshPoliMenuVisual();
+        }
+
+        function renderCategoriesHtml(poliCfg, poliId) {
+            const categories = Array.isArray(poliCfg.categories) ? poliCfg.categories : [];
+            const poliKeyword = poliId === 'penyakit_dalam' ? 'penyakit dalam' : (poliId === 'anak' ? 'anak' : '');
+            return categories.map(function (cat) {
+                const itemsHtml = (Array.isArray(cat.items) ? cat.items : []).map(function (item) {
+                    return renderMenuItemHtml(item, poliId, poliKeyword);
+                }).join('');
+                return [
+                    '<div class="nurse-station-dashboard-poli-cat">',
+                    `  <div class="nurse-station-dashboard-poli-cat-head"><span class="nurse-station-dashboard-poli-cat-title">${escapeHtml(String(cat.title || ''))}</span>${cat.hint ? `<span class="nurse-station-dashboard-poli-cat-hint">${escapeHtml(String(cat.hint))}</span>` : ''}</div>`,
+                    `  <div class="nurse-station-dashboard-poli-cat-items">${itemsHtml || '<div class="nurse-station-dashboard-poli-emptycat">Tidak ada item tersedia</div>'}</div>`,
+                    '</div>'
+                ].join('');
+            }).join('');
+        }
+
+        function renderMenuItemHtml(item, poliId, poliKeyword) {
+            if (!item) return '';
+            const itemType = String(item.type || '').trim();
+            if (itemType === 'coming_soon' || (item.status && /soon|preview/i.test(String(item.status)))) {
+                const label = String(item.label || 'Fitur Segera Hadir').trim();
+                const icon = String(item.icon || '⏳').trim();
+                return [
+                    `<button type="button" class="nurse-station-dashboard-poli-item is-soon" data-poli-menu-item="1" data-item-type="coming_soon" data-poli-id="${escapeHtml(poliId)}" disabled>`,
+                    `  <span class="nurse-station-dashboard-poli-item-icon">${icon}</span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-body">`,
+                    `    <span class="nurse-station-dashboard-poli-item-label">${escapeHtml(label)}</span>`,
+                    `    <span class="nurse-station-dashboard-poli-item-desc badge-soon">Segera hadir • Tahap berikutnya</span>`,
+                    `  </span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-arrow">🔒</span>`,
+                    `</button>`
+                ].join('');
+            }
+            if (itemType === 'action_placeholder') {
+                const label = String(item.label || 'Fitur Persiapan').trim();
+                const icon = String(item.icon || '🧪').trim();
+                return [
+                    `<button type="button" class="nurse-station-dashboard-poli-item is-placeholder" data-poli-menu-item="1" data-item-type="action_placeholder" data-poli-id="${escapeHtml(poliId)}">`,
+                    `  <span class="nurse-station-dashboard-poli-item-icon">${icon}</span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-body">`,
+                    `    <span class="nurse-station-dashboard-poli-item-label">${escapeHtml(label)}</span>`,
+                    `    <span class="nurse-station-dashboard-poli-item-desc badge-soon">Dalam persiapan • Pengajuan cetak permintaan via SIM-AMI</span>`,
+                    `  </span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-arrow badge-soon">COMING SOON</span>`,
+                    `</button>`
+                ].join('');
+            }
+            if (itemType === 'assessment') {
+                const schemaId = String(item.schemaId || '').trim();
+                const schema = getSchemaById(schemaId);
+                const icon = String(item.icon || (schema && schema.id === 'cppti_pd' ? '📝' : (schema && /medis/i.test(schema.label || '') ? '🩺' : '📋'))).trim();
+                const label = schema ? (schema.menuLabel || schema.label || schema.title || schema.id) : schemaId;
+                const shortLabel = schema && schema.menuShortLabel ? schema.menuShortLabel : '';
+                const desc = schema ? (schema.subtitle || 'Formulir asesmen untuk pasien poli ' + poliKeyword) : 'Klik untuk mulai isi formulir pada pasien worklist di bawah';
+                const keywordPoli = schema && schema.targetPoliKeyword ? schema.targetPoliKeyword : poliKeyword;
+                const isSelected = String(state.selectedSubmenuSchemaId) === schemaId;
+                return [
+                    `<button type="button" class="nurse-station-dashboard-poli-item is-assessment ${isSelected ? 'is-selected' : ''}" data-poli-menu-item="1" data-item-type="assessment" data-schema-id="${escapeHtml(schemaId)}" data-poli-id="${escapeHtml(poliId)}" data-poli-keyword="${escapeHtml(keywordPoli)}" data-label="${escapeHtml(label)}">`,
+                    `  <span class="nurse-station-dashboard-poli-item-icon">${icon}</span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-body">`,
+                    `    <span class="nurse-station-dashboard-poli-item-label">${escapeHtml(label)}${shortLabel ? ` <span class="nurse-station-dashboard-poli-item-short">(${escapeHtml(shortLabel)})</span>` : ''}</span>`,
+                    `    <span class="nurse-station-dashboard-poli-item-desc">${escapeHtml(desc)}</span>`,
+                    `  </span>`,
+                    `  <span class="nurse-station-dashboard-poli-item-arrow">${isSelected ? '✔️ Terpilih' : '▶ Pilih'}</span>`,
+                    `</button>`
+                ].join('');
+            }
+            return '';
+        }
+
+        function renderFilterBar() {
+            if (!els.filterBar) return;
+            const active = !!(state.selectedSubmenuSchemaId || state.selectedPoliId);
+            els.filterBar.classList.toggle('hidden', !active);
+            if (!active) return;
+            const poliPill = els.filterPoliPill;
+            const formPill = els.filterFormulirPill;
+            const poliName = ({
+                penyakit_dalam: 'Poli: Penyakit Dalam',
+                anak: 'Poli: Anak / Pediatrik'
+            })[String(state.selectedPoliId || '')] || 'Filter';
+            const formulirName = state.selectedSubmenuTitle
+                ? state.selectedSubmenuTitle
+                : (state.selectedSubmenuSchemaId ? (getSchemaById(state.selectedSubmenuSchemaId) || {}).label || 'Formulir' : '-');
+            if (poliPill) poliPill.textContent = poliName;
+            if (formPill) formPill.textContent = 'Formulir: ' + (formulirName || '-');
+        }
+
+        function getFilteredRows(applyTabFilter) {
+            const rows = Array.isArray(state.rows) ? state.rows : [];
+            let out = rows;
+            if (String(state.selectedPoliKeyword || '').trim()) {
+                const kw = String(state.selectedPoliKeyword).toLowerCase().trim();
+                out = out.filter(function (r) {
+                    const poli = String(r && r.poli_tujuan || '').toLowerCase();
+                    return poli.includes(kw);
+                });
+            } else if (String(state.selectedPoliId || '').trim()) {
+                const poliName = ({ penyakit_dalam: 'penyakit dalam', anak: 'anak' })[String(state.selectedPoliId)] || '';
+                if (poliName) {
+                    out = out.filter(function (r) {
+                        const poli = String(r && r.poli_tujuan || '').toLowerCase();
+                        return poli.includes(poliName);
+                    });
+                }
+            }
+            if (applyTabFilter !== false) {
+                out = state.activeTab === 'done'
+                    ? out.filter(function (r) { return r && r.nsData && r.nsData.status === 'selesai'; })
+                    : out.filter(function (r) { return !(r && r.nsData && r.nsData.status === 'selesai'); });
+            }
+            return out;
+        }
+
         function renderMessage() {
             if (!els.message) return;
             const text = String(state.message || '').trim();
@@ -427,13 +788,14 @@
         }
 
         function renderSummary() {
-            const rows = Array.isArray(state.rows) ? state.rows : [];
+            const rowsAll = Array.isArray(state.rows) ? state.rows : [];
+            const rowsVisible = getFilteredRows(false);
             const poliSet = new Set();
             let priorityCount = 0;
             let pendingCount = 0;
             let doneCount = 0;
 
-            rows.forEach((row) => {
+            rowsVisible.forEach((row) => {
                 if (isPriorityQueue(row?.no_antrian)) {
                     priorityCount += 1;
                 }
@@ -446,28 +808,32 @@
                 if (poli) poliSet.add(poli);
             });
 
-            if (els.totalCount) els.totalCount.textContent = String(rows.length);
+            if (els.totalCount) els.totalCount.textContent = String(rowsAll.length);
             if (els.priorityCount) els.priorityCount.textContent = String(priorityCount);
             if (els.poliCount) els.poliCount.textContent = String(poliSet.size);
             if (els.meta) {
+                const filterInfo = state.selectedPoliKeyword || state.selectedPoliId
+                    ? ` • Filter Poli: ${state.selectedSubmenuTitle ? '✔ ' + state.selectedSubmenuTitle : state.selectedPoliId}`
+                    : '';
                 els.meta.textContent = state.loading
                     ? 'Memuat data pasien poliklinik hari ini...'
-                    : `Menunggu ${pendingCount} • Selesai ${doneCount} • Total ${rows.length}`;
+                    : `Menunggu ${pendingCount} • Selesai ${doneCount} • Total ${rowsVisible.length}${filterInfo}`;
             }
         }
 
         function renderList() {
             if (!els.list) return;
-            const rows = Array.isArray(state.rows) ? state.rows : [];
+            renderPoliExpandMenus();
             const activeCalledRow = getOpenCalledRow();
-            const tabRows = state.activeTab === 'done'
-                ? rows.filter((row) => row.nsData?.status === 'selesai')
-                : rows.filter((row) => row.nsData?.status !== 'selesai');
+            const tabRows = getFilteredRows(true);
 
             if (!tabRows.length) {
-                els.list.innerHTML = state.activeTab === 'done'
-                    ? '<div class="nurse-station-dashboard-empty">Belum ada pasien yang selesai asesmen Nurse Station hari ini.</div>'
-                    : '<div class="nurse-station-dashboard-empty">Tidak ada pasien menunggu Nurse Station hari ini.</div>';
+                const filterActive = state.selectedPoliId || state.selectedPoliKeyword;
+                els.list.innerHTML = filterActive
+                    ? `<div class="nurse-station-dashboard-empty is-filtered">Tidak ada pasien di Poli ${escapeHtml(String(state.selectedSubmenuTitle ? state.selectedSubmenuTitle + ' • ' : '') + (state.selectedPoliId === 'anak' ? 'Anak' : 'Penyakit Dalam'))} hari ini sesuai filter.<br><small>👉 Klik <b>Reset Filter</b> untuk melihat semua pasien di worklist.</small></div>`
+                    : (state.activeTab === 'done'
+                        ? '<div class="nurse-station-dashboard-empty">Belum ada pasien yang selesai asesmen Nurse Station hari ini.</div>'
+                        : '<div class="nurse-station-dashboard-empty">Tidak ada pasien menunggu Nurse Station hari ini.</div>');
                 return;
             }
 
@@ -502,6 +868,44 @@
                     : 'Nomor Nurse Station belum tersedia dari pendaftaran.';
                 const metaLine = [queueSourceMeta, calledMeta, doneMeta].filter(Boolean).join(' • ');
 
+                let assessmentButtonsHtml = '';
+                if (String(state.selectedSubmenuSchemaId || '').trim()) {
+                    const selSchema = getSchemaById(state.selectedSubmenuSchemaId);
+                    const selLabel = state.selectedSubmenuTitle
+                        || (selSchema && (selSchema.menuShortLabel || selSchema.menuLabel || selSchema.label))
+                        || 'Formulir';
+                    const toneClass = selSchema && selSchema.id === 'cppti_pd'
+                        ? 'is-amber'
+                        : (selSchema && /medis/i.test(selSchema.label || '') ? 'is-sky' : 'is-rose');
+                    const dataset = JSON.stringify({
+                        id: row.id,
+                        nama_pasien: row.nama_pasien,
+                        tanggal_lahir: row.tanggal_lahir,
+                        jenis_kelamin: row.jenis_kelamin,
+                        no_rm: row.no_rm,
+                        no_registrasi: row.no_registrasi,
+                        unit: row.unit,
+                        no_antrian: row.no_antrian,
+                        poli_tujuan: row.poli_tujuan,
+                        umur: row.umur,
+                        alamat: row.alamat,
+                        no_telepon: row.no_telepon,
+                        schemaId: state.selectedSubmenuSchemaId
+                    });
+                    assessmentButtonsHtml = `<button type="button" class="nurse-station-dashboard-formulir-pinned-btn ${toneClass} assessment-shared-btn" data-schema-id="${escapeHtml(state.selectedSubmenuSchemaId)}" data-patient='${escapeHtml(dataset)}' title="Klik untuk membuka formulir ${escapeHtml(selLabel)} untuk pasien ini">
+                        <span class="nurse-station-dashboard-formulir-pinned-icon">📝</span>
+                        <span class="nurse-station-dashboard-formulir-pinned-body">
+                          <span class="nurse-station-dashboard-formulir-pinned-label">Buka ${escapeHtml(selLabel)}</span>
+                          <span class="nurse-station-dashboard-formulir-pinned-desc">Isi formulir asesmen terpilih untuk pasien ini</span>
+                        </span>
+                        <span class="nurse-station-dashboard-formulir-pinned-arrow">▶ Mulai Isi</span>
+                    </button>`;
+                } else {
+                    assessmentButtonsHtml = typeof config?.renderAssessmentButtons === 'function'
+                        ? String(config.renderAssessmentButtons(row) || '').trim()
+                        : '';
+                }
+
                 return [
                     '<div class="nurse-station-dashboard-item">',
                     `  <div class="${badgeClass}">${escapeHtml(nsLabel)}</div>`,
@@ -512,6 +916,7 @@
                     '    </div>',
                     `    <div class="nurse-station-dashboard-item-meta">${escapeHtml(formatPoliLabel(row?.poli_tujuan || ''))} • Antrian Poli ${escapeHtml(noAntrian)}</div>`,
                     `    <div class="nurse-station-dashboard-item-submeta">Terdaftar ${escapeHtml(formatTime(row?.created_at || ''))}${metaLine ? ' • ' + metaLine : ''}</div>`,
+                    assessmentButtonsHtml ? `    <div class="nurse-station-dashboard-item-assessment-row">${assessmentButtonsHtml}</div>` : '',
                     '    <div class="nurse-station-dashboard-item-actions">',
                     canCall ? `      <button type="button" class="nurse-station-dashboard-action-btn is-call" data-action="call" data-row-id="${escapeHtml(String(row?.id || ''))}">Panggil</button>` : '',
                     canDone ? `      <button type="button" class="nurse-station-dashboard-action-btn is-done" data-action="done" data-row-id="${escapeHtml(String(row?.id || ''))}">Selesai</button>` : '',
