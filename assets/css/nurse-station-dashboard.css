@@ -322,6 +322,521 @@
     color: #15803d;
 }
 
+.nurse-station-dashboard-poli-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.nurse-station-dashboard-poli-card {
+    border-radius: 28px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 16px 44px -32px rgba(15, 23, 42, 0.28);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.nurse-station-dashboard-poli-card.is-expanded-dewasa,
+.nurse-station-dashboard-poli-card.is-expanded-dewasa.is-expanded {
+    border-color: #38bdf8;
+    box-shadow: 0 22px 58px -28px rgba(14, 165, 233, 0.5);
+}
+
+.nurse-station-dashboard-poli-card.is-expanded-pediatrik,
+.nurse-station-dashboard-poli-card.is-expanded-pediatrik.is-expanded {
+    border-color: #c084fc;
+    box-shadow: 0 22px 58px -28px rgba(192, 132, 252, 0.5);
+}
+
+.nurse-station-dashboard-poli-card.is-disabled {
+    opacity: 0.72;
+}
+
+.nurse-station-dashboard-poli-card.is-collapsed {
+    opacity: 0.6;
+    filter: saturate(0.6);
+    transform: scale(0.985);
+}
+
+.nurse-station-dashboard-poli-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 20px 22px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.2s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.nurse-station-dashboard-poli-card.is-expanded-dewasa .nurse-station-dashboard-poli-card-header,
+.nurse-station-dashboard-poli-card.is-expanded-dewasa.is-expanded .nurse-station-dashboard-poli-card-header {
+    background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+}
+
+.nurse-station-dashboard-poli-card.is-expanded-pediatrik .nurse-station-dashboard-poli-card-header {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+}
+
+.nurse-station-dashboard-poli-card-header:hover {
+    background: linear-gradient(135deg, #f0f9ff 0%, #f1f5f9 100%);
+}
+
+.nurse-station-dashboard-poli-icon {
+    font-size: 34px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.nurse-station-dashboard-poli-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.nurse-station-dashboard-poli-title {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+    line-height: 1.15;
+}
+
+.nurse-station-dashboard-poli-subtitle {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.nurse-station-dashboard-poli-toggle {
+    font-size: 14px;
+    font-weight: 900;
+    color: #64748b;
+    background: rgba(255,255,255,0.7);
+    padding: 6px 10px;
+    border-radius: 999px;
+    transition: transform 0.2s ease;
+}
+
+.nurse-station-dashboard-poli-badge-soon {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+    color: #78350f;
+    box-shadow: 0 6px 16px -10px rgba(251, 191, 36, 0.9);
+}
+
+.nurse-station-dashboard-poli-expand {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 22px 20px;
+    transition: max-height 0.28s ease, opacity 0.2s ease, padding 0.2s ease;
+    border-top: 1px dashed #e2e8f0;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+}
+
+.nurse-station-dashboard-poli-card.is-expanded .nurse-station-dashboard-poli-expand {
+    padding-top: 16px;
+}
+
+.nurse-station-dashboard-soon-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border: 1px dashed #f59e0b;
+}
+
+.nurse-station-dashboard-soon-icon {
+    font-size: 26px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.nurse-station-dashboard-soon-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: #78350f;
+    line-height: 1.6;
+}
+
+.nurse-station-dashboard-poli-cat {
+    margin-top: 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    padding: 14px 16px;
+}
+
+.nurse-station-dashboard-poli-cat + .nurse-station-dashboard-poli-cat {
+    margin-top: 12px;
+}
+
+.nurse-station-dashboard-poli-cat-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.nurse-station-dashboard-poli-cat-title {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    color: #0f766e;
+}
+
+.nurse-station-dashboard-poli-cat-hint {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.nurse-station-dashboard-poli-cat-items {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.nurse-station-dashboard-poli-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.nurse-station-dashboard-poli-item:hover {
+    transform: translateX(2px);
+    box-shadow: 0 12px 28px -22px rgba(15, 23, 42, 0.45);
+}
+
+.nurse-station-dashboard-poli-item.is-assessment {
+    border-left: 4px solid #0ea5e9;
+}
+
+.nurse-station-dashboard-poli-item.is-assessment:hover {
+    border-color: #0284c7;
+    background: #f0f9ff;
+}
+
+.nurse-station-dashboard-poli-item.is-assessment.is-selected {
+    border-color: #0369a1;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    box-shadow: 0 12px 28px -18px rgba(14, 165, 233, 0.7);
+}
+
+.nurse-station-dashboard-poli-item.is-placeholder,
+.nurse-station-dashboard-poli-item.is-soon {
+    border-left: 4px dashed #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+    cursor: not-allowed;
+    opacity: 0.88;
+}
+
+.nurse-station-dashboard-poli-item.is-soon {
+    opacity: 0.7;
+}
+
+.nurse-station-dashboard-poli-item-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.nurse-station-dashboard-poli-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.nurse-station-dashboard-poli-item-label {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: -0.005em;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.nurse-station-dashboard-poli-item-short {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: #0ea5e9;
+    text-transform: uppercase;
+    margin-left: 4px;
+}
+
+.nurse-station-dashboard-poli-item-desc {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.nurse-station-dashboard-poli-item-desc.badge-soon {
+    color: #b45309;
+    font-weight: 800;
+}
+
+.nurse-station-dashboard-poli-item-arrow {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: #0369a1;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(14, 165, 233, 0.1);
+    white-space: nowrap;
+}
+
+.nurse-station-dashboard-poli-item-arrow.badge-soon {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    padding: 4px 10px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nurse-station-dashboard-poli-emptycat {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+}
+
+/* Filter bar aktif */
+.nurse-station-dashboard-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 18px;
+    border-radius: 20px;
+    margin: 0 0 10px;
+    background: linear-gradient(135deg, #ecfeff 0%, #e0f2fe 100%);
+    border: 1px solid #7dd3fc;
+    box-shadow: 0 12px 30px -24px rgba(2, 132, 199, 0.6);
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-filter-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nurse-station-dashboard-filter-label {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #0369a1;
+}
+
+.nurse-station-dashboard-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #7dd3fc;
+    color: #0c4a6e;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.nurse-station-dashboard-filter-pill.is-formulir {
+    background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+    border-color: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 6px 18px -12px rgba(14, 165, 233, 0.9);
+}
+
+.nurse-station-dashboard-filter-divider {
+    color: #38bdf8;
+    font-weight: 900;
+}
+
+.nurse-station-dashboard-filter-btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.nurse-station-dashboard-filter-btn-reset:hover {
+    background: #fff1f2;
+    border-color: #fb7185;
+}
+
+/* Formulir Pinned Button besar (Mode Filter Aktif) */
+.nurse-station-dashboard-formulir-pinned-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 2px solid #cbd5e1;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.nurse-station-dashboard-formulir-pinned-btn:hover {
+    transform: translateX(2px) translateY(-1px);
+    box-shadow: 0 14px 32px -20px rgba(15, 23, 42, 0.5);
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-rose {
+    border-color: #fda4af;
+    background: linear-gradient(135deg, #ffffff 0%, #fff1f2 100%);
+    border-left: 6px solid #f43f5e;
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-rose:hover {
+    border-color: #e11d48;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-sky {
+    border-color: #7dd3fc;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    border-left: 6px solid #0284c7;
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-sky:hover {
+    border-color: #0369a1;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-amber {
+    border-color: #fcd34d;
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+    border-left: 6px solid #d97706;
+}
+
+.nurse-station-dashboard-formulir-pinned-btn.is-amber:hover {
+    border-color: #b45309;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.nurse-station-dashboard-formulir-pinned-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.nurse-station-dashboard-formulir-pinned-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.nurse-station-dashboard-formulir-pinned-label {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: -0.005em;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.nurse-station-dashboard-formulir-pinned-desc {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.nurse-station-dashboard-formulir-pinned-arrow {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0f766e 0%, #0ea5e9 100%);
+    padding: 10px 14px;
+    border-radius: 14px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    box-shadow: 0 8px 22px -12px rgba(14, 165, 233, 0.9);
+}
+
+.nurse-station-dashboard-empty.is-filtered {
+    border: 1px dashed #bae6fd;
+    background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
+    color: #075985;
+}
+
+.nurse-station-dashboard-item-assessment-row {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 900px) {
+    .nurse-station-dashboard-poli-grid {
+        grid-template-columns: 1fr;
+    }
+    .nurse-station-dashboard-poli-item {
+        flex-wrap: wrap;
+    }
+    .nurse-station-dashboard-formulir-pinned-btn {
+        flex-wrap: wrap;
+    }
+}
+
 .nurse-station-dashboard-badge {
     min-width: 82px;
     border-radius: 18px;
