@@ -139,6 +139,190 @@
             return out.join(' / ');
         }
 
+        function ratioNormalize(v) {
+            const n = Number(v);
+            if (typeof v !== 'number' || Number.isNaN(n)) return 0;
+            return Math.max(0, Math.min(1, n));
+        }
+
+        function renderBodyMapField(field, schema, editable) {
+            return renderBodyMapFieldInner(field, schema, editable);
+        }
+
+        function renderBodyMapFieldInner(field, schema, editable) {
+            const id = 'f_' + state.schemaId + '_' + field.key;
+            state.fieldsById[id] = field;
+
+            const wrap = document.createElement('div');
+            wrap.className = BASE_CLASS_PREFIX + '-body-map-wrap';
+            wrap.dataset.bodyMapKey = field.key;
+            wrap.id = id + '__wrap';
+
+            if (editable) wrap.classList.add('is-clickable');
+
+            const grid = document.createElement('div');
+            grid.className = BASE_CLASS_PREFIX + '-body-map-grid';
+            const views = [
+                { id: 'front', title: 'Tampak Depan', image: 'assets/image/body-front.png' },
+                { id: 'back', title: 'Tampak Belakang', image: 'assets/image/body-back.png' },
+                { id: 'left', title: 'Tampak Samping Kiri', image: 'assets/image/body-left.png' },
+                { id: 'right', title: 'Tampak Samping Kanan', image: 'assets/image/body-right.png' }
+            ];
+            const bodySvgs = {};
+            views.forEach(function (v) {
+                const card = document.createElement('div');
+                card.className = BASE_CLASS_PREFIX + '-body-card';
+                const title = document.createElement('div');
+                title.className = BASE_CLASS_PREFIX + '-body-title';
+                title.textContent = v.title;
+                card.appendChild(title);
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const svg = document.createElementNS(svgNS, 'svg');
+                svg.setAttribute('viewBox', '0 0 120 180');
+                svg.setAttribute('xmlns', svgNS);
+                svg.classList.add(BASE_CLASS_PREFIX + '-body-figure');
+                if (editable) svg.classList.add('is-clickable');
+                svg.dataset.view = v.id;
+                svg.dataset.bodyMapFieldKey = field.key;
+                const img = document.createElementNS(svgNS, 'image');
+                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', v.image);
+                img.setAttribute('href', v.image);
+                img.setAttribute('x', '0');
+                img.setAttribute('y', '0');
+                img.setAttribute('width', '120');
+                img.setAttribute('height', '180');
+                img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                svg.appendChild(img);
+                card.appendChild(svg);
+                grid.appendChild(card);
+                bodySvgs[v.id] = svg;
+
+                if (editable) {
+                    svg.addEventListener('click', function (e) {
+                        onBodyMapSvgClick(e, field.key, v.id, bodySvgs);
+                    });
+                }
+            });
+            wrap.appendChild(grid);
+
+            const toolbar = document.createElement('div');
+            toolbar.className = BASE_CLASS_PREFIX + '-body-map-toolbar';
+            const leftBox = document.createElement('div');
+            leftBox.className = BASE_CLASS_PREFIX + '-body-map-count';
+            leftBox.innerHTML = '📍 Jumlah Tanda : <span data-count="' + field.key + '">0</span> lokasi. Klik gambar untuk menambah tanda lokasi nyeri / kelainan. ' +
+                (editable ? '' : '<strong>Mode Lihat Saja</strong>');
+            toolbar.appendChild(leftBox);
+            if (editable) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-body-clear';
+                clearBtn.dataset.clearFieldKey = field.key;
+                clearBtn.textContent = '🔄 Hapus Semua Tanda';
+                clearBtn.addEventListener('click', function () {
+                    clearBodyMapMarkers(field.key, bodySvgs);
+                });
+                toolbar.appendChild(clearBtn);
+            }
+            wrap.appendChild(toolbar);
+
+            const noteRow = document.createElement('div');
+            noteRow.className = BASE_CLASS_PREFIX + '-body-map-note-row';
+            const noteLabel = document.createElement('label');
+            noteLabel.className = BASE_CLASS_PREFIX + '-field-label';
+            noteLabel.textContent = field.noteLabel || 'Catatan Lokalis / Keterangan Lokasi Keluhan :';
+            if (field.required) {
+                const s = document.createElement('span');
+                s.className = 'is-required';
+                s.textContent = ' *';
+                noteLabel.appendChild(s);
+            }
+            const noteControl = document.createElement('div');
+            noteControl.className = BASE_CLASS_PREFIX + '-field-control';
+            const noteTextarea = document.createElement('textarea');
+            noteTextarea.className = BASE_CLASS_PREFIX + '-textarea';
+            noteTextarea.id = id + '__note';
+            noteTextarea.dataset.fieldKey = field.key + '__note';
+            noteTextarea.rows = Number(field.noteRows || 3);
+            noteTextarea.placeholder = field.notePlaceholder || 'Isikan penjelasan lokasi keluhan: misal "Nyeri tekan perut kanan bawah daerah appendiks, nyeri lepas (+), defense musculer (-). Lokasi tanda merah di gambar adalah titik paling nyeri."';
+            if (field.required) noteTextarea.required = true;
+            if (!editable) { noteTextarea.setAttribute('readonly', 'readonly'); noteTextarea.classList.add('is-readonly'); }
+            noteControl.appendChild(noteTextarea);
+            noteRow.appendChild(noteLabel);
+            noteRow.appendChild(noteControl);
+            wireFieldValue(noteTextarea, { key: field.key + '__note' }, 'value');
+            wrap.appendChild(noteRow);
+
+            state.bodyMapFields = state.bodyMapFields || {};
+            state.bodyMapFields[field.key] = { svgs: bodySvgs };
+            return wrap;
+        }
+
+        function onBodyMapSvgClick(event, fieldKey, viewId, svgs) {
+            const svg = svgs && svgs[viewId] ? svgs[viewId] : null;
+            if (!svg) return;
+            const rect = svg.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const xR = ratioNormalize((event.clientX - rect.left) / rect.width);
+            const yR = ratioNormalize((event.clientY - rect.top) / rect.height);
+            const entry = {
+                id: 'bm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                view: String(viewId || ''),
+                x: xR,
+                y: yR,
+                created_at: new Date().toISOString(),
+                created_by_name: String(getCurrentOperatorName() || '').trim(),
+                created_by_email: String(getCurrentOperatorEmail() || '').trim()
+            };
+            const values = state.formValues || {};
+            const keyStore = fieldKey + '__markers';
+            const arr = Array.isArray(values[keyStore]) ? values[keyStore].slice() : [];
+            arr.push(entry);
+            values[keyStore] = arr;
+            state.formValues = values;
+            refreshBodyMapVisual(fieldKey);
+            onFieldChange();
+            scheduleSave(250);
+        }
+
+        function clearBodyMapMarkers(fieldKey, svgs) {
+            const values = state.formValues || {};
+            values[fieldKey + '__markers'] = [];
+            state.formValues = values;
+            refreshBodyMapVisual(fieldKey);
+            onFieldChange();
+            scheduleSave(250);
+        }
+
+        function refreshBodyMapVisual(fieldKey) {
+            const values = state.formValues || {};
+            const markers = Array.isArray(values[fieldKey + '__markers']) ? values[fieldKey + '__markers'] : [];
+            const fieldEntry = state.bodyMapFields && state.bodyMapFields[fieldKey] ? state.bodyMapFields[fieldKey] : null;
+            const svgs = fieldEntry && fieldEntry.svgs ? fieldEntry.svgs : null;
+            const countEl = document.querySelector('[data-count="' + fieldKey + '"]');
+            if (countEl) countEl.textContent = String(markers.length);
+            if (!svgs) return;
+            Object.keys(svgs).forEach(function (viewId) {
+                const svg = svgs[viewId];
+                if (!svg) return;
+                const circles = svg.querySelectorAll('circle.' + BASE_CLASS_PREFIX + '-body-marker');
+                for (let i = 0; i < circles.length; i++) circles[i].remove();
+                const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : null;
+                const vbW = vb ? vb.width : 120;
+                const vbH = vb ? vb.height : 180;
+                const list = markers.filter(function (m) { return String(m?.view || '') === viewId; });
+                list.forEach(function (m) {
+                    const cx = ratioNormalize(Number(m?.x)) * vbW;
+                    const cy = ratioNormalize(Number(m?.y)) * vbH;
+                    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    c.setAttribute('class', BASE_CLASS_PREFIX + '-body-marker');
+                    c.setAttribute('cx', String(cx));
+                    c.setAttribute('cy', String(cy));
+                    c.setAttribute('r', '6.5');
+                    svg.appendChild(c);
+                });
+            });
+        }
+
         function renderGcStyleHeader(schema, patient) {
             const wrap = document.createElement('div');
             wrap.className = BASE_CLASS_PREFIX + '-gc-header';
@@ -420,6 +604,14 @@
 
                 nonVitals.forEach(function (field) {
                     if (field.computed) return;
+                    if (field.type === 'body-map') {
+                        const mapRow = renderBodyMapField(field, schema, editable);
+                        if (mapRow) {
+                            if (!editable) mapRow.classList.add('is-locked-field');
+                            body.appendChild(mapRow);
+                        }
+                        return;
+                    }
                     const row = renderFieldRow(field, schema);
                     if (row) {
                         if (!editable) row.classList.add('is-locked-field');
@@ -650,6 +842,9 @@
                 });
                 return wrap;
             }
+            if (t === 'body-map') {
+                return renderBodyMapFieldInner(field, schema, true);
+            }
             if (t === 'date') {
                 const input = document.createElement('input');
                 input.type = 'date';
@@ -791,6 +986,11 @@
                 }
                 const raw = values[key];
                 if (raw != null) el.value = String(raw); else el.value = '';
+            }
+            if (state.bodyMapFields) {
+                Object.keys(state.bodyMapFields).forEach(function (fieldKey) {
+                    refreshBodyMapVisual(fieldKey);
+                });
             }
         }
 
