@@ -33,6 +33,17 @@
         const getCurrentOperatorName = deps.getCurrentOperatorName || function () { return ''; };
         const getCurrentOperatorEmail = deps.getCurrentOperatorEmail || function () { return ''; };
         const getCurrentAdminRole = typeof deps.getCurrentAdminRole === 'function' ? deps.getCurrentAdminRole : function () { return (window.currentAdminRole || ''); };
+        const getCurrentPoliName = (function () {
+            if (typeof deps.getCurrentPoliName === 'function') return deps.getCurrentPoliName;
+            if (typeof window.getCurrentPoliName === 'function') return window.getCurrentPoliName;
+            return function () {
+                try {
+                    const winFn = window.getCurrentPoliName;
+                    if (typeof winFn === 'function') return String(winFn() || '');
+                } catch (_e) {}
+                return '';
+            };
+        })();
 
         // Role check (fallback: window globals jika ada)
         const roleFn = function (name) {
@@ -323,36 +334,91 @@
             });
         }
 
+        function computeDetailedAgeLabel(dateOfBirthRaw) {
+            try {
+                if (!dateOfBirthRaw) return '';
+                let dob = null;
+                if (dateOfBirthRaw instanceof Date) {
+                    dob = new Date(dateOfBirthRaw.getTime());
+                } else if (/^\d{4}-\d{2}-\d{2}/.test(String(dateOfBirthRaw))) {
+                    const parts = String(dateOfBirthRaw).slice(0, 10).split('-');
+                    dob = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                } else if (/^\d{2}-\d{2}-\d{4}/.test(String(dateOfBirthRaw))) {
+                    const parts = String(dateOfBirthRaw).slice(0, 10).split('-');
+                    dob = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                } else {
+                    dob = new Date(String(dateOfBirthRaw));
+                }
+                if (!dob || isNaN(dob.getTime())) return '';
+                const now = new Date();
+                let years = now.getFullYear() - dob.getFullYear();
+                let months = now.getMonth() - dob.getMonth();
+                let days = now.getDate() - dob.getDate();
+                if (days < 0) {
+                    months -= 1;
+                    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                    days += prevMonth.getDate();
+                }
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
+                }
+                years = Math.max(0, years);
+                months = Math.max(0, months);
+                days = Math.max(0, days);
+                let out = '';
+                if (years > 0) out += years + 'th ';
+                if (months > 0) out += months + 'bln ';
+                if (days > 0 || out === '') out += days + 'hri';
+                return out.trim();
+            } catch (_e) { return ''; }
+        }
+        function formatDateDdmmyyyy(raw) {
+            if (!raw) return '-';
+            try {
+                let dob = null;
+                if (raw instanceof Date) dob = new Date(raw.getTime());
+                else if (/^\d{4}-\d{2}-\d{2}/.test(String(raw))) {
+                    const parts = String(raw).slice(0, 10).split('-');
+                    dob = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                } else if (/^\d{2}-\d{2}-\d{4}/.test(String(raw))) {
+                    const parts = String(raw).slice(0, 10).split('-');
+                    dob = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                } else dob = new Date(String(raw));
+                if (!dob || isNaN(dob.getTime())) return String(raw || '-');
+                return String(dob.getDate()).padStart(2, '0') + '-' + String(dob.getMonth() + 1).padStart(2, '0') + '-' + dob.getFullYear();
+            } catch (_e) { return String(raw || '-'); }
+        }
+
         function renderGcStyleHeader(schema, patient) {
             const wrap = document.createElement('div');
             wrap.className = BASE_CLASS_PREFIX + '-gc-header';
             const p = patient || {};
-            const dt = new Date();
-            const yyyy = dt.getFullYear();
-            const mm = String(dt.getMonth() + 1).padStart(2, '0');
-            const dd = String(dt.getDate()).padStart(2, '0');
-            const todayStr = dd + '/' + mm + '/' + yyyy;
+            const umurFull = (typeof p.umur === 'number' && p.umur > 0)
+                ? (computeDetailedAgeLabel(p.tanggal_lahir) || (String(p.umur) + 'th'))
+                : computeDetailedAgeLabel(p.tanggal_lahir) || (typeof p.umur === 'number' ? String(p.umur) + 'th' : '');
             wrap.innerHTML = [
                 '<div class="gc-header-box">',
                 '  <div class="gc-header-left">',
                 '    <div class="gc-logo-wrap"><img class="gc-logo" src="assets/image/logo-rsud.png" alt="Logo RSUD Aji Muhammad Idris"></div>',
                 '    <div class="gc-header-center">',
-                '      <span class="gc-header-line">RUMAH SAKIT UMUM DAERAH</span>',
-                '      <span class="gc-header-strong gc-header-title">AJI MUHAMMAD IDRIS</span>',
-                '      <span class="gc-header-line">Kabupaten Berau — Provinsi Kalimantan Timur</span>',
-                '      <span class="gc-header-address">Jl. Aji Muhammad Idris No. 1, Telp. (0554) 21009 • Email : rsudajimuhammadidris@beraukab.go.id</span>',
+                '      <div class="gc-header-line">PEMERINTAH KABUPATEN KUTAI KARTANEGARA</div>',
+                '      <div class="gc-header-line gc-header-strong">DINAS KESEHATAN</div>',
+                '      <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>',
+                '      <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>',
+                '      <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>',
+                '      <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris1@gmail.com</div>',
                 '    </div>',
                 '  </div>',
                 '  <div class="gc-patient-col">',
                 '    <div class="gc-patient-box">',
                 '      <table class="gc-patient-meta">',
-                '        <tr><td>No. RM</td><td>:</td><td>' + escapeHtml(String(p.no_rm || '-')) + '</td></tr>',
-                '        <tr><td>No. Reg</td><td>:</td><td>' + escapeHtml(String(p.no_registrasi || '-')) + '</td></tr>',
+                '        <tr><td>Nomor RM</td><td>:</td><td>' + escapeHtml(String(p.no_rm || '-')) + '</td></tr>',
+                '        <tr><td>Nomor REG</td><td>:</td><td>' + escapeHtml(String(p.no_registrasi || '-')) + '</td></tr>',
                 '        <tr><td>Nama</td><td>:</td><td>' + escapeHtml(String(p.nama_pasien || '-')) + '</td></tr>',
-                '        <tr><td id="gc_jk">JK / Umur</td><td>:</td><td>' + escapeHtml(String(p.jenis_kelamin || '-')) + ' / ' + (p.umur != null ? escapeHtml(String(p.umur) + ' thn') : '-') + '</td></tr>',
-                '        <tr><td>Tgl</td><td>:</td><td>' + todayStr + '</td></tr>',
-                '        <tr><td>Poli</td><td>:</td><td>' + escapeHtml(String(p.poli_tujuan || '-')) + '</td></tr>',
-                '        <tr><td>No. Antr</td><td>:</td><td>' + escapeHtml(String(p.no_antrian || '-')) + '</td></tr>',
+                '        <tr><td>JK</td><td>:</td><td id="gc_jk">' + escapeHtml(String(p.jenis_kelamin || '-')) + '</td></tr>',
+                '        <tr><td>TL</td><td>:</td><td>' + formatDateDdmmyyyy(p.tanggal_lahir) + '</td></tr>',
+                '        <tr><td>Umur</td><td>:</td><td>' + escapeHtml(String(umurFull || '-')) + '</td></tr>',
                 '      </table>',
                 '    </div>',
                 '  </div>',
@@ -362,6 +428,8 @@
         }
 
         function renderRekapButton(patient) {
+            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
+            if (!isNs) return '';
             const registry = getRegistry();
             if (!registry || !registry.listAll) return '';
             const patientUnit = String(patient.unit || '').toUpperCase();
@@ -409,6 +477,12 @@
 
         function handleRekapButtonClick(btnEl) {
             if (!btnEl) return;
+            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
+            if (!isNs) {
+                const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
+                alert('[AKSES DITOLAK]\n\nTombol asesmen pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station untuk mengakses formulir asesmen dari menu Rekap Pasien, atau akses melalui Worklist Nurse Station dashboard sesuai peran Anda.');
+                return;
+            }
             const schemaId = btnEl.getAttribute('data-schema-id');
             const payloadRaw = btnEl.getAttribute('data-patient');
             let payload = null;
@@ -424,10 +498,26 @@
         }
 
         async function openAssessment(patientPayload, schemaOrId) {
-            if (!patientPayload) return;
+            if (!patientPayload) {
+                console.error('[openAssessment] patientPayload null/undefined. schemaOrId=', schemaOrId);
+                alert('[ERROR BUKA FORM] Data pasien tidak valid (kosong).\nSilakan klik tombol pada kartu pasien di worklist (bukan tombol submenu langsung), atau hubungi admin.');
+                return;
+            }
             const schema = typeof schemaOrId === 'string' ? getSchemaById(schemaOrId) : schemaOrId;
-            if (!schema) { alert('Skema asesmen tidak ditemukan.'); return; }
-            if (!userCanAccess(schema)) { alert('Akun Anda tidak diizinkan mengakses formulir ini.'); return; }
+            if (!schema) {
+                console.error('[openAssessment] Schema tidak ditemukan. schemaOrId=', schemaOrId);
+                const registry = getRegistry();
+                const listKeys = registry ? Object.keys(registry).filter(function (k) { const v = registry[k]; return v && typeof v === 'object' && v.id; }) : [];
+                const listIds = registry && typeof registry.listAll === 'function' ? registry.listAll().map(function (s) { return s.id; }) : [];
+                alert('[ERROR] Skema asesmen tidak ditemukan: ' + String(schemaOrId) + '\n\nSchema keys tersedia:\n  • ' + (listKeys.join('\n  • ') || '-') + '\n\nSchema ID listAll:\n  • ' + (listIds.join('\n  • ') || '-'));
+                return;
+            }
+            if (!userCanAccess(schema)) {
+                const curRoleName = (typeof getCurrentAdminRole === 'function' ? String(getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
+                console.warn('[openAssessment] userCanAccess FALSE. schema.allowRoles=', schema && schema.allowRoles, 'schema=', schema);
+                alert('[AKSES DITOLAK]\n\nFormulir: ' + (schema.label || schema.id) + '\n\nAkun Anda (role: ' + curRoleName + ') tidak diizinkan mengakses formulir ini.\n\nHanya role berikut yang dapat mengakses: ' + ((schema.allowRoles || []).join(', ') || '-') + '\n\nJika ini kesalahan, login sebagai perawat Nurse Station / Dokter Spesialis.');
+                return;
+            }
 
             state.schema = schema;
             state.schemaId = String(schema.id || '');
@@ -436,17 +526,35 @@
             state.recordId = null;
             state.formValues = {};
             state.lastWriteAt = 0;
+            state.bodyMapFields = state.bodyMapFields || {};
 
             if (state.realtimeChannel) {
                 try { supabaseClient.removeChannel(state.realtimeChannel); } catch (_e) {}
                 state.realtimeChannel = null;
             }
 
-            applyHeaderMeta(schema, patientPayload);
-            applyRoleText(schema);
-            renderFormFromSchema(schema);
-            openModal();
-            setStatus('Memuat data asesmen dari server...', 'loading');
+            try {
+                ensureModalInjected();
+                wireDom();
+                wireEvents();
+            } catch (e) {
+                console.error('[openAssessment] modal inject gagal:', e);
+                alert('[ERROR GAGAL BUKA MODAL]\n\n' + (e?.message || String(e)));
+                return;
+            }
+
+            try {
+                applyHeaderMeta(schema, patientPayload);
+                applyRoleText(schema);
+                renderFormFromSchema(schema);
+                openModal();
+                setStatus('Memuat data asesmen dari server...', 'loading');
+            } catch (renderErr) {
+                console.error('[openAssessment] renderFormFromSchema error:', renderErr);
+                setStatus('Gagal merender form.', 'error');
+                alert('[ERROR RENDER FORM]\n\n' + (renderErr?.message || String(renderErr)) + '\n\nKemungkinan ada kesalahan sintaks schema ' + (schema.id || '') + '. Hubungi admin.');
+                return;
+            }
             try {
                 await ensureRecordLoaded(schema, patientPayload);
                 subscribeRealtime(schema, patientPayload);
@@ -528,6 +636,7 @@
             if (!form) return;
             form.innerHTML = '';
 
+            const sectionsParent = document.createElement('div');
             if (schema.useGcHeaderStyle) {
                 const kopEl = renderGcStyleHeader(schema, state.patient);
                 if (kopEl) form.appendChild(kopEl);
@@ -544,7 +653,11 @@
                     titleBox.appendChild(printSub);
                 }
                 form.appendChild(titleBox);
+                sectionsParent.className = BASE_CLASS_PREFIX + '-body-box';
+            } else {
+                sectionsParent.className = BASE_CLASS_PREFIX + '-sections-plain';
             }
+            form.appendChild(sectionsParent);
 
             const sections = Array.isArray(schema.sections) ? schema.sections : [];
             sections.forEach(function (section, idx) {
@@ -558,36 +671,38 @@
                 if (tone === 'nurse') sec.classList.add('is-nurse-section');
                 else if (tone === 'doctor') sec.classList.add('is-doctor-section');
 
-                const head = document.createElement('div');
-                head.className = BASE_CLASS_PREFIX + '-section-head';
-                const headTop = document.createElement('div');
-                headTop.className = BASE_CLASS_PREFIX + '-section-head-top';
-                const title = document.createElement('h3');
-                title.className = BASE_CLASS_PREFIX + '-section-title';
-                title.textContent = section.title || 'Bagian ' + (idx + 1);
-                headTop.appendChild(title);
-                if (section.roleLabel) {
-                    const pill = document.createElement('span');
-                    const toneCls = tone === 'doctor' ? 'is-doctor' : 'is-nurse';
-                    pill.className = BASE_CLASS_PREFIX + '-role-pill ' + toneCls;
-                    pill.textContent = section.roleLabel;
-                    headTop.appendChild(pill);
+                if (!section.hideHeader) {
+                    const head = document.createElement('div');
+                    head.className = BASE_CLASS_PREFIX + '-section-head';
+                    const headTop = document.createElement('div');
+                    headTop.className = BASE_CLASS_PREFIX + '-section-head-top';
+                    const title = document.createElement('h3');
+                    title.className = BASE_CLASS_PREFIX + '-section-title';
+                    title.textContent = section.title || 'Bagian ' + (idx + 1);
+                    headTop.appendChild(title);
+                    if (section.roleLabel) {
+                        const pill = document.createElement('span');
+                        const toneCls = tone === 'doctor' ? 'is-doctor' : 'is-nurse';
+                        pill.className = BASE_CLASS_PREFIX + '-role-pill ' + toneCls;
+                        pill.textContent = section.roleLabel;
+                        headTop.appendChild(pill);
+                    }
+                    head.appendChild(headTop);
+                    if (!editable) {
+                        const note = document.createElement('div');
+                        note.className = BASE_CLASS_PREFIX + '-readonly-note';
+                        const who = describeSectionRole(section) || 'role yang berwenang';
+                        note.textContent = '🔒 Bagian ini hanya dapat diisi oleh ' + who + '. Akun Anda hanya bisa melihat data dan perubahan realtime.';
+                        head.appendChild(note);
+                    }
+                    if (section.hint) {
+                        const hint = document.createElement('p');
+                        hint.className = BASE_CLASS_PREFIX + '-section-hint';
+                        hint.textContent = section.hint;
+                        head.appendChild(hint);
+                    }
+                    sec.appendChild(head);
                 }
-                head.appendChild(headTop);
-                if (!editable) {
-                    const note = document.createElement('div');
-                    note.className = BASE_CLASS_PREFIX + '-readonly-note';
-                    const who = describeSectionRole(section) || 'role yang berwenang';
-                    note.textContent = '🔒 Bagian ini hanya dapat diisi oleh ' + who + '. Akun Anda hanya bisa melihat data dan perubahan realtime.';
-                    head.appendChild(note);
-                }
-                if (section.hint) {
-                    const hint = document.createElement('p');
-                    hint.className = BASE_CLASS_PREFIX + '-section-hint';
-                    hint.textContent = section.hint;
-                    head.appendChild(hint);
-                }
-                sec.appendChild(head);
 
                 const body = document.createElement('div');
                 body.className = BASE_CLASS_PREFIX + '-section-body';
@@ -604,11 +719,29 @@
 
                 nonVitals.forEach(function (field) {
                     if (field.computed) return;
-                    if (field.type === 'body-map') {
-                        const mapRow = renderBodyMapField(field, schema, editable);
-                        if (mapRow) {
-                            if (!editable) mapRow.classList.add('is-locked-field');
-                            body.appendChild(mapRow);
+                    const noWrapperTypes = new Set(['heading-text', 'pdf-table', 'side-by-side-row', 'inline-group', 'body-map']);
+                    if (noWrapperTypes.has(String(field.type || '')) === true) {
+                        if (field.type === 'body-map') {
+                            const mapRow = renderBodyMapField(field, schema, editable);
+                            if (mapRow) {
+                                if (!editable) mapRow.classList.add('is-locked-field');
+                                body.appendChild(mapRow);
+                            }
+                            return;
+                        }
+                        const inner = buildInputElement(field, schema);
+                        if (inner) {
+                            const wrap = document.createElement('div');
+                            wrap.className = BASE_CLASS_PREFIX + '-full-field';
+                            if (field.noWrapper) wrap.className = '';
+                            if (wrap.className) {
+                                if (!editable) wrap.classList.add('is-locked-field');
+                                wrap.appendChild(inner);
+                                body.appendChild(wrap);
+                            } else {
+                                if (!editable && inner.classList) inner.classList.add('is-locked-field');
+                                body.appendChild(inner);
+                            }
                         }
                         return;
                     }
@@ -619,7 +752,7 @@
                     }
                 });
 
-                if (section.key === 'hal1_pemeriksaan_vitals') {
+                if (section.key === 'hal1_pemeriksaan_vitals' || section.key === 'hal1_perawat_b' || section.key === 'hal1_perawat') {
                     const imtRow = document.createElement('div');
                     imtRow.className = BASE_CLASS_PREFIX + '-field-row is-computed';
                     const imtLabel = document.createElement('label');
@@ -651,11 +784,11 @@
                 }
 
                 sec.appendChild(body);
-                form.appendChild(sec);
+                sectionsParent.appendChild(sec);
             });
 
             const signatureEl = renderSignatureSection(schema);
-            if (signatureEl) form.appendChild(signatureEl);
+            if (signatureEl) sectionsParent.appendChild(signatureEl);
 
             hydrateFormFromValues();
             refreshComputedFields();
@@ -842,6 +975,273 @@
                 });
                 return wrap;
             }
+            if (t === 'heading-text') {
+                const hWrap = document.createElement('div');
+                const heading = document.createElement('div');
+                heading.className = BASE_CLASS_PREFIX + '-heading';
+                if (field.align === 'center') heading.classList.add('is-center');
+                if (field.align === 'left') heading.classList.add('is-left');
+                if (field.weight === 'bold') heading.classList.add('is-bold');
+                if (field.size === 'lg') heading.classList.add('is-lg');
+                if (field.size === 'md') heading.classList.add('is-md');
+                if (field.spacing) heading.style.marginTop = String(field.spacing);
+                heading.textContent = field.text || field.label || field.key || '';
+                hWrap.appendChild(heading);
+                return hWrap;
+            }
+            if (t === 'radio-inline' || t === 'radio-group') {
+                const isInline = t === 'radio-inline';
+                const wrap = document.createElement('div');
+                wrap.className = BASE_CLASS_PREFIX + '-options' + (isInline ? ' is-inline' : '');
+                const opts = (Array.isArray(field.options) ? field.options : []).map(function (opt) {
+                    if (opt && typeof opt === 'object') return { value: String(opt.value), label: String(opt.label) };
+                    return { value: String(opt), label: String(opt) };
+                });
+                opts.forEach(function (opt, idx) {
+                    const lbl = document.createElement('label');
+                    lbl.className = BASE_CLASS_PREFIX + '-option' + (isInline ? ' is-inline' : '');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'grp_' + state.schemaId + '_' + field.key;
+                    radio.dataset.fieldKey = field.key;
+                    radio.value = opt.value;
+                    radio.className = BASE_CLASS_PREFIX + '-radio';
+                    const span = document.createElement('span');
+                    span.textContent = opt.label;
+                    lbl.appendChild(radio);
+                    lbl.appendChild(span);
+                    wrap.appendChild(lbl);
+                    wireFieldValue(radio, field, 'checked');
+                    if (isInline && Array.isArray(field.suffixInputs) && field.suffixInputs[idx]) {
+                        const sfx = field.suffixInputs[idx];
+                        if (sfx && typeof sfx === 'object') {
+                            if (sfx.space) wrap.appendChild(document.createTextNode('  '));
+                            const sfxWrap = document.createElement('span');
+                            sfxWrap.className = BASE_CLASS_PREFIX + '-inline-suffix';
+                            if (sfx.prefix) {
+                                const sp = document.createElement('span');
+                                sp.textContent = String(sfx.prefix);
+                                sfxWrap.appendChild(sp);
+                            }
+                            const sfxInput = document.createElement('input');
+                            sfxInput.type = sfx.type || 'text';
+                            sfxInput.className = BASE_CLASS_PREFIX + '-line' + (sfx.size ? ' is-' + sfx.size : ' is-sm');
+                            sfxInput.id = id + '__sfx_' + String(idx);
+                            sfxInput.dataset.fieldKey = String(sfx.key || (field.key + '__sfx_' + String(idx)));
+                            if (sfx.placeholder) sfxInput.placeholder = sfx.placeholder;
+                            wireFieldValue(sfxInput, { key: sfxInput.dataset.fieldKey }, 'value');
+                            sfxWrap.appendChild(sfxInput);
+                            if (sfx.suffix) {
+                                const ss = document.createElement('span');
+                                ss.textContent = String(sfx.suffix);
+                                sfxWrap.appendChild(ss);
+                            }
+                            wrap.appendChild(sfxWrap);
+                        }
+                    }
+                });
+                if (field.otherField) {
+                    const otherLabel = document.createElement('label');
+                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
+                    otherLabel.textContent = field.otherLabel ? String(field.otherLabel) : 'Lainnya: ';
+                    const otherInput = document.createElement('input');
+                    otherInput.type = 'text';
+                    otherInput.className = BASE_CLASS_PREFIX + '-line';
+                    otherInput.id = id + '__other';
+                    otherInput.dataset.fieldKey = field.key + '__other';
+                    otherInput.placeholder = 'Keterangan lainnya';
+                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
+                    otherLabel.appendChild(otherInput);
+                    wrap.appendChild(otherLabel);
+                }
+                return wrap;
+            }
+            if (t === 'checkbox-inline' || t === 'checkbox-group') {
+                const isInline = t === 'checkbox-inline';
+                const wrap = document.createElement('div');
+                wrap.className = BASE_CLASS_PREFIX + '-options is-checkbox' + (isInline ? ' is-inline' : '');
+                const opts = (Array.isArray(field.options) ? field.options : []).map(String);
+                opts.forEach(function (opt, idx) {
+                    const lbl = document.createElement('label');
+                    lbl.className = BASE_CLASS_PREFIX + '-option' + (isInline ? ' is-inline' : '');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.dataset.fieldKey = field.key + '[]';
+                    cb.dataset.optionValue = opt;
+                    cb.value = opt;
+                    cb.className = BASE_CLASS_PREFIX + '-checkbox';
+                    const span = document.createElement('span');
+                    span.textContent = opt;
+                    lbl.appendChild(cb);
+                    lbl.appendChild(span);
+                    wrap.appendChild(lbl);
+                    wireCheckboxField(cb, field);
+                    if (isInline && Array.isArray(field.suffixInputs) && field.suffixInputs[idx]) {
+                        const sfx = field.suffixInputs[idx];
+                        if (sfx && typeof sfx === 'object') {
+                            if (sfx.space) wrap.appendChild(document.createTextNode('  '));
+                            const sfxWrap = document.createElement('span');
+                            sfxWrap.className = BASE_CLASS_PREFIX + '-inline-suffix';
+                            if (sfx.prefix) {
+                                const sp = document.createElement('span');
+                                sp.textContent = String(sfx.prefix);
+                                sfxWrap.appendChild(sp);
+                            }
+                            const sfxInput = document.createElement('input');
+                            sfxInput.type = sfx.type || 'text';
+                            sfxInput.className = BASE_CLASS_PREFIX + '-line' + (sfx.size ? ' is-' + sfx.size : ' is-sm');
+                            sfxInput.id = id + '__cb_sfx_' + String(idx);
+                            sfxInput.dataset.fieldKey = String(sfx.key || (field.key + '__sfx_' + String(idx)));
+                            if (sfx.placeholder) sfxInput.placeholder = sfx.placeholder;
+                            wireFieldValue(sfxInput, { key: sfxInput.dataset.fieldKey }, 'value');
+                            sfxWrap.appendChild(sfxInput);
+                            if (sfx.suffix) {
+                                const ss = document.createElement('span');
+                                ss.textContent = String(sfx.suffix);
+                                sfxWrap.appendChild(ss);
+                            }
+                            wrap.appendChild(sfxWrap);
+                        }
+                    }
+                });
+                if (field.otherField) {
+                    const otherLabel = document.createElement('label');
+                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
+                    otherLabel.textContent = field.otherLabel ? String(field.otherLabel) : 'Lainnya: ';
+                    const otherInput = document.createElement('input');
+                    otherInput.type = 'text';
+                    otherInput.className = BASE_CLASS_PREFIX + '-line';
+                    otherInput.id = id + '__other';
+                    otherInput.dataset.fieldKey = field.key + '__other';
+                    otherInput.placeholder = 'Keterangan lainnya';
+                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
+                    otherLabel.appendChild(otherInput);
+                    wrap.appendChild(otherLabel);
+                }
+                return wrap;
+            }
+            if (t === 'side-by-side-row') {
+                const wrap = document.createElement('div');
+                wrap.className = BASE_CLASS_PREFIX + '-side-row';
+                if (field.gap) wrap.style.gap = String(field.gap);
+                const children = Array.isArray(field.children) ? field.children : [];
+                children.forEach(function (childField) {
+                    const cell = document.createElement('div');
+                    cell.className = BASE_CLASS_PREFIX + '-side-cell';
+                    if (childField.flex) cell.style.flex = String(childField.flex);
+                    if (childField.label) {
+                        const cl = document.createElement('label');
+                        cl.className = BASE_CLASS_PREFIX + '-side-label';
+                        cl.textContent = String(childField.label);
+                        if (childField.required) {
+                            const star = document.createElement('span');
+                            star.className = 'is-required';
+                            star.textContent = ' *';
+                            cl.appendChild(star);
+                        }
+                        cell.appendChild(cl);
+                    }
+                    const childId = 'f_' + state.schemaId + '_' + childField.key;
+                    state.fieldsById[childId] = childField;
+                    const childInput = buildInputElement(childField, schema);
+                    if (childInput) cell.appendChild(childInput);
+                    wrap.appendChild(cell);
+                });
+                return wrap;
+            }
+            if (t === 'inline-group') {
+                const wrap = document.createElement('div');
+                wrap.className = BASE_CLASS_PREFIX + '-inline-group';
+                if (field.gap) wrap.style.gap = String(field.gap);
+                const children = Array.isArray(field.children) ? field.children : [];
+                children.forEach(function (childField) {
+                    const item = document.createElement('div');
+                    item.className = BASE_CLASS_PREFIX + '-inline-group-item';
+                    if (childField.flex) item.style.flex = String(childField.flex);
+                    const lblSpan = document.createElement('span');
+                    lblSpan.className = BASE_CLASS_PREFIX + '-inline-group-prefix';
+                    lblSpan.textContent = String(childField.label || '') + (childField.label ? ' : ' : '');
+                    item.appendChild(lblSpan);
+                    const childId2 = 'f_' + state.schemaId + '_' + childField.key;
+                    state.fieldsById[childId2] = childField;
+                    const childIn = buildInputElement(childField, schema);
+                    if (childIn) item.appendChild(childIn);
+                    if (childField.suffix) {
+                        const sf = document.createElement('span');
+                        sf.className = BASE_CLASS_PREFIX + '-inline-group-suffix';
+                        sf.textContent = String(childField.suffix);
+                        item.appendChild(sf);
+                    }
+                    wrap.appendChild(item);
+                });
+                return wrap;
+            }
+            if (t === 'pdf-table') {
+                const tWrap = document.createElement('div');
+                tWrap.className = BASE_CLASS_PREFIX + '-pdf-table-wrap';
+                if (field.title) {
+                    const tTitle = document.createElement('div');
+                    tTitle.className = BASE_CLASS_PREFIX + '-pdf-table-title' + (field.titleCenter ? ' is-center' : '');
+                    if (field.titleBold) tTitle.classList.add('is-bold');
+                    tTitle.textContent = String(field.title);
+                    tWrap.appendChild(tTitle);
+                }
+                const table = document.createElement('table');
+                table.className = BASE_CLASS_PREFIX + '-pdf-table' + (field.compact ? ' is-compact' : '') + (field.stripe ? ' is-stripe' : '');
+                if (field.width) table.style.width = String(field.width);
+                const thead = document.createElement('thead');
+                const headRow = document.createElement('tr');
+                (field.headers || []).forEach(function (h) {
+                    const th = document.createElement('th');
+                    th.textContent = String(h && typeof h === 'object' ? (h.label || h.text || '') : String(h));
+                    if (h && typeof h === 'object' && h.width) th.style.width = String(h.width);
+                    if (h && typeof h === 'object' && h.align) th.style.textAlign = String(h.align);
+                    headRow.appendChild(th);
+                });
+                thead.appendChild(headRow);
+                table.appendChild(thead);
+                const tbody = document.createElement('tbody');
+                (field.rows || []).forEach(function (rowData, rIdx) {
+                    const tr = document.createElement('tr');
+                    (Array.isArray(rowData) ? rowData : []).forEach(function (cellData, cIdx) {
+                        const td = document.createElement('td');
+                        if (cellData && typeof cellData === 'object' && cellData.field) {
+                            const fk = String(cellData.field.key || cellData.field || '');
+                            if (cellData.field && typeof cellData.field === 'object') {
+                                const cellField = cellData.field;
+                                if (!cellField.key) cellField.key = fk + '__r' + rIdx + 'c' + cIdx;
+                                const cid = 'f_' + state.schemaId + '_' + cellField.key;
+                                state.fieldsById[cid] = cellField;
+                                const ci = buildInputElement(cellField, schema);
+                                if (ci) td.appendChild(ci);
+                            } else if (String(cellData.field) === '__text_only__') {
+                                td.textContent = String(cellData.text || '');
+                            }
+                        } else if (cellData && typeof cellData === 'object' && cellData.type === 'text-only') {
+                            td.textContent = String(cellData.text || '');
+                        } else if (cellData && typeof cellData === 'object' && cellData.type === 'textarea') {
+                            const ta = document.createElement('textarea');
+                            ta.className = BASE_CLASS_PREFIX + '-textarea';
+                            ta.rows = Number(cellData.rows || 3);
+                            ta.dataset.fieldKey = String(cellData.key || (field.key + '__r' + rIdx + 'c' + cIdx));
+                            ta.id = id + '__cell_' + rIdx + '_' + cIdx;
+                            if (cellData.placeholder) ta.placeholder = String(cellData.placeholder);
+                            wireFieldValue(ta, { key: ta.dataset.fieldKey }, 'value');
+                            td.appendChild(ta);
+                        } else {
+                            td.textContent = String(cellData == null ? '' : cellData);
+                        }
+                        if (cellData && typeof cellData === 'object' && cellData.align) td.style.textAlign = String(cellData.align);
+                        if (cellData && typeof cellData === 'object' && cellData.rowspan) td.rowSpan = Number(cellData.rowspan);
+                        if (cellData && typeof cellData === 'object' && cellData.colspan) td.colSpan = Number(cellData.colspan);
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                tWrap.appendChild(table);
+                return tWrap;
+            }
             if (t === 'body-map') {
                 return renderBodyMapFieldInner(field, schema, true);
             }
@@ -854,6 +1254,38 @@
                 if (field.required) input.required = true;
                 wireFieldValue(input, field, 'value');
                 return input;
+            }
+            if (t === 'text') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = id;
+                input.dataset.fieldKey = field.key;
+                if (typeof field.maxLength === 'number') input.maxLength = Number(field.maxLength);
+                input.placeholder = field.placeholder || '';
+                let clsLine = BASE_CLASS_PREFIX + '-line';
+                if (field.size === 'xs') clsLine += ' is-xs';
+                else if (field.size === 'sm') clsLine += ' is-sm';
+                else if (field.size === 'lg') clsLine += ' is-lg';
+                input.className = clsLine;
+                if (field.required) input.required = true;
+                wireFieldValue(input, field, 'value');
+                return input;
+            }
+            if (t === 'radio') {
+                const wrap = document.createElement('label');
+                wrap.className = BASE_CLASS_PREFIX + '-single-radio';
+                const r = document.createElement('input');
+                r.type = 'radio';
+                const grp = field.groupName || ('sr_' + state.schemaId + '_' + field.key);
+                r.name = grp;
+                r.id = id;
+                r.dataset.fieldKey = field.key;
+                r.value = String(field.value ?? '1');
+                r.className = BASE_CLASS_PREFIX + '-radio';
+                if (field.required) r.required = true;
+                wrap.appendChild(r);
+                wireFieldValue(r, field, 'checked');
+                return wrap;
             }
             if (t === 'number') {
                 const input = document.createElement('input');
