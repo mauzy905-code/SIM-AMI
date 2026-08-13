@@ -3,7 +3,7 @@
                         margin: 0mm;
                     }
                     @page nurse-station-ticket {
-                        size: 80mm 60mm;
+                        size: 80mm auto;
                         margin: 0mm;
                     }
                     @page ugd-ticket {
@@ -130,40 +130,46 @@
                     }
                     body[data-print-mode="nurse-station-ticket"] {
                         width: 80mm;
-                        height: 60mm;
+                        height: auto !important;
                         min-width: 80mm;
-                        min-height: 60mm;
+                        min-height: auto !important;
                         max-width: 80mm;
-                        max-height: 60mm;
+                        max-height: none !important;
                         box-sizing: border-box;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                         background: #fff !important;
+                        page-break-after: always;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer {
                         display: block !important;
                         visibility: visible !important;
-                        position: fixed;
-                        left: 0 !important;
-                        top: 0 !important;
+                        position: static !important;
+                        left: auto !important;
+                        top: auto !important;
                         width: 80mm !important;
-                        height: 60mm !important;
+                        height: auto !important;
+                        max-height: none !important;
                         margin: 0 !important;
                         padding: 0 !important;
-                        overflow: hidden !important;
+                        overflow: visible !important;
                         box-sizing: border-box !important;
                         z-index: 99999 !important;
                         background: #fff !important;
+                        page-break-inside: avoid !important;
+                        page-break-after: always !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket {
                         width: 80mm !important;
-                        height: 60mm !important;
+                        height: auto !important;
+                        max-height: none !important;
                         box-sizing: border-box;
-                        overflow: hidden;
+                        overflow: visible !important;
                         margin: 0 !important;
-                        padding: 2mm 2mm 1.8mm 2mm !important;
-                        font-size: 8pt !important;
-                        line-height: 1.15 !important;
+                        padding: 1.5mm 2mm 2mm 2mm !important;
+                        font-size: 7.5pt !important;
+                        line-height: 1.12 !important;
+                        page-break-inside: avoid !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket * {
                         box-sizing: border-box;
@@ -215,14 +221,86 @@
                         letter-spacing: 0.8mm;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-meta-row {
-                        margin-top: 1.8mm;
-                        font-size: 8pt;
+                        margin-top: 1.2mm;
+                        font-size: 7.5pt;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-foot-note {
-                        margin-top: 1mm;
-                        font-size: 7pt;
+                        margin-top: 0.8mm;
+                        font-size: 6.5pt;
                         color: #475569;
+                        line-height: 1.08;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-barcode-wrap {
+                        margin-top: 1.4mm;
+                        text-align: center;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-barcode-wrap svg {
+                        width: 72mm !important;
+                        height: 14mm !important;
+                        max-width: 72mm !important;
+                        max-height: 14mm !important;
+                        min-width: 72mm !important;
+                        min-height: 14mm !important;
+                        display: block !important;
+                        margin: 0 auto !important;
+                        overflow: visible !important;
+                        object-fit: contain !important;
+                        background: #fff !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-barcode-wrap svg * {
+                        vector-effect: non-scaling-stroke !important;
+                        shape-rendering: crispEdges !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-block {
+                        margin-top: 1.5mm;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        table-layout: fixed;
+                        font-size: 7.5pt;
                         line-height: 1.1;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table thead th {
+                        padding: 0.3mm 0 0.6mm 0;
+                        font-weight: 900;
+                        font-size: 7.8pt;
+                        color: #111;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table tbody td {
+                        padding: 0.35mm 0.2mm;
+                        vertical-align: middle;
+                        color: #111;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-title {
+                        font-size: 9.5pt !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-sub {
+                        font-size: 7pt !important;
+                        margin-top: 0.3mm !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row {
+                        margin-top: 1.2mm !important;
+                        font-size: 7pt !important;
+                        gap: 1.5mm !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-box {
+                        margin-top: 1.5mm !important;
+                        border: 1px dashed #64748b !important;
+                        border-radius: 1.5mm !important;
+                        padding: 1.5mm 1.2mm !important;
+                        text-align: center;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-label {
+                        font-size: 6.8pt !important;
+                        font-weight: bold !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-no {
+                        margin-top: 0.6mm !important;
+                        font-size: 18pt !important;
+                        line-height: 1 !important;
+                        font-weight: 900 !important;
+                        letter-spacing: 0.6mm !important;
                     }
                     body[data-print-mode="ugd-ticket"] {
                         width: 80mm;
