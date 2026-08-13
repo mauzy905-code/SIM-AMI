@@ -1198,7 +1198,7 @@
                     </div>
                 </div>
                 <div id="nurseStationTicketContainer" class="hidden">
-                    <div id="nurseStationTicket" style="width: 80mm; height: 60mm; box-sizing: border-box; overflow: hidden; font-family: Arial, sans-serif;">
+                    <div id="nurseStationTicket" style="width: 80mm; height: auto; box-sizing: border-box; overflow: visible; font-family: Arial, sans-serif;">
                         <div class="ns-head-title" style="text-align: center; font-weight: bold;">RSUD AJI MUHAMMAD IDRIS</div>
                         <div class="ns-head-sub" style="text-align: center; font-weight: bold;">ANTREAN NURSE STATION</div>
                         <div class="ns-reg-row">
@@ -1208,6 +1208,43 @@
                         <div class="ns-queue-box">
                             <div class="ns-queue-label">Nomor Nurse Station</div>
                             <div id="ns_ticket_queue_no" class="ns-queue-no">-</div>
+                        </div>
+                        <div class="ns-barcode-wrap" style="margin-top: 1.4mm; text-align: center;">
+                            <svg id="ns_ticket_barcode" style="width: 72mm; height: 14mm; margin: 0 auto; display: block;"></svg>
+                        </div>
+                        <div class="ns-checklist-block" style="margin-top: 1.5mm;">
+                            <table class="ns-checklist-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 26mm; text-align: left;"></th>
+                                        <th style="width: 39mm; text-align: center; font-weight: bold; text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.5mm;">Rencana</th>
+                                        <th style="width: 13mm; text-align: center; font-weight: bold; text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.5mm;">Selesai</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>lab</td><td style="text-align: center;">( ) Ada ( ) Tidak</td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Radiologi</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Obat</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Konsultasi</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td>SEP</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Kontrol</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="ns-checklist-block" style="margin-top: 1.5mm;">
+                            <table class="ns-checklist-table" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 26mm; text-align: left;"></th>
+                                        <th style="width: 39mm; text-align: center; font-weight: bold; text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.5mm;">Rujukan</th>
+                                        <th style="width: 13mm; text-align: center; font-weight: bold; text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.5mm;">Selesai</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Internal</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                    <tr><td style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Eksternal</td><td style="text-align: center;">( ) Ada ( ) <span style="text-decoration: underline; text-decoration-color: #ef4444; text-underline-offset: 0.4mm;">Tidak</span></td><td style="text-align: center;">( )</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                         <div class="ns-meta-row"><b>Kategori</b>: <span id="ns_ticket_category"></span></div>
                         <div class="ns-meta-row"><b>Poli Tujuan</b>: <span id="ns_ticket_poli"></span></div>
@@ -2120,6 +2157,45 @@
                                 document.getElementById('ns_ticket_queue_no').textContent = payload.nurse_station_queue_no || '-';
                                 document.getElementById('ns_ticket_category').textContent = payload.nurse_station_category || '-';
                                 document.getElementById('ns_ticket_poli').textContent = payload.poli_tujuan_label || '-';
+                                try {
+                                    const bcValue = String((payload.no_registrasi || '') + '|' + (payload.nurse_station_queue_no || '') + '|' + (payload.no_rm || '')).trim().replace(/\|+$/g, '') || '-';
+                                    const bcSvg = document.getElementById('ns_ticket_barcode');
+                                    if (bcSvg && typeof JsBarcode === 'function') {
+                                        bcSvg.removeAttribute('width');
+                                        bcSvg.removeAttribute('height');
+                                        bcSvg.removeAttribute('style');
+                                        bcSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                                        bcSvg.setAttribute('viewBox', '0 0 480 112');
+                                        bcSvg.style.cssText = 'width:72mm; height:14mm; display:block; margin:0 auto;';
+                                        JsBarcode('#ns_ticket_barcode', bcValue, {
+                                            format: 'CODE128',
+                                            width: 1,
+                                            height: 60,
+                                            displayValue: true,
+                                            fontSize: 13,
+                                            margin: 6,
+                                            background: '#ffffff',
+                                            lineColor: '#000000',
+                                            font: 'monospace',
+                                            fontOptions: 'bold',
+                                            textMargin: 2,
+                                            flat: true
+                                        });
+                                        const gRoot = bcSvg.querySelector('g:first-child');
+                                        if (gRoot) {
+                                            const vb = bcSvg.viewBox && bcSvg.viewBox.baseVal;
+                                            const bb = bcSvg.getBBox ? bcSvg.getBBox() : null;
+                                            if (bb) {
+                                                const pad = 6;
+                                                const w = Math.ceil(bb.width + pad * 2);
+                                                const h = Math.ceil(bb.height + pad * 2);
+                                                bcSvg.setAttribute('viewBox', [Math.floor(bb.x - pad), Math.floor(bb.y - pad), w, h].join(' '));
+                                            }
+                                        }
+                                    }
+                                } catch (bcErr) {
+                                    console.warn('[NsTicket] JsBarcode gagal render:', bcErr && bcErr.message ? bcErr.message : bcErr);
+                                }
                             }
 
                             function formatDetailedAgeCompact(tanggalLahir, fallbackUmur) {
@@ -2224,6 +2300,8 @@
                                 document.getElementById('ns_ticket_queue_no').textContent = '';
                                 document.getElementById('ns_ticket_category').textContent = '';
                                 document.getElementById('ns_ticket_poli').textContent = '';
+                                const nsTicketBcSvg = document.getElementById('ns_ticket_barcode');
+                                if (nsTicketBcSvg) { nsTicketBcSvg.innerHTML = ''; nsTicketBcSvg.removeAttribute('jsbarcode'); }
                                 const ugdNama = document.getElementById('ugd_ticket_nama');
                                 if (ugdNama) ugdNama.textContent = '-';
                                 const ugdCetak = document.getElementById('ugd_ticket_cetak');
