@@ -20,6 +20,8 @@
                 <link rel="stylesheet" href="assets/css/nurse-station-dashboard.css">
             <link rel="stylesheet" href="assets/css/poli-dashboard.css?v=20260810-eressep-shortcut">
             <link rel="stylesheet" href="assets/css/poli-doctor-settings.css">
+            <link rel="stylesheet" href="assets/css/assessment.css?v=20260812-assessment-opsib-ui">
+            <link rel="stylesheet" href="assets/css/assessment-print.css?v=20260812-assessment-opsib-print">
                 <link rel="stylesheet" href="assets/css/print.css?v=20260810-ticket-80x60-fit">
             </head>
             <body class="min-h-screen antialiased text-slate-900 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_32%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
@@ -1255,6 +1257,8 @@
                 <script src="assets/js/utils.js"></script>
                 <script src="assets/js/queue-loket-utils.js"></script>
                 <script src="assets/js/ugd-assessment.js"></script>
+                <script src="assets/js/assessment-schemas.js?v=20260812-assessment-schemas-opsib"></script>
+                <script src="assets/js/assessment-engine.js?v=20260812-assessment-engine-opsib"></script>
                 <script src="assets/js/perawat-dashboard.js"></script>
                 <script src="assets/js/dokter-dashboard.js"></script>
                 <script src="assets/js/nurse-station-dashboard.js?v=20260804-ns-hotfix-1"></script>
@@ -2316,7 +2320,61 @@
                                 }, 300);
                             }, true);
 
-                            function preparePrintContainer(mode) {
+                            function preparePrintContainer(mode, opts) {
+                                if (mode === 'shared-assessment') {
+                                    // Inject KOP RS dan meta pasien di AWAL form dokumen saat mode cetak
+                                    const form = opts?.sourceEl || document.getElementById('assessmentSharedForm');
+                                    if (form) {
+                                        const existingKop = form.querySelector('.assessment-print-kop-wrapper');
+                                        if (existingKop) existingKop.remove();
+                                        const schema = opts?.schema || {};
+                                        const patient = opts?.patient || {};
+                                        const tgl = new Date();
+                                        const dd = String(tgl.getDate()).padStart(2, '0');
+                                        const mm = String(tgl.getMonth() + 1).padStart(2, '0');
+                                        const yy = tgl.getFullYear();
+                                        const hh = String(tgl.getHours()).padStart(2, '0');
+                                        const mi = String(tgl.getMinutes()).padStart(2, '0');
+                                        const kopHtml = [
+                                            '<div class="assessment-print-kop-wrapper">',
+                                            '  <div class="assessment-print-kop">',
+                                            '    <div class="assessment-print-kop-logo"><img src="assets/image/logo-rsud.png" alt="logo RSUD"></div>',
+                                            '    <div class="assessment-print-kop-body">',
+                                            '      <span class="kop-line strong">RUMAH SAKIT UMUM DAERAH</span>',
+                                            '      <span class="kop-title">AJI MUHAMMAD IDRIS</span>',
+                                            '      <span class="kop-line strong">KABUPATEN KUTAI TIMUR</span>',
+                                            '      <span class="kop-address">Jl. Gatot Subroto No. 78 Kelurahan Teluk Lingga, Kecamatan Sangatta, Kabupaten Kutai Timur, Kalimantan Timur (75611) Telp. (0549) 2701301 Fax. (0549) 2701302</span>',
+                                            '    </div>',
+                                            '  </div>',
+                                            '  <div class="assessment-print-title">' + (schema.title || 'ASESMEN') + '</div>',
+                                            (schema.subtitle ? ('  <div class="assessment-print-subtitle">' + (schema.subtitle || '') + '</div>') : ''),
+                                            '  <table class="assessment-print-patient-meta">',
+                                            '    <tbody>',
+                                            '      <tr><th>No RM</th><td>' + (patient.no_rm || '-') + '</td><th>No Registrasi</th><td>' + (patient.no_registrasi || '-') + '</td></tr>',
+                                            '      <tr><th>Nama Pasien</th><td>' + (patient.nama_pasien || '-') + '</td><th>Jenis Kelamin</th><td>' + (patient.jenis_kelamin || '-') + '</td></tr>',
+                                            '      <tr><th>Tanggal Lahir</th><td>' + (patient.tanggal_lahir || '-') + '</td><th>Umur</th><td>' + (patient.umur != null ? String(patient.umur) : '-') + '</td></tr>',
+                                            '      <tr><th>Unit / Poli</th><td>' + (patient.unit || '-') + (patient.poli_tujuan ? (' / ' + patient.poli_tujuan) : '') + '</td><th>Dicetak</th><td>' + (dd + '/' + mm + '/' + yy + ' ' + hh + ':' + mi + ' Wita') + '</td></tr>',
+                                            '    </tbody>',
+                                            '  </table>',
+                                            '</div>'
+                                        ].join('');
+                                        const wrap = document.createElement('div');
+                                        wrap.innerHTML = kopHtml;
+                                        form.insertBefore(wrap.firstElementChild, form.firstChild);
+                                    }
+                                    // visibility untuk cetak
+                                    const modal = document.getElementById('assessmentSharedModal');
+                                    if (modal) {
+                                        modal.classList.add('is-open');
+                                        modal.classList.remove('hidden');
+                                        modal.style.setProperty('display', 'flex', 'important');
+                                        modal.style.setProperty('visibility', 'visible', 'important');
+                                        modal.style.setProperty('position', 'fixed', 'important');
+                                        modal.style.setProperty('inset', '0');
+                                        modal.style.setProperty('z-index', '99999', 'important');
+                                    }
+                                    return;
+                                }
                                 const containerId = PRINT_MODE_TO_CONTAINER_ID[mode];
                                 if (!containerId) return;
                                 const el = document.getElementById(containerId);
@@ -3126,6 +3184,59 @@
                                     isPerawatRole
                                 });
                             }
+                            let assessmentSharedModule = null;
+                            window.assessmentSharedModule = assessmentSharedModule;
+                            window.isTriaseRole = function () { return isIgdRole() || isPerawatRole() || isPendaftaranRole() || /triase|igd|ugd/i.test(String(currentAdminRole || '')); };
+                            window.isIgdRole = isIgdRole;
+                            window.isPediatrikRole = function () {
+                                try {
+                                    const role = String(currentAdminRole || '').toLowerCase();
+                                    let poli = '';
+                                    if (typeof getCurrentPoliName === 'function') {
+                                        try { poli = String(getCurrentPoliName() || '').toLowerCase(); } catch (_e) { poli = ''; }
+                                    } else if (typeof window.getCurrentPoliName === 'function') {
+                                        try { poli = String(window.getCurrentPoliName() || '').toLowerCase(); } catch (_e2) { poli = ''; }
+                                    }
+                                    const anakPoli = /anak|p(a|e)diatrik|bayi|balita/i.test(poli);
+                                    const anakRole = /anak|p(a|e)diatrik|bayi|balita/i.test(role);
+                                    if (anakRole) return true;
+                                    if (isDokterRole() && anakPoli) return true;
+                                    if (isPerawatRole() && anakPoli) return true;
+                                    return false;
+                                } catch (_globalErr) {
+                                    const roleFallback = String(typeof currentAdminRole !== 'undefined' ? currentAdminRole : (window.currentAdminRole || '')).toLowerCase();
+                                    return /anak|p(a|e)diatrik|bayi|balita/i.test(roleFallback);
+                                }
+                            };
+                            window.canAccessAssessmentRawatJalan = function () {
+                                return isPerawatRole() || isDokterRole() || isPendaftaranRole() || isSupervisorRole();
+                            };
+                            window.canAccessAssessmentPediatrik = window.canAccessAssessmentRawatJalan;
+                            window.canAccessTriaseUgd = function () {
+                                return isTriaseRole() || isPerawatRole() || isDokterRole() || isSupervisorRole() || isNurseStationRole();
+                            };
+                            window.isNurseStationRole = isNurseStationRole;
+                            if (typeof window.createAssessmentModule === 'function') {
+                                assessmentSharedModule = window.createAssessmentModule({
+                                    supabaseClient,
+                                    withTimeout,
+                                    escapeHtml,
+                                    formatGeneralConsentDate,
+                                    getCurrentOperatorName,
+                                    getCurrentOperatorEmail: getCurrentAdminEmail,
+                                    getCurrentAdminRole: function () { return currentAdminRole; },
+                                    getCurrentPoliName: (typeof getCurrentPoliName === 'function') ? getCurrentPoliName : (typeof window.getCurrentPoliName === 'function' ? window.getCurrentPoliName : function () { try { return (typeof getCurrentPoliName === 'function') ? String(getCurrentPoliName() || '') : ''; } catch (_e) { return ''; } }),
+                                    isPerawatRole,
+                                    isDoctorRole: isDokterRole,
+                                    isPendaftaranRole,
+                                    isSupervisorRole,
+                                    isIgdRole,
+                                    isTriaseRole: window.isTriaseRole,
+                                    isPediatrikRole: window.isPediatrikRole,
+                                    isNurseStationRole
+                                });
+                                window.assessmentSharedModule = assessmentSharedModule;
+                            }
 
                             if (typeof window.createPerawatDashboardModule === 'function') {
                                 perawatDashboardModule = window.createPerawatDashboardModule({
@@ -3193,6 +3304,61 @@
                                     openHistory: async (patient) => {
                                         if (!patient?.no_rm) return;
                                         await openPatientHistory(patient.no_rm, patient.nama_pasien || '');
+                                    },
+                                    openAssessmentShortcut: async (schemaId) => {
+                                        const sid = String(schemaId || '').trim();
+                                        const schemaTitle = ({
+                                            TRIASE_UGD: 'Triase UGD (Internal)',
+                                            RAWAT_JALAN_DEWASA: 'Asesmen Rawat Jalan Dewasa',
+                                            PEDIATRIK_AWAL: 'Asesmen Awal Pediatrik / Anak'
+                                        })[sid] || 'Asesmen';
+                                        const worklistEl = document.getElementById('nurseDashList');
+                                        if (worklistEl) {
+                                            worklistEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }
+                                        alert(`Pintasan ${schemaTitle} aktif.\n\n👉 Silakan pilih pasien pada Worklist Nurse Station di bawah,\n👉 lalu klik tombol asesmen WARNA sesuai formulir (merah/biru/ungu) pada baris pasien yang dituju.\n\nTombol shortcut mempercepat akses tanpa harus membuka Rekap Pasien terlebih dahulu.`);
+                                    },
+                                    openAssessmentShared: async (patient, schemaId) => {
+                                        if (!window.assessmentSharedModule) {
+                                            console.error('[NS] assessmentSharedModule TIDAK ADA. Pastikan assessment-engine.js sudah dimuat sebelum nurse-station-dashboard.js.');
+                                            alert('[ERROR] Module Formulir Asesmen belum siap.\n\nPastikan halaman di-refresh agar semua script ter-load.\nJika masih error, cek file assets/js/assessment-engine.js.');
+                                            return;
+                                        }
+                                        if (typeof window.assessmentSharedModule.openAssessment !== 'function') {
+                                            console.error('[NS] assessmentSharedModule.openAssessment BUKAN function. Module value=', window.assessmentSharedModule);
+                                            alert('[ERROR] Fungsi buka formulir tidak ditemukan.\n\nSilakan refresh halaman (F5).\nJika masih error, kontak admin.');
+                                            return;
+                                        }
+                                        const sid = (schemaId && typeof schemaId === 'object' && schemaId.id) ? schemaId.id : String(schemaId || '').trim();
+                                        try {
+                                            await Promise.resolve(window.assessmentSharedModule.openAssessment(patient, sid));
+                                        } catch (err) {
+                                            console.error('[NS] openAssessment error:', err, 'patient=', patient, 'schemaId=', sid);
+                                            alert('[GAGAL BUKA FORMULIR]\n\nPesan error: ' + (err?.message || String(err)) + '\n\nSchema ID: ' + sid + '\nPasien: ' + String(patient?.nama_pasien || patient?.id || '-') + '\n\nSilakan refresh halaman (F5) lalu coba lagi.');
+                                        }
+                                    },
+                                    renderAssessmentButtons: (patient) => {
+                                        if (!window.assessmentSharedModule?.renderRekapButton) return '';
+                                        return String(window.assessmentSharedModule.renderRekapButton(patient) || '');
+                                    },
+                                    handleAssessmentButtonClick: async (btnEl, patient, schemaId) => {
+                                        if (!window.assessmentSharedModule) {
+                                            console.error('[NS] assessmentSharedModule TIDAK ADA (handleAssessmentButtonClick).');
+                                            alert('[ERROR] Module Formulir Asesmen belum siap. Refresh halaman (F5).');
+                                            return;
+                                        }
+                                        if (typeof window.assessmentSharedModule.openAssessment !== 'function') {
+                                            console.error('[NS] openAssessment tidak ada pada module:', Object.keys(window.assessmentSharedModule));
+                                            alert('[ERROR] Fungsi buka formulir tidak ditemukan. Refresh halaman (F5).');
+                                            return;
+                                        }
+                                        const sid = (schemaId && typeof schemaId === 'object' && schemaId.id) ? schemaId.id : String(schemaId || '').trim();
+                                        try {
+                                            await Promise.resolve(window.assessmentSharedModule.openAssessment(patient, sid));
+                                        } catch (err) {
+                                            console.error('[NS] handleAssessmentButtonClick error:', err, 'btn=', btnEl, 'patient=', patient, 'schemaId=', sid);
+                                            alert('[GAGAL BUKA FORMULIR]\n\nPesan error: ' + (err?.message || String(err)) + '\n\nSchema ID: ' + sid);
+                                        }
                                     }
                                 });
                             }
@@ -3920,6 +4086,61 @@
                                             openHistory: async (patient) => {
                                                 if (!patient?.no_rm) return;
                                                 await openPatientHistory(patient.no_rm, patient.nama_pasien || '');
+                                            },
+                                            openAssessmentShortcut: async (schemaId) => {
+                                                const sid = String(schemaId || '').trim();
+                                                const schemaTitle = ({
+                                                    TRIASE_UGD: 'Triase UGD (Internal)',
+                                                    RAWAT_JALAN_DEWASA: 'Asesmen Rawat Jalan Dewasa',
+                                                    PEDIATRIK_AWAL: 'Asesmen Awal Pediatrik / Anak'
+                                                })[sid] || 'Asesmen';
+                                                const worklistEl = document.getElementById('nurseDashList');
+                                                if (worklistEl) {
+                                                    worklistEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                }
+                                                alert(`Pintasan ${schemaTitle} aktif.\n\n👉 Silakan pilih pasien pada Worklist Nurse Station di bawah,\n👉 lalu klik tombol asesmen WARNA sesuai formulir (merah/biru/ungu) pada baris pasien yang dituju.\n\nTombol shortcut mempercepat akses tanpa harus membuka Rekap Pasien terlebih dahulu.`);
+                                            },
+                                            openAssessmentShared: async (patient, schemaId) => {
+                                                if (!window.assessmentSharedModule) {
+                                                    console.error('[NS-2] assessmentSharedModule TIDAK ADA.');
+                                                    alert('[ERROR] Module Formulir Asesmen belum siap. Refresh halaman (F5).');
+                                                    return;
+                                                }
+                                                if (typeof window.assessmentSharedModule.openAssessment !== 'function') {
+                                                    console.error('[NS-2] openAssessment tidak ada:', Object.keys(window.assessmentSharedModule));
+                                                    alert('[ERROR] Fungsi buka formulir tidak ditemukan. Refresh halaman (F5).');
+                                                    return;
+                                                }
+                                                const sid = (schemaId && typeof schemaId === 'object' && schemaId.id) ? schemaId.id : String(schemaId || '').trim();
+                                                try {
+                                                    await Promise.resolve(window.assessmentSharedModule.openAssessment(patient, sid));
+                                                } catch (err) {
+                                                    console.error('[NS-2] openAssessment error:', err, 'patient=', patient, 'schemaId=', sid);
+                                                    alert('[GAGAL BUKA FORMULIR]\n\nPesan: ' + (err?.message || String(err)));
+                                                }
+                                            },
+                                            renderAssessmentButtons: (patient) => {
+                                                if (!window.assessmentSharedModule?.renderRekapButton) return '';
+                                                return String(window.assessmentSharedModule.renderRekapButton(patient) || '');
+                                            },
+                                            handleAssessmentButtonClick: async (btnEl, patient, schemaId) => {
+                                                if (!window.assessmentSharedModule) {
+                                                    console.error('[NS-2] handleAssessmentButtonClick: module TIDAK ADA.');
+                                                    alert('[ERROR] Module Formulir Asesmen belum siap. Refresh halaman (F5).');
+                                                    return;
+                                                }
+                                                if (typeof window.assessmentSharedModule.openAssessment !== 'function') {
+                                                    console.error('[NS-2] handleAssessmentButtonClick openAssessment hilang.');
+                                                    alert('[ERROR] Fungsi buka formulir tidak ditemukan. Refresh halaman (F5).');
+                                                    return;
+                                                }
+                                                const sid = (schemaId && typeof schemaId === 'object' && schemaId.id) ? schemaId.id : String(schemaId || '').trim();
+                                                try {
+                                                    await Promise.resolve(window.assessmentSharedModule.openAssessment(patient, sid));
+                                                } catch (err) {
+                                                    console.error('[NS-2] handleAssessmentButtonClick error:', err, 'btn=', btnEl, 'patient=', patient, 'schemaId=', sid);
+                                                    alert('[GAGAL BUKA FORMULIR]\n\nPesan: ' + (err?.message || String(err)));
+                                                }
                                             }
                                         });
                                     }
@@ -7486,11 +7707,13 @@
                                 const isIgd = isIgdRole();
                                 const isPendaftaran = isPendaftaranRole();
                                 const isPetugasPoli = isPetugasPoliScopedRekap();
+                                const isNurseStation = isNurseStationRole();
                                 const canManageDriveLink = canManagePatientDriveLink();
                                 const canTriase = canAccessTriaseUgd();
                                 const canAssessment = canAccessAssessmentUgd();
                                 const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                                 const showCancelVisitColumn = canManageBatalBerobat() && !isRme && !isPetugasPoli;
+                                const canShowRekapAssessmentButtons = isNurseStation;
                                 if (!items || items.length === 0) {
                                     const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : ((showSupervisorEditColumn ? 25 : 24) + (showCancelVisitColumn ? 1 : 0)));
                                     rEls.rows.innerHTML = `<tr><td class="px-4 py-6 text-slate-500" colspan="${emptyColspan}">Tidak ada data.</td></tr>`;
@@ -7537,7 +7760,7 @@
                                         ? `<button type="button" class="patient-edit-btn inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[11px] font-extrabold text-indigo-700 transition hover:bg-indigo-100 whitespace-nowrap" data-id="${escapeHtml(String(p.id || ''))}" data-no-rm="${escapeHtml(noRm)}" data-no-registrasi="${escapeHtml(noRegistrasi)}" data-nama="${escapeHtml(String(p.nama_pasien || ''))}" data-nik="${escapeHtml(String(p.nik || ''))}" data-bpjs="${escapeHtml(String(p.no_bpjs || ''))}" data-telepon="${escapeHtml(String(p.no_telepon || ''))}" data-jk="${escapeHtml(String(p.jenis_kelamin || ''))}" data-tanggal-lahir="${escapeHtml(String(p.tanggal_lahir || ''))}" data-pendidikan="${escapeHtml(String(p.pendidikan || ''))}" data-pekerjaan="${escapeHtml(String(p.pekerjaan || ''))}" data-status-perkawinan="${escapeHtml(String(p.status_perkawinan || ''))}" data-suku="${escapeHtml(String(p.suku || ''))}" data-alamat="${escapeHtml(String(p.alamat || ''))}">Edit Data</button>`
                                         : '';
                                     const editIdentityCell = patientEditBtn || `<span class="text-xs font-semibold text-slate-400">-</span>`;
-                                    const gcBtnRekap = ((isIgd && String(p.unit || '').toUpperCase() === 'UGD') || (isPendaftaran && String(p.unit || '').toUpperCase() === 'POLIKLINIK'))
+                                    const gcBtnRekap = ((isIgd && String(p.unit || '').toUpperCase() === 'UGD') || (isPendaftaran && String(p.unit || '').toUpperCase() === 'POLIKLINIK') || isRme || isNurseStation)
                                         ? `<button type="button" class="gc-btn inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-extrabold text-emerald-800 transition hover:bg-emerald-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
                                             id: p.id,
                                             nama_pasien: p.nama_pasien,
@@ -7551,7 +7774,7 @@
                                             no_telepon: p.no_telepon
                                         }))}'>General Consent</button>`
                                         : '';
-                                    const triaseBtnRekap = (canTriase && String(p.unit || '').toUpperCase() === 'UGD')
+                                    const triaseBtnRekap = (canShowRekapAssessmentButtons && canTriase && String(p.unit || '').toUpperCase() === 'UGD')
                                         ? `<button type="button" class="triage-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-800 transition hover:bg-rose-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
                                             id: p.id,
                                             nama_pasien: p.nama_pasien,
@@ -7566,8 +7789,11 @@
                                             no_telepon: p.no_telepon
                                         }))}'>Triase UGD</button>`
                                         : '';
-                                    const assessmentBtnRekap = (ugdAssessmentModule && canAssessment && String(p.unit || '').toUpperCase() === 'UGD')
+                                    const assessmentBtnRekap = (canShowRekapAssessmentButtons && ugdAssessmentModule && canAssessment && String(p.unit || '').toUpperCase() === 'UGD')
                                         ? ugdAssessmentModule.renderRekapButton(p)
+                                        : '';
+                                    const sharedAssessmentCell = (canShowRekapAssessmentButtons && assessmentSharedModule)
+                                        ? assessmentSharedModule.renderRekapButton(p)
                                         : '';
                                     const riwayatLinkCell = normalizedLink
                                         ? `<div class="flex items-center gap-2 whitespace-nowrap">
@@ -7575,6 +7801,7 @@
                                             ${gcBtnRekap}
                                             ${triaseBtnRekap}
                                             ${assessmentBtnRekap}
+                                            ${sharedAssessmentCell}
                                             <a href="${escapeHtml(normalizedLink)}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-[11px] font-extrabold text-orange-700 transition hover:bg-orange-100">Buka GDrive</a>
                                             <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-50" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">Lihat Riwayat</button>
                                         </div>`
@@ -7583,6 +7810,7 @@
                                             ${gcBtnRekap}
                                             ${triaseBtnRekap}
                                             ${assessmentBtnRekap}
+                                            ${sharedAssessmentCell}
                                             <button type="button" class="history-btn inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-extrabold text-blue-700 transition hover:bg-blue-100 whitespace-nowrap" data-no-rm="${escapeHtml(noRm)}" data-nama="${escapeHtml(nama)}">${canManageDriveLink ? 'Input Link' : 'Lihat Riwayat'}</button>
                                         </div>`;
                                     const cancelVisitCell = showCancelVisitColumn && String(p.id || '').trim()
@@ -7976,6 +8204,11 @@
                                 const assessmentBtn = event.target.closest('.assessment-ugd-btn-trigger');
                                 if (assessmentBtn) {
                                     ugdAssessmentModule?.handleRekapButtonClick(assessmentBtn);
+                                    return;
+                                }
+                                const assessmentSharedBtn = event.target.closest('.assessment-shared-btn');
+                                if (assessmentSharedBtn) {
+                                    assessmentSharedModule?.handleRekapButtonClick?.(assessmentSharedBtn);
                                     return;
                                 }
 
@@ -9492,6 +9725,12 @@
                                 }
                                 const triageBtn = e.target.closest('.triage-btn');
                                 if (triageBtn) {
+                                    const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
+                                    if (!isNs) {
+                                        const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
+                                        alert('[AKSES DITOLAK]\n\nTombol Triase UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station untuk mengakses Triase dari menu Rekap Pasien, atau akses melalui Worklist Nurse Station / Dashboard UGD sesuai peran Anda.');
+                                        return;
+                                    }
                                     try {
                                         const patientData = JSON.parse(triageBtn.dataset.patient);
                                         openTriaseUgdModal(patientData);
