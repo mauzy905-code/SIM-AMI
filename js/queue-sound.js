@@ -358,6 +358,47 @@ class QueueSoundSystem {
         return digits;
     }
 
+    getQueueNumberString(noAntrian) {
+        const raw = String(noAntrian || '').trim();
+        if (!raw) return '';
+        const afterSplit = raw.split(/[-_\s]/).slice(1).join('');
+        const normalized = (afterSplit || raw.replace(/^\D+/, '')).trim();
+        if (!normalized) return '';
+        const m = normalized.match(/\d+/);
+        return m ? m[0] : '';
+    }
+
+    getQueueNumberTokens(noAntrian) {
+        const digitString = this.getQueueNumberString(noAntrian);
+        if (!digitString) return [];
+        const tokens = [];
+        if (/^0+$/.test(digitString)) {
+            for (let i = 0; i < digitString.length; i++) tokens.push('0');
+            return tokens;
+        }
+        let firstNonZeroIdx = 0;
+        for (let i = 0; i < digitString.length; i++) {
+            if (digitString.charAt(i) !== '0') { firstNonZeroIdx = i; break; }
+            tokens.push('0');
+        }
+        const remainder = digitString.substring(firstNonZeroIdx);
+        if (!remainder) return tokens;
+        const remainderNum = parseInt(remainder, 10);
+        if (!Number.isFinite(remainderNum)) return tokens;
+        if (remainder.length === 1) {
+            tokens.push(String(remainderNum));
+            return tokens;
+        }
+        if (remainder.length <= 4) {
+            const naturalTokens = this.buildNumberTokens(remainderNum);
+            for (let i = 0; i < naturalTokens.length; i++) tokens.push(naturalTokens[i]);
+            return tokens;
+        }
+        const rawDigits = remainder.split('');
+        for (let i = 0; i < rawDigits.length; i++) tokens.push(rawDigits[i]);
+        return tokens;
+    }
+
     getQueueNumberValue(noAntrian) {
         const digits = String(noAntrian || '').replace(/\D/g, '');
         if (!digits) return null;
@@ -427,11 +468,14 @@ class QueueSoundSystem {
             if (letterPath.length) sequence.push(letterPath);
         }
 
-        const digits = this.getQueueNumberDigits(noAntrian);
-        const digitTokens = this.buildDigitByDigitTokens(digits);
-        for (let i = 0; i < digitTokens.length; i++) {
-            const numberPath = this.getNumberSound(digitTokens[i]);
-            if (numberPath.length) sequence.push(numberPath);
+        const numberTokens = this.getQueueNumberTokens(noAntrian);
+        for (let i = 0; i < numberTokens.length; i++) {
+            const tok = String(numberTokens[i] || '').trim();
+            if (!tok) continue;
+            const numberPath = /^ribu$/i.test(tok)
+                ? this.getWordSound(this.soundFiles.ribu)
+                : this.getNumberSound(tok);
+            if (numberPath && numberPath.length) sequence.push(numberPath);
         }
 
         if (String(unit || '').trim().toUpperCase() === 'FARMASI') {
@@ -478,11 +522,14 @@ class QueueSoundSystem {
             if (letterPath.length) sequence.push(letterPath);
         }
 
-        const digits = this.getQueueNumberDigits(noAntrian);
-        const digitTokens = this.buildDigitByDigitTokens(digits);
-        for (let i = 0; i < digitTokens.length; i++) {
-            const numberPath = this.getNumberSound(digitTokens[i]);
-            if (numberPath.length) sequence.push(numberPath);
+        const numberTokens = this.getQueueNumberTokens(noAntrian);
+        for (let i = 0; i < numberTokens.length; i++) {
+            const tok = String(numberTokens[i] || '').trim();
+            if (!tok) continue;
+            const numberPath = /^ribu$/i.test(tok)
+                ? this.getWordSound(this.soundFiles.ribu)
+                : this.getNumberSound(tok);
+            if (numberPath && numberPath.length) sequence.push(numberPath);
         }
 
         sequence.push(this.getWordSound(this.soundFiles.menujuMejaPemeriksaan));
