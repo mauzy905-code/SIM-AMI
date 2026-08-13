@@ -365,7 +365,8 @@
     /* ---------------- GC STYLE KOP & KOTAK PASIEN ---------------- */
     body[data-print-mode="shared-assessment"] .gc-header-box,
     body[data-print-mode="shared-assessment"] .gc-patient-box,
-    body[data-print-mode="shared-assessment"] .assessment-shared-print-title-box {
+    body[data-print-mode="shared-assessment"] .assessment-shared-print-title-box,
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-box {
         border-radius: 0 !important;
         background: #fff !important;
         border: 1.2px solid #000 !important;
@@ -383,6 +384,12 @@
     body[data-print-mode="shared-assessment"] .assessment-shared-print-title,
     body[data-print-mode="shared-assessment"] .assessment-shared-print-subtitle { color: #000 !important; }
     body[data-print-mode="shared-assessment"] .assessment-shared-print-title-box { padding: 2.4mm 3mm; margin-bottom: 2.2mm; }
+    body[data-print-mode="shared-assessment"] .assessment-shared-body-box {
+        padding: 3mm 3.5mm 3.2mm !important;
+        font-size: 10.5pt !important;
+        line-height: 1.36 !important;
+        color: #000 !important;
+    }
 
     /* ---------------- Page break halaman 2 dokter ---------------- */
     body[data-print-mode="shared-assessment"] .assessment-shared-section.is-page-break-before {
@@ -536,5 +543,151 @@
         background: #fff !important;
         min-height: 24mm !important;
         resize: none !important;
+    }
+
+    /* --- Heading, inline group, side row, pdf table cetak PERSIS format kertas --- */
+    .assessment-shared-heading {
+        color: #000 !important;
+        margin: 0 0 2mm 0 !important;
+        padding: 0 !important;
+        page-break-after: avoid !important;
+    }
+    .assessment-shared-heading.is-lg { font-size: 14pt !important; }
+    .assessment-shared-heading.is-md { font-size: 12.5pt !important; }
+    .assessment-shared-heading.is-sm { font-size: 11pt !important; }
+
+    .assessment-shared-full-field {
+        margin: 0 0 2.2mm 0 !important;
+        page-break-inside: avoid !important;
+    }
+
+    .assessment-shared-options.is-inline {
+        gap: 3mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        page-break-inside: avoid !important;
+    }
+    .assessment-shared-options.is-inline .assessment-shared-option.is-inline {
+        font-size: 10.8pt !important;
+        color: #000 !important;
+        padding: 0.5mm 0 !important;
+    }
+    .assessment-shared-options.is-inline .assessment-shared-option.is-inline input[type="radio"],
+    .assessment-shared-options.is-inline .assessment-shared-option.is-inline input[type="checkbox"] {
+        width: 3.2mm !important;
+        height: 3.2mm !important;
+        margin-right: 1.2mm !important;
+        accent-color: #000 !important;
+    }
+    .assessment-shared-inline-suffix {
+        font-size: 10.8pt !important;
+        color: #000 !important;
+    }
+
+    .assessment-shared-side-row {
+        gap: 6mm !important;
+        margin: 0 0 2mm 0 !important;
+        page-break-inside: avoid !important;
+    }
+    .assessment-shared-side-cell .assessment-shared-side-label {
+        font-size: 11pt !important;
+        font-weight: 700 !important;
+        color: #000 !important;
+        padding: 0 !important;
+        margin: 0 0 1mm 0 !important;
+    }
+
+    .assessment-shared-inline-group {
+        gap: 3mm !important;
+        padding: 1.2mm 0 2.2mm 0 !important;
+        border-bottom: 0.4pt dashed #000 !important;
+        margin: 0 0 2.2mm 0 !important;
+        page-break-inside: avoid !important;
+    }
+    .assessment-shared-inline-group:last-child { border-bottom: 0 !important; }
+    .assessment-shared-inline-group-item {
+        font-size: 10.8pt !important;
+        color: #000 !important;
+    }
+    .assessment-shared-inline-group-item .assessment-shared-line {
+        border: 0.5pt solid #000 !important;
+        background: #fff !important;
+        padding: 0.8mm 1.5mm !important;
+        font-size: 10.5pt !important;
+        min-height: 6mm !important;
+        color: #000 !important;
+    }
+    .assessment-shared-inline-group-prefix { font-weight: 700 !important; color: #000 !important; }
+    .assessment-shared-inline-group-suffix { color: #000 !important; font-weight: 500 !important; }
+
+    .assessment-shared-line.is-xs,
+    .assessment-shared-line.is-sm,
+    .assessment-shared-line.is-lg {
+        border: 0.5pt solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .assessment-shared-pdf-table-wrap {
+        margin: 0 0 4mm 0 !important;
+        page-break-inside: avoid !important;
+    }
+    .assessment-shared-pdf-table-title {
+        font-size: 11pt !important;
+        color: #000 !important;
+        margin: 0 0 1mm 0 !important;
+        padding: 0 !important;
+        font-weight: 500 !important;
+    }
+    .assessment-shared-pdf-table-title.is-bold { font-weight: 800 !important; }
+    .assessment-shared-pdf-table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        table-layout: fixed !important;
+        page-break-inside: avoid !important;
+    }
+    .assessment-shared-pdf-table thead th {
+        border: 0.6pt solid #000 !important;
+        background: #f2f2f2 !important;
+        color: #000 !important;
+        font-size: 10.8pt !important;
+        padding: 1.2mm 1.8mm !important;
+        font-weight: 700 !important;
+    }
+    .assessment-shared-pdf-table tbody td {
+        border: 0.6pt solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 10.6pt !important;
+        padding: 1.2mm 1.8mm !important;
+        vertical-align: top !important;
+    }
+    .assessment-shared-pdf-table tbody td .assessment-shared-line {
+        border: 0.5pt solid #000 !important;
+        background: #fff !important;
+        padding: 0.8mm 1.2mm !important;
+        font-size: 10.5pt !important;
+        color: #000 !important;
+        min-height: 5.5mm !important;
+    }
+    .assessment-shared-pdf-table tbody td .assessment-shared-textarea {
+        border: 0.5pt solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        padding: 1.2mm 1.5mm !important;
+        font-size: 10.5pt !important;
+        resize: none !important;
+        min-height: 30mm !important;
+    }
+    .assessment-shared-pdf-table tbody td .assessment-shared-single-radio {
+        padding: 0 !important;
+    }
+    .assessment-shared-pdf-table tbody td .assessment-shared-single-radio input[type="radio"] {
+        width: 3.2mm !important;
+        height: 3.2mm !important;
+        accent-color: #000 !important;
     }
 }
