@@ -444,6 +444,8 @@
         }
 
         function renderRekapButton(patient) {
+            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
+            if (!isNs) return '';
             const patientData = buildPatientSnapshot(patient);
             return '<button type="button" class="assessment-ugd-btn-trigger assessment-ugd-trigger" data-assessment-patient="' +
                 escapeHtml(JSON.stringify(patientData)) +
@@ -452,6 +454,13 @@
 
         function handleRekapButtonClick(buttonEl) {
             if (!buttonEl) return;
+            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
+            if (!isNs) {
+                const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
+                setStatus('Akses ditolak: formulir asesmen UGD di Rekap hanya untuk Nurse Station.', 'error');
+                alert('[AKSES DITOLAK]\n\nTombol Asesmen UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station atau akses melalui dashboard perawat UGD sesuai peran Anda.');
+                return;
+            }
             try {
                 const payload = JSON.parse(buttonEl.dataset.assessmentPatient || '{}');
                 openAssessmentFromPayload(payload);
