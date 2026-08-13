@@ -308,90 +308,353 @@
         ],
         sections: [
             {
-                key: 'hal1_perawat_identitas',
-                title: 'ASSESMENT RAWAT JALAN — PERAWAT / BIDAN',
+                key: 'hal1_perawat',
+                title: 'ASSESMENT RAWAT JALAN — PERAWAT / BIDAN (HALAMAN 1)',
                 roleLabel: 'Halaman Perawat',
                 roleTone: 'nurse',
+                hideHeader: true,
                 editableByRole: ['isPerawatRole', 'isNurseStationRole', 'isSupervisorRole', 'isDoctorRole'],
                 page: 1,
                 fields: [
-                    { key: 'tanggal_asesmen', type: 'date', label: 'Tanggal', required: true, copyToFixed: 'tanggal_asesmen' },
-                    { key: 'jam_asesmen', type: 'time', label: 'Jam', required: true },
+                    {
+                        key: 'tanggal_jam_row',
+                        type: 'side-by-side-row',
+                        noWrapper: true,
+                        children: [
+                            { key: 'tanggal_asesmen', type: 'date', label: 'Tanggal', flex: '1 1 50%', required: true, copyToFixed: 'tanggal_asesmen' },
+                            { key: 'jam_asesmen', type: 'time', label: 'Jam', flex: '1 1 50%', required: true }
+                        ]
+                    },
                     { key: 'keluhan', type: 'textarea', label: 'Keluhan', rows: 3, required: true, copyToFixed: 'keluhan_utama' },
-                    { key: 'riwayat_alergi', type: 'radio-group', label: 'Alergi', options: ['Tidak', 'Ya'], otherField: true, otherLabel: 'Alergi Ya, sebutkan (obat / makanan / lainnya)' },
-                    { key: 'skrining_nyeri', type: 'radio-group', label: 'Skrinning Nyeri', options: ['Tidak ada Nyeri', 'Ada Nyeri'], required: true },
-                    { key: 'skala_nyeri', type: 'number', label: 'Skala Nyeri (0 - 10)', min: 0, max: 10, hint: 'Diisi jika Ada Nyeri' },
-                    { key: 'lokasi_nyeri', type: 'text', label: 'Lokasi Nyeri' },
-                    { key: 'skrining_jatuh_pengkajian', type: 'textarea', label: 'Skrining Risiko Jatuh (Get Up and Go Test) — Pengkajian', rows: 2, hint: 'a) Cara berjalan (tidak seimbang / limbung / pakai alat bantu dll), b) Menopang saat duduk' },
-                    { key: 'skrining_jatuh_hasil', type: 'radio-group', label: 'Skrining Risiko Jatuh — Hasil', options: ['Tidak berisiko (tidak ditemukan a & b)', 'Berisiko sedang (ditemukan salah satu a / b)', 'Berisiko tinggi (ditemukan a & b)'], required: true },
-                    { key: 'skrining_jatuh_intervensi', type: 'checkbox-group', label: 'Skrining Risiko Jatuh — Tindakan / Intervensi', options: ['Tidak ada tindakan', 'Edukasi', 'Pasang pita kuning (risiko tinggi)', 'Lainnya'], otherField: true }
-                ]
-            },
-            {
-                key: 'hal1_perawat_tandavital',
-                title: 'Tanda Vital & Pemeriksaan Tambahan',
-                roleLabel: 'Halaman Perawat',
-                roleTone: 'nurse',
-                editableByRole: ['isPerawatRole', 'isNurseStationRole', 'isSupervisorRole', 'isDoctorRole'],
-                page: 1,
-                fields: [
-                    { key: 'td_sistolik', type: 'number', label: 'TD Sistolik', min: 40, max: 260, suffix: 'mmHg', vitalSign: true, required: true },
-                    { key: 'td_diastolik', type: 'number', label: 'TD Diastolik', min: 20, max: 160, suffix: 'mmHg', vitalSign: true },
-                    { key: 'nadi', type: 'number', label: 'Nadi', min: 20, max: 240, suffix: '/ menit', vitalSign: true, required: true },
-                    { key: 'respirasi', type: 'number', label: 'RR (Pernafasan)', min: 4, max: 80, suffix: '/ menit', vitalSign: true },
-                    { key: 'suhu', type: 'number', label: 'Suhu', min: 32, max: 43, step: 0.1, suffix: '° C', vitalSign: true, required: true },
-                    { key: 'tinggi_badan', type: 'number', label: 'TB (Tinggi Badan)', min: 50, max: 230, suffix: 'cm' },
-                    { key: 'berat_badan', type: 'number', label: 'BB (Berat Badan)', min: 5, max: 250, step: 0.1, suffix: 'Kg' },
-                    { key: 'spo2', type: 'number', label: 'SpO2 (Oksigenasi)', min: 0, max: 100, suffix: '%', vitalSign: true },
-                    { key: 'imt', type: 'text', label: 'IMT (Otomatis — BB / TB²)', placeholder: 'Otomatis dihitung ketika BB & TB terisi', computed: true },
-                    { key: 'kehamilan_g', type: 'number', label: 'Pemeriksaan Kehamilan — G (Gravida)', min: 0, max: 15, hint: 'Diisi jika pasien wanita usia subur' },
-                    { key: 'kehamilan_p', type: 'number', label: 'P (Para)', min: 0, max: 15 },
-                    { key: 'kehamilan_a', type: 'number', label: 'A (Abortus)', min: 0, max: 15 },
-                    { key: 'hpht', type: 'date', label: 'HPHT (Hari Pertama Haid Terakhir)' },
-                    { key: 'lila', type: 'number', label: 'Lila (Lingkar Lengan Atas)', min: 10, max: 50, step: 0.1, suffix: 'cm' }
-                ]
-            },
-            {
-                key: 'hal1_perawat_fungsional_edukasi',
-                title: 'Nutrisi, Status Fungsional, Psikososial & Kebutuhan Edukasi',
-                roleLabel: 'Halaman Perawat',
-                roleTone: 'nurse',
-                editableByRole: ['isPerawatRole', 'isNurseStationRole', 'isSupervisorRole', 'isDoctorRole'],
-                page: 1,
-                fields: [
-                    { key: 'nutrisi', type: 'checkbox-group', label: 'Nutrisi', options: ['Tidak Ada Keluhan', 'Mual', 'Muntah', 'Kehilangan Nafsu Makan'], otherField: true, otherLabel: 'Kehilangan nafsu makan (berapa hari)' },
-                    { key: 'status_fungsional', type: 'radio-group', label: 'Status fungsional', options: ['Mandiri', 'Perlu bantuan', 'Ketergantungan total'], otherField: true, otherLabel: 'Keterangan (alat bantu / ketergantungan sejak kapan)' },
-                    { key: 'psiko_hubungan_keluarga', type: 'radio-group', label: 'Hubungan pasien dengan anggota keluarga', options: ['Baik', 'Tidak baik'], required: true },
-                    { key: 'psiko_status_psikologis', type: 'checkbox-group', label: 'Status Psikologis', options: ['Tenang', 'Cemas', 'Takut', 'Marah', 'Sedih', 'Kecenderungan bunuh diri', 'Lainnya'], otherField: true, otherLabel: 'Lainnya / Dilaporkan ke (untuk kecenderungan bunuh diri)' },
-                    { key: 'psiko_koping', type: 'radio-group', label: 'Koping mekanisme', options: ['Baik', 'Menarik diri / isolasi sosial', 'Perilaku kekerasan', 'Sulit dinilai'], required: true },
-                    { key: 'psiko_persepsi_sakit', type: 'radio-group', label: 'Persepsi terhadap sakit', options: ['Tidak ada keluhan', 'Merasa menjadi beban'], otherField: true },
-                    { key: 'psiko_ibadah', type: 'radio-group', label: 'Menjalankan Ibadah', options: ['Tidak ada hambatan', 'Ada hambatan'], otherField: true },
-                    { key: 'edukasi_hambatan_pembelajaran', type: 'checkbox-group', label: 'Terdapat hambatan dalam pembelajaran', options: ['Tidak', 'Pendengaran', 'Penglihatan', 'Kognitif', 'Fisik', 'Budaya', 'Agama', 'Emosi', 'Bahasa', 'Lainnya'], otherField: true, otherLabel: 'Sebutkan hambatan lain' },
-                    { key: 'edukasi_butuh_penerjemah', type: 'radio-group', label: 'Butuh penerjemah', options: ['Tidak', 'Ya'], otherField: true, otherLabel: 'Jika Ya, sebutkan bahasa' },
-                    { key: 'edukasi_topik_pembelajaran', type: 'checkbox-group', label: 'Kebutuhan pembelajaran pasien (topik pembelajaran)', options: ['Diagnosa dan manajemen penyakit', 'Obat-obatan', 'Diet & nutrisi', 'Tindakan Keperawatan', 'Rehabilitasi', 'Manajemen nyeri', 'Lain – lain'], otherField: true },
-                    { key: 'masalah_keperawatan_penilaian', type: 'textarea', label: 'MASALAH KEPERAWATAN/KEBIDANAN — Penilaian / Pengkajian', rows: 3, hint: 'Identifikasi masalah keperawatan: nyeri akut, risiko jatuh, kurang pengetahuan, intoleransi aktivitas, gangguan nutrisi, dll' },
-                    { key: 'masalah_keperawatan_rencana', type: 'textarea', label: 'RENCANA ASUHAN KEPERAWATAN', rows: 3, hint: 'Tujuan + intervensi + evaluasi per masalah' }
+                    {
+                        key: 'riwayat_alergi',
+                        type: 'radio-inline',
+                        label: 'Alergi',
+                        options: ['Tidak', 'Ya, sebutkan'],
+                        suffixInputs: [
+                            null,
+                            { key: 'riwayat_alergi__ya_text', type: 'text', size: 'lg', placeholder: 'contoh: alergi obat A, makanan udang, dll', space: true }
+                        ]
+                    },
+                    { key: 'skrining_heading', type: 'heading-text', align: 'center', weight: 'bold', size: 'md', text: 'Skrining', spacing: '10px' },
+                    {
+                        key: 'skrinning_nyeri',
+                        type: 'radio-inline',
+                        label: 'Skrinning Nyeri',
+                        options: ['Tidak ada Nyeri', 'Ada Nyeri'],
+                        suffixInputs: [
+                            null,
+                            { key: 'skala_nyeri', type: 'number', size: 'xs', prefix: ', Skala nyeri : ', space: true, placeholder: '0-10', min: 0, max: 10 },
+                            { key: 'lokasi_nyeri', type: 'text', size: 'md', prefix: ', lokasi : ', placeholder: 'contoh: kepala sebelah kanan' }
+                        ],
+                        required: true
+                    },
+                    { key: 'skrining_jatuh_judul', type: 'heading-text', align: 'left', weight: 'bold', size: 'md', text: 'Skrining Risiko Jatuh (Get Up and Go Test)', spacing: '14px' },
+                    { key: 'jatuh_pengkajian_title', type: 'heading-text', align: 'left', weight: 'normal', size: 'sm', text: 'Pengkajian' },
+                    {
+                        key: 'jatuh_tabel_pengkajian',
+                        type: 'pdf-table',
+                        compact: true,
+                        width: '100%',
+                        headers: [
+                            { label: 'No', width: '8%', align: 'center' },
+                            { label: 'Penilaian/Pengkajian', width: '68%' },
+                            { label: 'Ya', width: '12%', align: 'center' },
+                            { label: 'Tidak', width: '12%', align: 'center' }
+                        ],
+                        rows: [
+                            [
+                                { text: 'a.', align: 'center', rowspan: 2 },
+                                { text: 'Cara berjalan pasien (salah satu atau lebih)\n  1.  Tidak seimbang/ sempoyongan / limbung\n  2.  Jalan dengan menggunakan alat bantu (kruk, tripot, kursi roda, orang lain)' },
+                                { field: { key: 'jatuh_pengkajian_a_ya', type: 'radio', groupName: 'grp_pdk_a', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_pengkajian_a_tidak', type: 'radio', groupName: 'grp_pdk_a', value: 'tidak' }, align: 'center' }
+                            ],
+                            [
+                                { text: 'Menopang saat akan duduk : tampak memegang pinggiran kursi atau meja atau benda lain sebagai penopang saat akan duduk' },
+                                { field: { key: 'jatuh_pengkajian_b_ya', type: 'radio', groupName: 'grp_pdk_b', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_pengkajian_b_tidak', type: 'radio', groupName: 'grp_pdk_b', value: 'tidak' }, align: 'center' }
+                            ]
+                        ]
+                    },
+                    { key: 'jatuh_hasil_title', type: 'heading-text', align: 'left', weight: 'normal', size: 'sm', text: 'Hasil', spacing: '14px' },
+                    {
+                        key: 'jatuh_tabel_hasil',
+                        type: 'pdf-table',
+                        compact: true,
+                        width: '100%',
+                        headers: [
+                            { label: 'No', width: '8%', align: 'center' },
+                            { label: 'Hasil', width: '22%', align: 'center' },
+                            { label: 'Penilaian/pengkajian', width: '40%' },
+                            { label: 'Keterangan', width: '30%' }
+                        ],
+                        rows: [
+                            [
+                                '1.',
+                                { text: 'Tidak berisiko', align: 'center' },
+                                'Tidak ditemukan a & b',
+                                { field: { key: 'jatuh_hasil_1_ket', type: 'text' } }
+                            ],
+                            [
+                                '2.',
+                                { text: 'Berisiko sedang', align: 'center' },
+                                'Ditemukan salah satu dari  a atau b',
+                                { field: { key: 'jatuh_hasil_2_ket', type: 'text' } }
+                            ],
+                            [
+                                '3.',
+                                { text: 'Berisiko tinggi', align: 'center' },
+                                'Ditemukan a & b',
+                                { field: { key: 'jatuh_hasil_3_ket', type: 'text' } }
+                            ]
+                        ]
+                    },
+                    { key: 'jatuh_intervensi_title', type: 'heading-text', align: 'left', weight: 'normal', size: 'sm', text: 'Intervensi', spacing: '14px' },
+                    {
+                        key: 'jatuh_tabel_intervensi',
+                        type: 'pdf-table',
+                        compact: true,
+                        width: '100%',
+                        headers: [
+                            { label: 'No', width: '6%', align: 'center' },
+                            { label: 'Hasil Kajian', width: '18%', align: 'center' },
+                            { label: 'Tindakan', width: '28%' },
+                            { label: 'Ya', width: '10%', align: 'center' },
+                            { label: 'Tidak', width: '10%', align: 'center' },
+                            { label: 'Paraf/nama petugas', width: '28%' }
+                        ],
+                        rows: [
+                            [
+                                '1.',
+                                { text: 'Tidak berisiko', align: 'center' },
+                                'Tidak ada tindakan',
+                                { field: { key: 'jatuh_intv_1_ya', type: 'radio', groupName: 'grp_intv_1', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_1_tidak', type: 'radio', groupName: 'grp_intv_1', value: 'tidak' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_1_paraf', type: 'text', placeholder: 'nama / paraf petugas' } }
+                            ],
+                            [
+                                '2.',
+                                { text: 'Risiko rendah', align: 'center' },
+                                'Edukasi',
+                                { field: { key: 'jatuh_intv_2_ya', type: 'radio', groupName: 'grp_intv_2', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_2_tidak', type: 'radio', groupName: 'grp_intv_2', value: 'tidak' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_2_paraf', type: 'text', placeholder: 'nama / paraf petugas' } }
+                            ],
+                            [
+                                '3.',
+                                { text: 'Risiko tinggi', align: 'center', rowspan: 2 },
+                                'Pasang pita kuning',
+                                { field: { key: 'jatuh_intv_3a_ya', type: 'radio', groupName: 'grp_intv_3a', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_3a_tidak', type: 'radio', groupName: 'grp_intv_3a', value: 'tidak' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_3a_paraf', type: 'text', placeholder: 'nama / paraf petugas' } }
+                            ],
+                            [
+                                '',
+                                '',
+                                'Edukasi',
+                                { field: { key: 'jatuh_intv_3b_ya', type: 'radio', groupName: 'grp_intv_3b', value: 'ya' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_3b_tidak', type: 'radio', groupName: 'grp_intv_3b', value: 'tidak' }, align: 'center' },
+                                { field: { key: 'jatuh_intv_3b_paraf', type: 'text', placeholder: 'nama / paraf petugas' } }
+                            ]
+                        ]
+                    },
+                    { key: 'tv_heading', type: 'heading-text', align: 'center', weight: 'bold', size: 'md', text: 'Tanda Vital', spacing: '16px' },
+                    {
+                        key: 'tanda_vital_row',
+                        type: 'inline-group',
+                        noWrapper: true,
+                        gap: '12px',
+                        children: [
+                            { key: 'td_sistolik', type: 'number', label: 'TD', flex: '1 1 15%', suffix: ' mmHg', min: 40, max: 260, vitalSign: true, required: true, placeholder: '120' },
+                            { key: 'nadi', type: 'number', label: 'Nadi', flex: '1 1 15%', suffix: ' / menit', min: 20, max: 240, vitalSign: true, required: true, placeholder: '80' },
+                            { key: 'respirasi', type: 'number', label: 'RR', flex: '1 1 15%', suffix: ' / menit', min: 4, max: 80, vitalSign: true, placeholder: '20' },
+                            { key: 'suhu', type: 'number', label: 'Suhu', flex: '1 1 14%', suffix: ' ° C', min: 32, max: 43, step: 0.1, vitalSign: true, required: true, placeholder: '36,6' },
+                            { key: 'tinggi_badan', type: 'number', label: 'TB', flex: '1 1 12%', suffix: ' cm', min: 50, max: 230, placeholder: '165' },
+                            { key: 'berat_badan', type: 'number', label: 'BB', flex: '1 1 12%', suffix: ' gr/Kg*', min: 5, max: 250, step: 0.1, placeholder: '60' }
+                        ]
+                    },
+                    {
+                        key: 'kehamilan_row',
+                        type: 'inline-group',
+                        noWrapper: true,
+                        gap: '16px',
+                        children: [
+                            { key: 'kehamilan_g', type: 'number', label: 'Pemeriksaan Kehamilan : G', flex: '0 0 auto', suffix: '', min: 0, max: 15, placeholder: 'G' },
+                            { key: 'kehamilan_p', type: 'number', label: 'P', flex: '0 0 auto', suffix: '', min: 0, max: 15, placeholder: 'P' },
+                            { key: 'kehamilan_a', type: 'number', label: 'A', flex: '0 0 auto', suffix: '', min: 0, max: 15, placeholder: 'A' },
+                            { key: 'hpht', type: 'date', label: 'HPHT', flex: '1 1 25%' },
+                            { key: 'lila', type: 'number', label: 'Lila', flex: '1 1 18%', suffix: ' cm', min: 10, max: 50, step: 0.1, placeholder: '23' }
+                        ]
+                    },
+                    {
+                        key: 'nutrisi',
+                        type: 'checkbox-inline',
+                        label: 'Nutrisi',
+                        options: ['Kurang', 'Baik', 'Lebih', 'Obesitas'],
+                        suffixInputs: [
+                            null, null, null,
+                            { key: 'nutrisi__makan_hari', type: 'number', size: 'md', prefix: 'Kehilangan Nafsu Makan , selama : ', placeholder: 'berapa', suffix: ' Hari' }
+                        ]
+                    },
+                    {
+                        key: 'status_fungsional',
+                        type: 'radio-inline',
+                        label: 'Status fungsional',
+                        options: ['Mandiri', 'Perlu bantuan'],
+                        suffixInputs: [
+                            null,
+                            { key: 'status_fungsional__bantuan_ket', type: 'text', size: 'lg', prefix: ' : ', space: true, placeholder: 'keterangan alat / jenis bantuan' }
+                        ]
+                    },
+                    {
+                        key: 'status_fungsional_baris2',
+                        type: 'inline-group',
+                        noWrapper: true,
+                        children: [
+                            { key: 'status_fungsional__total_sejak', type: 'text', size: 'lg', prefix: 'Ketergantungan total sejak : ', placeholder: 'contoh: sejak operasi th 2024' }
+                        ]
+                    },
+                    { key: 'psiko_judul', type: 'heading-text', align: 'left', weight: 'bold', size: 'md', text: 'Riwayat psikososial-kultural-spiritual', spacing: '14px' },
+                    {
+                        key: 'psiko_hubungan_keluarga',
+                        type: 'radio-inline',
+                        label: 'Hubungan pasien dengan anggota keluarga',
+                        options: ['Baik', 'Tidak baik'],
+                        required: true
+                    },
+                    { key: 'psiko_status_psy_label', type: 'heading-text', align: 'left', weight: 'bold', size: 'sm', text: 'Status Psikologis :' },
+                    {
+                        key: 'psiko_status_psikologis_baris1',
+                        type: 'checkbox-inline',
+                        label: '',
+                        options: ['Tenang', 'Cemas', 'Takut', 'Marah', 'Sedih']
+                    },
+                    {
+                        key: 'psiko_status_psikologis_baris2',
+                        type: 'checkbox-inline',
+                        label: '',
+                        options: ['Kecendrungan bunuh diri dilaporkan ke', 'Lainnya'],
+                        suffixInputs: [
+                            { key: 'psiko_bunuh_diri_laporkan_ke', type: 'text', size: 'md', prefix: ' ', space: true, placeholder: 'nama/ruangan' },
+                            { key: 'psiko_lainnya_ket', type: 'text', size: 'lg', prefix: ' ', space: true, placeholder: 'keterangan lainnya' }
+                        ]
+                    },
+                    {
+                        key: 'psiko_koping',
+                        type: 'checkbox-inline',
+                        label: 'Koping mekanisme',
+                        options: ['Baik', 'Menarik diri/isolas sosial', 'Perilaku kekerasan', 'Sulit dinilai'],
+                        required: true
+                    },
+                    {
+                        key: 'psiko_persepsi_sakit',
+                        type: 'radio-inline',
+                        label: 'Persepsi terhadap sakit',
+                        options: ['Tidak ada keluhan', 'Merasa menjadi beban']
+                    },
+                    {
+                        key: 'psiko_ibadah',
+                        type: 'radio-inline',
+                        label: 'Menjalankan Ibadah',
+                        options: ['Tidak ada hambatan', 'Ada hambatan']
+                    },
+                    { key: 'edukasi_judul', type: 'heading-text', align: 'left', weight: 'bold', size: 'md', text: 'Kebutuhan Edukasi', spacing: '16px' },
+                    {
+                        key: 'edukasi_hambatan',
+                        type: 'checkbox-inline',
+                        label: 'Terdapat hambatan dalam pembelajaran :',
+                        options: ['Pendengaran', 'Penglihatan', 'Kognitif', 'Fisik', 'Budaya', 'Agama', 'Emosi', 'Bahasa', 'Lainnya'],
+                        otherField: true,
+                        otherLabel: 'Lainnya, sebutkan : '
+                    },
+                    {
+                        key: 'edukasi_butuh_penerjemah',
+                        type: 'radio-inline',
+                        label: 'Butuh penerjemah',
+                        options: ['Tidak', 'Ya, jika ya sebutkan'],
+                        suffixInputs: [
+                            null,
+                            { key: 'edukasi_penerjemah_ket', type: 'text', size: 'lg', prefix: ' ', space: true, placeholder: 'bahasa / nama penerjemah' }
+                        ]
+                    },
+                    { key: 'edukasi_topik_label', type: 'heading-text', align: 'left', weight: 'normal', size: 'sm', text: 'Kebutuhan pembelajaran pasien (pilih topik pembelajaran pada kotak yang tersedia) :' },
+                    {
+                        key: 'edukasi_topik_baris1',
+                        type: 'checkbox-inline',
+                        label: '',
+                        options: ['Diagnosa dan manajemen penyakit', 'Obat-obatan', 'Diet & nutrisi', 'Tindakan Keperawatan']
+                    },
+                    {
+                        key: 'edukasi_topik_baris2',
+                        type: 'checkbox-inline',
+                        label: '',
+                        options: ['Rehabilitasi', 'Manajemen nyeri', 'Lain – lain'],
+                        suffixInputs: [
+                            null, null,
+                            { key: 'edukasi_lainlain_ket', type: 'text', size: 'md', prefix: ' ', space: true, placeholder: 'keterangan topik lain' }
+                        ]
+                    },
+                    { key: 'masalah_keperawatan_judul', type: 'heading-text', align: 'center', weight: 'bold', size: 'lg', text: 'MASALAH KEPERAWATAN/KEBIDANAN & RENCANA ASUHAN KEPERAWATAN/KEBIDANAN', spacing: '18px' },
+                    {
+                        key: 'masalah_vs_rencana_tabel',
+                        type: 'pdf-table',
+                        width: '100%',
+                        headers: [
+                            { label: 'MASALAH KEPERAWATAN/KEBIDANAN', width: '50%' },
+                            { label: 'RENCANA ASUHAN', width: '50%' }
+                        ],
+                        rows: [
+                            [
+                                { type: 'textarea', rows: 7, key: 'masalah_keperawatan_penilaian', placeholder: 'Identifikasi masalah keperawatan: nyeri akut, risiko jatuh, kurang pengetahuan, intoleransi aktivitas, gangguan nutrisi, dll' },
+                                { type: 'textarea', rows: 7, key: 'masalah_keperawatan_rencana', placeholder: 'Tujuan + intervensi + evaluasi per masalah' }
+                            ]
+                        ]
+                    }
                 ]
             },
             {
                 key: 'hal2_dokter',
-                title: 'DOKTER — PEMERIKSAAN MEDIS DAN RENCANA ASUHAN',
+                title: 'DOKTER — PEMERIKSAAN MEDIS DAN RENCANA ASUHAN (HALAMAN 2)',
                 roleLabel: 'Halaman Dokter',
                 roleTone: 'doctor',
+                hideHeader: true,
                 editableByRole: ['isDoctorRole', 'isSupervisorRole'],
                 page: 2,
                 pageBreakBefore: true,
                 fields: [
                     { key: 'keluhan_utama', type: 'textarea', label: 'Keluhan Utama', rows: 3, required: true, copyToFixed: 'keluhan_utama' },
                     { key: 'riwayat_penyakit', type: 'textarea', label: 'Riwayat Penyakit', rows: 4, hint: 'RPS, RPD, Riwayat penyakit keluarga, riwayat sosial' },
-                    { key: 'riwayat_penggunaan_obat', type: 'radio-group', label: 'Riwayat Penggunaan Obat', options: ['Tidak Ada', 'Ada'], otherField: true, otherLabel: 'Jika Ada, Tuliskan (nama • dosis • frekuensi)' },
+                    {
+                        key: 'riwayat_penggunaan_obat',
+                        type: 'radio-inline',
+                        label: 'Riwayat Penggunaan Obat',
+                        options: ['Tidak Ada', 'Ada'],
+                        suffixInputs: [
+                            null,
+                            { key: 'riwayat_obat_ket', type: 'text', size: 'lg', prefix: ' — Tuliskan (nama • dosis • frekuensi): ', space: true, placeholder: 'contoh: Asetaminofen 500mg 2x/hr' }
+                        ]
+                    },
                     { key: 'hasil_penunjang_yang_ada', type: 'textarea', label: 'Hasil pemeriksaan penunjang yang telah ada', rows: 4, hint: 'Lab, EKG, Rontgen, USG, CT-scan, dll yang sudah dibawa pasien / ada di rekam medis' },
-                    { key: 'pemeriksaan_fisik_kondisi_umum', type: 'checkbox-group', label: 'Pemeriksaan Fisik — Status General — Kondisi Umum', options: ['Baik', 'Tampak Sakit', 'Sesak', 'Pucat', 'Lemah', 'Kejang', 'Lainnya'], otherField: true, required: true },
+                    {
+                        key: 'pemeriksaan_fisik_kondisi_umum',
+                        type: 'checkbox-inline',
+                        label: 'Pemeriksaan Fisik — Status General — Kondisi Umum',
+                        options: ['Baik', 'Tampak Sakit', 'Sesak', 'Pucat', 'Lemah', 'Kejang', 'Lainnya'],
+                        otherField: true,
+                        required: true
+                    },
                     { key: 'pemeriksaan_fisik_sistem_tubuh', type: 'textarea', label: 'Pemeriksaan Fisik Sistem Tubuh — Kepala-Leher / Thorax (Cor+Pulmo) / Abdomen / Ekstremitas', rows: 4, hint: 'Kepala & Leher (anemis/ikterik/JVP/tiroid/kelenjar getah bening) ; Thorax Cor (B1B2/murmur/gallop) ; Thorax Pulmo (suara dasar/ronchi/wheezing) ; Abdomen (BU/nyeri tekan/Hepar/Lien) ; Ekstremitas (edema/akral/CRT/varikositas)' },
                     { key: 'status_lokalis', type: 'body-map', label: 'Status Lokalis (Tandai lokasi yang tidak normal)', noteLabel: 'Temuan yang signifikan di status lokalis:', noteRows: 6, notePlaceholder: 'Jelaskan temuan di titik yang ditandai pada gambar tubuh: morfologi lesi, ukuran, warna, nyeri tekan, oedema, dll.' },
                     { key: 'diagnosa_kerja_banding', type: 'textarea', label: 'Diagnosis Kerja / Diagnosis Banding', rows: 3, required: true, hint: 'Sertakan ICD-10 bila memungkinkan' },
                     { key: 'instruksi_awal_dokter', type: 'textarea', label: 'Instruksi Awal Dokter', rows: 6, required: true, hint: 'Isi terstruktur: 1) Terapi medikamentosa (Nama Obat • Dosis • Frekuensi • Jalur • Lama pemberian), 2) Tindakan medis, 3) Edukasi khusus pasien & keluarga' },
-                    { key: 'rencana_asuhan', type: 'checkbox-group', label: 'Rencana Asuhan', options: ['Kontrol', 'Rawat Inap', 'Rujuk', 'Konsultasi'], otherField: true, otherLabel: 'Keterangan (tgl kontrol / tujuan rujukan / tujuan konsultasi)' },
+                    {
+                        key: 'rencana_asuhan',
+                        type: 'checkbox-inline',
+                        label: 'Rencana Asuhan',
+                        options: ['Kontrol', 'Rawat Inap', 'Rujuk', 'Konsultasi'],
+                        otherField: true,
+                        otherLabel: 'Keterangan (tgl kontrol / tujuan rujukan / tujuan konsultasi) : '
+                    },
                     { key: 'dpjp_nama', type: 'text', label: 'Nama DPJP (Dokter Penanggung Jawab Pelayanan)', required: true },
                     { key: 'dpjp_sip', type: 'text', label: 'SIP / NIP Dokter' }
                 ]
@@ -656,13 +919,36 @@
     window.SIMAMI_ASSESSMENT_SCHEMAS.getById = function (schemaId) {
         schemaId = String(schemaId || '').trim();
         if (!schemaId) return null;
-        // coba akses langsung key (cepat)
-        const keyUpper = schemaId.toUpperCase().replace(/[^A-Z0-9_]/g, '_');
-        const direct = window.SIMAMI_ASSESSMENT_SCHEMAS[keyUpper];
-        if (direct && direct.id) return direct;
+        const keysToTry = [];
+        keysToTry.push(schemaId);
+        keysToTry.push(schemaId.toUpperCase().replace(/[^A-Z0-9_]/g, '_'));
+        keysToTry.push(schemaId.toLowerCase().replace(/[^a-z0-9_]/g, '_'));
+        keysToTry.push(schemaId.replace(/[^a-zA-Z0-9_]/g, '_').toUpperCase());
+        // 1) direct key lookup (case-insensitive semua varian)
+        for (const k of keysToTry) {
+            const direct = window.SIMAMI_ASSESSMENT_SCHEMAS[k];
+            if (direct && typeof direct === 'object' && direct.id) return direct;
+        }
+        // 2) case-insensitive key lookup di seluruh object key (untuk schema RAWAT_JALAN_PD tapi dicari rawat_jalan_pd)
+        const allKeys = Object.keys(window.SIMAMI_ASSESSMENT_SCHEMAS);
+        for (const k of allKeys) {
+            if (typeof k !== 'string') continue;
+            if (k.toLowerCase() === schemaId.toLowerCase()) {
+                const v = window.SIMAMI_ASSESSMENT_SCHEMAS[k];
+                if (v && typeof v === 'object' && v.id) return v;
+            }
+        }
+        // 3) listAll find -> compare schema.id exact & case-insensitive
         const list = window.SIMAMI_ASSESSMENT_SCHEMAS.listAll();
         for (const s of list) {
-            if (String(s && s.id || '') === schemaId) return s;
+            if (!s || typeof s !== 'object' || !s.id) continue;
+            if (String(s.id) === schemaId) return s;
+            if (String(s.id).toLowerCase() === schemaId.toLowerCase()) return s;
+        }
+        // 4) last-resort: compare by table name (jika user kirim nama tabel)
+        for (const s of list) {
+            if (!s || typeof s !== 'object') continue;
+            if (String(s.table || '').toLowerCase() === schemaId.toLowerCase()) return s;
         }
         return null;
     };
