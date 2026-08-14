@@ -3334,6 +3334,9 @@
                                 return isTriaseRole() || isPerawatRole() || isDokterRole() || isSupervisorRole() || isNurseStationRole();
                             };
                             window.isNurseStationRole = isNurseStationRole;
+                            window.isPerawatRole = isPerawatRole;
+                            window.isDokterRole = isDokterRole;
+                            window.getCurrentAdminRole = function () { return String(currentAdminRole || ''); };
                             if (typeof window.createAssessmentModule === 'function') {
                                 assessmentSharedModule = window.createAssessmentModule({
                                     supabaseClient,
@@ -7826,12 +7829,16 @@
                                 const isPendaftaran = isPendaftaranRole();
                                 const isPetugasPoli = isPetugasPoliScopedRekap();
                                 const isNurseStation = isNurseStationRole();
+                                const isPerawat = isPerawatRole();
+                                const isDokter = isDokterRole();
                                 const canManageDriveLink = canManagePatientDriveLink();
                                 const canTriase = canAccessTriaseUgd();
                                 const canAssessment = canAccessAssessmentUgd();
                                 const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                                 const showCancelVisitColumn = canManageBatalBerobat() && !isRme && !isPetugasPoli;
-                                const canShowRekapAssessmentButtons = isNurseStation;
+                                const canShowTriaseUgdRekap = isPerawat;
+                                const canShowAsesmenUgdRekap = isPerawat || isDokter;
+                                const canShowSharedAssessmentRekap = isNurseStation;
                                 if (!items || items.length === 0) {
                                     const emptyColspan = isRme ? 24 : (isPetugasPoli ? 10 : ((showSupervisorEditColumn ? 25 : 24) + (showCancelVisitColumn ? 1 : 0)));
                                     rEls.rows.innerHTML = `<tr><td class="px-4 py-6 text-slate-500" colspan="${emptyColspan}">Tidak ada data.</td></tr>`;
@@ -7892,7 +7899,7 @@
                                             no_telepon: p.no_telepon
                                         }))}'>General Consent</button>`
                                         : '';
-                                    const triaseBtnRekap = (canShowRekapAssessmentButtons && canTriase && String(p.unit || '').toUpperCase() === 'UGD')
+                                    const triaseBtnRekap = (canShowTriaseUgdRekap && canTriase && String(p.unit || '').toUpperCase() === 'UGD')
                                         ? `<button type="button" class="triage-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold text-rose-800 transition hover:bg-rose-100 whitespace-nowrap" data-patient='${escapeHtml(JSON.stringify({
                                             id: p.id,
                                             nama_pasien: p.nama_pasien,
@@ -7907,10 +7914,10 @@
                                             no_telepon: p.no_telepon
                                         }))}'>Triase UGD</button>`
                                         : '';
-                                    const assessmentBtnRekap = (canShowRekapAssessmentButtons && ugdAssessmentModule && canAssessment && String(p.unit || '').toUpperCase() === 'UGD')
+                                    const assessmentBtnRekap = (canShowAsesmenUgdRekap && ugdAssessmentModule && canAssessment && String(p.unit || '').toUpperCase() === 'UGD')
                                         ? ugdAssessmentModule.renderRekapButton(p)
                                         : '';
-                                    const sharedAssessmentCell = (canShowRekapAssessmentButtons && assessmentSharedModule)
+                                    const sharedAssessmentCell = (canShowSharedAssessmentRekap && assessmentSharedModule)
                                         ? assessmentSharedModule.renderRekapButton(p)
                                         : '';
                                     const riwayatLinkCell = normalizedLink
@@ -9843,10 +9850,10 @@
                                 }
                                 const triageBtn = e.target.closest('.triage-btn');
                                 if (triageBtn) {
-                                    const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
-                                    if (!isNs) {
+                                    const isPerawat = (typeof window.isPerawatRole === 'function') ? Boolean(window.isPerawatRole()) : false;
+                                    if (!isPerawat) {
                                         const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
-                                        alert('[AKSES DITOLAK]\n\nTombol Triase UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station untuk mengakses Triase dari menu Rekap Pasien, atau akses melalui Worklist Nurse Station / Dashboard UGD sesuai peran Anda.');
+                                        alert('[AKSES DITOLAK]\n\nTombol Triase UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PERAWAT SAJA.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Perawat UGD untuk mengakses Triase dari menu Rekap Pasien.');
                                         return;
                                     }
                                     try {
