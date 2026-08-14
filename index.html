@@ -1252,41 +1252,35 @@
                     </div>
                 </div>
 
-                <div id="ugdTicketContainer" class="hidden">
-                    <div id="ugdTicket" style="width: 80mm; height: 60mm; padding: 2.5mm 3mm; font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; line-height: 1.2; box-sizing: border-box; overflow: hidden; color: #111; background: #fff;">
-                        <div id="ugd_ticket_note" style="text-align: center; font-size: 9.5pt; font-weight: bold; letter-spacing: 0.2mm;">Harap Simpan Tiket Ini Sampai Pelayanan Selesai</div>
-                        <div id="ugd_ticket_rs" style="margin-top: 0.3mm; text-align: center; font-size: 9pt; font-weight: bold;">#RSUDAMI MUARA BADAK</div>
-                        <div style="margin-top: 1.2mm; border-top: 1px dashed #6b7280;"></div>
-                        <div style="margin-top: 1mm; text-align: center; font-size: 7.5pt; font-weight: bold; letter-spacing: 0.2mm;">
+                <div id="ugdTicketContainer" class="hidden" style="display:none; width:74mm; height:60mm; margin:0; padding:0;">
+                    <div id="ugdTicket" style="display:block; width: 74mm; height: 60mm; padding: 1.5mm 2mm 1.8mm 2mm; font-family: 'Courier New', Courier, monospace; font-size: 8.2pt; line-height: 1.1; box-sizing: border-box; overflow: hidden; color: #111; background: #fff;">
+                        <div id="ugd_ticket_note" style="text-align: center; font-size: 8.2pt; font-weight: bold; letter-spacing: 0.08mm; white-space: nowrap; overflow: hidden; text-overflow: clip;">Harap Simpan Tiket Ini Sampai Pelayanan Selesai</div>
+                        <div id="ugd_ticket_rs" style="margin-top: 0.1mm; text-align: center; font-size: 8.2pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: clip;">#RSUDAMI MUARA BADAK</div>
+                        <div style="margin-top: 0.45mm; border-top: 1px dashed #6b7280;"></div>
+                        <div style="margin-top: 0.25mm; text-align: center; font-size: 6.6pt; font-weight: bold; letter-spacing: 0.12mm;">
                             Tanggal/Jam Cetak
-                            <span style="display: block; margin-top: 0.4mm; font-size: 9pt; letter-spacing: 0.12mm;" id="ugd_ticket_cetak">-</span>
+                            <span style="display: block; margin-top: 0.1mm; font-size: 8pt; letter-spacing: 0.06mm;" id="ugd_ticket_cetak">-</span>
                         </div>
-                        <div style="margin-top: 0.8mm; border-top: 1px dashed #6b7280;"></div>
-                        <div id="ugd_ticket_unit" style="margin-top: 1mm; text-align: center; font-size: 32pt; line-height: 1; font-weight: 900; letter-spacing: 2mm;">UGD</div>
-                        <div style="margin-top: 0.8mm; border-top: 1px dashed #6b7280;"></div>
-                        <div style="margin-top: 0.9mm; text-align: center; font-size: 9pt; font-weight: bold; letter-spacing: 0.3mm;">NAMA PASIEN</div>
-                        <div id="ugd_ticket_nama" style="margin-top: 0.3mm; text-align: center; font-size: 11pt; font-weight: 900;">-</div>
-                        <div style="margin-top: 0.6mm; border-top: 1px dashed #6b7280;"></div>
-                        <div style="margin-top: 0.6mm; text-align: center; font-size: 8pt;">
+                        <div style="margin-top: 0.25mm; border-top: 1px dashed #6b7280;"></div>
+                        <div id="ugd_ticket_unit" style="margin-top: 0.3mm; text-align: center; font-size: 22pt; line-height: 1; font-weight: 900; letter-spacing: 1.4mm;">UGD</div>
+                        <div style="margin-top: 0.3mm; border-top: 1px dashed #6b7280;"></div>
+                        <div id="ugd_ticket_nama" style="margin-top: 0.2mm; text-align: center; font-size: 10.5pt; font-weight: 900; line-height: 1.06; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</div>
+                        <div style="margin-top: 0.2mm; border-top: 1px dashed #6b7280;"></div>
+                        <div id="ugd_ticket_demografi_row" style="margin-top: 0.2mm; text-align: center; font-size: 7.5pt; white-space: nowrap; overflow: hidden; text-overflow: clip;">
                             <span id="ugd_ticket_umur">-</span>
-                            <span style="display: inline-block; margin: 0 0.8mm;">/</span>
-                            <span>Jenis Kelamin (<span id="ugd_ticket_jk">-</span>)</span>
-                            <span style="display: inline-block; margin: 0 0.8mm;">/</span>
-                            <span>Tanggal Lahir (<span id="ugd_ticket_tgllahir">-</span>)</span>
+                            <span style="display: inline-block; margin: 0 0.55mm; opacity: 0.5;">/</span>
+                            <span>(<span id="ugd_ticket_jk">-</span>)</span>
+                            <span style="display: inline-block; margin: 0 0.55mm; opacity: 0.5;">/</span>
+                            <span>(<span id="ugd_ticket_tgllahir">-</span>)</span>
                         </div>
-                        <div style="margin-top: 0.6mm; text-align: center; font-size: 9pt; font-weight: bold; letter-spacing: 0.12mm;">
-                            Nomor Rekam Medik<span style="display: inline-block; margin: 0 0.8mm;">/</span>Nomor Registrasi<span style="display: inline-block; margin: 0 0.8mm;">/</span>UGD
-                        </div>
-                        <div style="margin-top: 0.3mm; text-align: center; font-size: 9pt;">
-                            <b id="ugd_ticket_no_rm">-</b>
-                            <span style="display: inline-block; margin: 0 1mm; opacity: 0.45;">|</span>
-                            <b id="ugd_ticket_no_registrasi">-</b>
-                            <span style="display: inline-block; margin: 0 1mm; opacity: 0.45;">|</span>
-                            <b id="ugd_ticket_no_antrian">-</b>
-                        </div>
-                        <div id="ugd_ticket_bpjs_row" style="margin-top: 0.8mm; display: none; text-align: center;">
-                            <div style="font-size: 9pt; font-weight: bold; letter-spacing: 0.15mm;">No BPJS</div>
-                            <div id="ugd_ticket_no_bpjs" style="margin-top: 0.2mm; font-size: 10pt; font-weight: 900;">-</div>
+                        <div id="ugd_ticket_nomor_row" style="margin-top: 0.22mm; text-align: center; font-size: 8pt; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: clip;">
+                            <span id="ugd_ticket_no_rm">-</span>
+                            <span style="display: inline-block; margin: 0 0.7mm; opacity: 0.4;">|</span>
+                            <span id="ugd_ticket_no_registrasi">-</span>
+                            <span id="ugd_ticket_bpjs_sep" style="display: none; margin: 0;">
+                                <span style="display: inline-block; margin: 0 0.7mm; opacity: 0.4;">|</span>
+                                <span id="ugd_ticket_no_bpjs">-</span>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1656,8 +1650,8 @@
                             const PRINT_MODE_TO_PAGE_SIZE = {
                                 'barcode': '80mm 60mm',
                                 'wristband': '90mm 25mm',
-                                'nurse-station-ticket': '80mm 60mm',
-                                'ugd-ticket': '80mm 60mm'
+                                'nurse-station-ticket': '80mm auto',
+                                'ugd-ticket': '74mm 60mm'
                             };
                             const WEBOS_USER_AGENT_HINT = /Web0S|webOS|LG Browser|NetCast/i.test(navigator.userAgent || '');
                             const MOBILE_USER_AGENT_HINT = /Android|iPhone|iPad|iPod|HarmonyOS|Silk|Opera Mini|UCBrowser|MIUI|OPPO|vivo|Huawei/i.test(navigator.userAgent || '');
@@ -2247,17 +2241,15 @@
                                 if (rmEl) rmEl.textContent = payload.no_rm || '-';
                                 const regEl = document.getElementById('ugd_ticket_no_registrasi');
                                 if (regEl) regEl.textContent = payload.no_registrasi || '-';
-                                const antEl = document.getElementById('ugd_ticket_no_antrian');
-                                if (antEl) antEl.textContent = payload.no_antrian || payload.ugd_queue_no || '-';
-                                const bpjsRow = document.getElementById('ugd_ticket_bpjs_row');
+                                const bpjsSep = document.getElementById('ugd_ticket_bpjs_sep');
                                 const bpjsVal = String(payload.no_bpjs || '').trim();
-                                if (bpjsRow) {
+                                if (bpjsSep) {
                                     if (bpjsVal) {
-                                        bpjsRow.style.display = 'block';
+                                        bpjsSep.style.display = 'inline';
                                         const bpjsEl = document.getElementById('ugd_ticket_no_bpjs');
                                         if (bpjsEl) bpjsEl.textContent = bpjsVal;
                                     } else {
-                                        bpjsRow.style.display = 'none';
+                                        bpjsSep.style.display = 'none';
                                         const bpjsEl = document.getElementById('ugd_ticket_no_bpjs');
                                         if (bpjsEl) bpjsEl.textContent = '-';
                                     }
@@ -2462,9 +2454,37 @@
                                 el.style.setProperty('display', 'block', 'important');
                                 el.style.setProperty('visibility', 'visible', 'important');
                                 el.style.setProperty('z-index', '99999', 'important');
-                                el.style.setProperty('position', 'fixed');
-                                el.style.setProperty('left', '0');
-                                el.style.setProperty('top', '0');
+                                const isContinuousPaper = (mode === 'nurse-station-ticket');
+                                const isUgdFixedPaper = (mode === 'ugd-ticket');
+                                if (isUgdFixedPaper) {
+                                    el.style.setProperty('position', 'fixed', 'important');
+                                    el.style.setProperty('left', '0', 'important');
+                                    el.style.setProperty('top', '0', 'important');
+                                    el.style.setProperty('width', '74mm', 'important');
+                                    el.style.setProperty('height', '60mm', 'important');
+                                    el.style.setProperty('max-width', '74mm', 'important');
+                                    el.style.setProperty('max-height', '60mm', 'important');
+                                    el.style.setProperty('min-width', '74mm', 'important');
+                                    el.style.setProperty('min-height', '60mm', 'important');
+                                    el.style.setProperty('overflow', 'hidden', 'important');
+                                    el.style.setProperty('box-sizing', 'border-box', 'important');
+                                } else if (isContinuousPaper) {
+                                    el.style.setProperty('position', 'static', 'important');
+                                    el.style.removeProperty('left');
+                                    el.style.removeProperty('top');
+                                    el.style.setProperty('width', '80mm', 'important');
+                                    el.style.setProperty('height', 'auto', 'important');
+                                    el.style.setProperty('max-height', 'none', 'important');
+                                    el.style.setProperty('overflow', 'visible', 'important');
+                                } else {
+                                    el.style.setProperty('position', 'fixed');
+                                    el.style.setProperty('left', '0');
+                                    el.style.setProperty('top', '0');
+                                    el.style.setProperty('width', '80mm', 'important');
+                                    el.style.setProperty('height', 'auto', 'important');
+                                    el.style.setProperty('max-height', 'none', 'important');
+                                    el.style.setProperty('overflow', 'visible', 'important');
+                                }
                                 el.style.setProperty('margin', '0');
                                 el.style.setProperty('padding', '0');
                             }
@@ -2550,6 +2570,26 @@
                                             no_antrian: lastRegisteredPrintPayload.nurse_station_queue_no,
                                             unit: lastRegisteredPrintPayload.unit,
                                             poli_tujuan: lastRegisteredPrintPayload.poli_tujuan_label
+                                        });
+                                    } catch (_e) {}
+                                } else if (modeKey === 'ugd-ticket') {
+                                    const currentUnit = String(lastRegisteredPrintPayload.unit || '').trim().toUpperCase();
+                                    if (currentUnit !== 'UGD') {
+                                        setPrintButtonsState(true, 'Tiket UGD hanya tersedia untuk pendaftaran UGD.');
+                                        unlockPrintState(true);
+                                        return;
+                                    }
+                                    try { populateUgdTicketTemplate(lastRegisteredPrintPayload); } catch (_e) {}
+                                    activePrintMode = 'ugd-ticket';
+                                    preparePrintContainer('ugd-ticket');
+                                    document.body.setAttribute('data-print-mode', 'ugd-ticket');
+                                    setPrintPageSize(PRINT_MODE_TO_PAGE_SIZE['ugd-ticket']);
+                                    try {
+                                        appendStaffActivity('print_tiket_ugd', {
+                                            no_rm: lastRegisteredPrintPayload.no_rm,
+                                            no_registrasi: lastRegisteredPrintPayload.no_registrasi,
+                                            no_antrian: lastRegisteredPrintPayload.no_antrian,
+                                            unit: lastRegisteredPrintPayload.unit
                                         });
                                     } catch (_e) {}
                                 } else {
