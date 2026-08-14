@@ -444,8 +444,9 @@
         }
 
         function renderRekapButton(patient) {
-            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
-            if (!isNs) return '';
+            const isPerawat = (typeof window.isPerawatRole === 'function') ? Boolean(window.isPerawatRole()) : false;
+            const isDokter = (typeof window.isDokterRole === 'function') ? Boolean(window.isDokterRole()) : false;
+            if (!isPerawat && !isDokter) return '';
             const patientData = buildPatientSnapshot(patient);
             return '<button type="button" class="assessment-ugd-btn-trigger assessment-ugd-trigger" data-assessment-patient="' +
                 escapeHtml(JSON.stringify(patientData)) +
@@ -454,11 +455,12 @@
 
         function handleRekapButtonClick(buttonEl) {
             if (!buttonEl) return;
-            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
-            if (!isNs) {
+            const isPerawat = (typeof window.isPerawatRole === 'function') ? Boolean(window.isPerawatRole()) : false;
+            const isDokter = (typeof window.isDokterRole === 'function') ? Boolean(window.isDokterRole()) : false;
+            if (!isPerawat && !isDokter) {
                 const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
-                setStatus('Akses ditolak: formulir asesmen UGD di Rekap hanya untuk Nurse Station.', 'error');
-                alert('[AKSES DITOLAK]\n\nTombol Asesmen UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station atau akses melalui dashboard perawat UGD sesuai peran Anda.');
+                setStatus('Akses ditolak: formulir asesmen UGD di Rekap untuk Perawat / Dokter.', 'error');
+                alert('[AKSES DITOLAK]\n\nTombol Asesmen UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PERAWAT atau DOKTER.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sesuai peran Anda.');
                 return;
             }
             try {
