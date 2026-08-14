@@ -1,1936 +1,1206 @@
-(function () {
-    'use strict';
-
-    // ============================================================
-    // ASSESSMENT SHARED ENGINE (OPSI B - STANDAR RS)
-    // ------------------------------------------------------------
-    // 1 shared engine untuk SEMUA skema asesmen (Triase UGD,
-    // Rawat Jalan Dewasa, Pediatrik, dll).
-    //
-    // CARA PAKAI (dari index.html / modul lain):
-    //   const module = createAssessmentModule({
-    //       supabaseClient, withTimeout, escapeHtml,
-    //       getCurrentOperatorName, getCurrentOperatorEmail,
-    //       isPerawatRole, isDoctorRole, ... role helpers
-    //   });
-    //
-    //   module.openAssessment(patientPayload, schemaId);
-    //   module.renderRekapButton(patient); // <- tombol di rekap row
-    // ============================================================
-
-    const MODAL_ID = 'assessmentSharedModal';
-    const FORM_ID = 'assessmentSharedForm';
-    const PRINT_MODE = 'shared-assessment';
-    const BASE_CLASS_PREFIX = 'assessment-shared';
-
-    function createAssessmentModule(deps) {
-        if (!deps || !deps.supabaseClient) throw new Error('Supabase client wajib untuk assessment engine.');
+(function() {
+    function createUgdAssessmentModule(deps) {
+        if (!deps || !deps.supabaseClient) {
+            throw new Error('Supabase client wajib tersedia untuk modul asesmen UGD.');
+        }
 
         const supabaseClient = deps.supabaseClient;
-        const withTimeout = typeof deps.withTimeout === 'function' ? deps.withTimeout : async function (p) { return await p; };
-        const escapeHtml = deps.escapeHtml || function (v) { return String(v == null ? '' : v); };
-        const formatDate = deps.formatGeneralConsentDate || function (v) { return String(v || ''); };
-        const getCurrentOperatorName = deps.getCurrentOperatorName || function () { return ''; };
-        const getCurrentOperatorEmail = deps.getCurrentOperatorEmail || function () { return ''; };
-        const getCurrentAdminRole = typeof deps.getCurrentAdminRole === 'function' ? deps.getCurrentAdminRole : function () { return (window.currentAdminRole || ''); };
-        const getCurrentPoliName = (function () {
-            if (typeof deps.getCurrentPoliName === 'function') return deps.getCurrentPoliName;
-            if (typeof window.getCurrentPoliName === 'function') return window.getCurrentPoliName;
-            return function () {
-                try {
-                    const winFn = window.getCurrentPoliName;
-                    if (typeof winFn === 'function') return String(winFn() || '');
-                } catch (_e) {}
-                return '';
-            };
-        })();
-
-        // Role check (fallback: window globals jika ada)
-        const roleFn = function (name) {
-            if (typeof deps[name] === 'function') return deps[name];
-            if (typeof window[name] === 'function') return window[name];
-            return function () { return false; };
-        };
-        const isPerawatRole = roleFn('isPerawatRole');
-        const isDoctorRole = roleFn('isDoctorRole');
-        const isPendaftaranRole = roleFn('isPendaftaranRole');
-        const isSupervisorRole = roleFn('isSupervisorRole');
-        const isIgdRole = roleFn('isIgdRole');
-        const isTriaseRole = roleFn('isTriaseRole');
-        const isPediatrikRole = roleFn('isPediatrikRole');
+        const withTimeout = typeof deps.withTimeout === 'function'
+            ? deps.withTimeout
+            : async function(promise) { return await promise; };
+        const withPageLoading = typeof deps.withPageLoading === 'function'
+            ? deps.withPageLoading
+            : async function(_label, task) { return await task(); };
+        const escapeHtml = deps.escapeHtml || function(value) { return String(value ?? ''); };
+        const formatBirthDate = deps.formatGeneralConsentDate || function(value) { return String(value || ''); };
+        const getCurrentOperatorName = deps.getCurrentOperatorName || function() { return ''; };
+        const getCurrentOperatorEmail = deps.getCurrentOperatorEmail || function() { return ''; };
+        const canAccessAssessment = deps.canAccessAssessment || function() { return false; };
+        const isDoctorRole = deps.isDoctorRole || function() { return false; };
+        const isPerawatRole = deps.isPerawatRole || function() { return false; };
 
         const state = {
-            schema: null,
-            schemaId: '',
-            patient: null,
-            record: null,
-            recordId: null,
-            formValues: {},
+            currentPatient: null,
+            currentAssessment: null,
             saveTimer: null,
             lastWriteAt: 0,
-            lastSaveText: '',
-            realtimeChannel: null,
-            broadcast: null,
-            inFlight: false,
-            fieldsById: {} // id field -> schema def
+            subscription: null,
+            broadcastChannel: null
         };
 
         const dom = {};
 
-        ensureModalInjected();
+        injectModalHtml();
         wireDom();
         wireEvents();
 
         try {
-            state.broadcast = new window.BroadcastChannel('simami-assessment-shared-local');
-            state.broadcast.addEventListener('message', function (ev) {
-                const p = ev.data || {};
+            state.broadcastChannel = new window.BroadcastChannel('assessment-ugd-local-sync');
+            state.broadcastChannel.addEventListener('message', function(event) {
+                const payload = event?.data || {};
                 if (!dom.modal.classList.contains('is-open')) return;
-                if (String(p.patientId || '') !== String(state.patient?.id || '')) return;
-                if (String(p.schemaId || '') !== String(state.schemaId)) return;
-                if (Date.now() - state.lastWriteAt < 1500) return;
-                refreshCurrentRecord(true);
+                if (String(payload.patientId || '') !== String(state.currentPatient?.id || '')) return;
+                if (Date.now() - state.lastWriteAt < 1000) return;
+                refreshCurrentPatient(false);
             });
-        } catch (_e) {
-            state.broadcast = null;
+        } catch (_err) {
+            state.broadcastChannel = null;
         }
 
         return {
             renderRekapButton: renderRekapButton,
-            openAssessment: openAssessment,
-            openAssessmentBySchemaId: openAssessmentBySchemaId,
-            handleRekapButtonClick: handleRekapButtonClick
+            openAssessmentFromPayload: openAssessmentFromPayload,
+            handleRekapButtonClick: handleRekapButtonClick,
+            refreshCurrentPatient: refreshCurrentPatient
         };
 
-        function getRegistry() {
-            return window.SIMAMI_ASSESSMENT_SCHEMAS;
-        }
-
-        function getSchemaById(id) {
-            return getRegistry()?.getById?.(id) || getRegistry()?.[id] || null;
-        }
-
-        function userCanAccess(schema) {
-            if (!schema) return false;
-            const allowRoles = Array.isArray(schema.allowRoles) ? schema.allowRoles : [];
-            for (const r of allowRoles) {
-                const fn = roleFn(r);
-                if (typeof fn === 'function' && fn()) return true;
-            }
-            if (isSupervisorRole()) return true;
-            return false;
-        }
-
-        function canEditSection(section) {
-            if (!section) return true;
-            const allow = Array.isArray(section.editableByRole) ? section.editableByRole : [];
-            if (!allow.length) return true;
-            for (const r of allow) {
-                const fn = roleFn(r);
-                if (typeof fn === 'function' && fn()) return true;
-            }
-            if (isSupervisorRole()) return true;
-            return false;
-        }
-
-        function describeSectionRole(section) {
-            if (!section || !Array.isArray(section.editableByRole) || !section.editableByRole.length) return '';
-            const map = {
-                isPerawatRole: 'Perawat',
-                isNurseStationRole: 'Nurse Station',
-                isDoctorRole: 'Dokter',
-                isPendaftaranRole: 'Pendaftaran',
-                isTriaseRole: 'Petugas Triase',
-                isIgdRole: 'IGD',
-                isPediatrikRole: 'Poli Anak',
-                isSupervisorRole: 'Supervisor'
-            };
-            const out = [];
-            section.editableByRole.forEach(function (r) { if (map[r]) out.push(map[r]); });
-            return out.join(' / ');
-        }
-
-        function ratioNormalize(v) {
-            const n = Number(v);
-            if (typeof v !== 'number' || Number.isNaN(n)) return 0;
-            return Math.max(0, Math.min(1, n));
-        }
-
-        function renderBodyMapField(field, schema, editable) {
-            return renderBodyMapFieldInner(field, schema, editable);
-        }
-
-        function renderBodyMapFieldInner(field, schema, editable) {
-            const id = 'f_' + state.schemaId + '_' + field.key;
-            state.fieldsById[id] = field;
-
-            const wrap = document.createElement('div');
-            wrap.className = BASE_CLASS_PREFIX + '-body-map-wrap';
-            wrap.dataset.bodyMapKey = field.key;
-            wrap.id = id + '__wrap';
-
-            if (editable) wrap.classList.add('is-clickable');
-
-            const grid = document.createElement('div');
-            grid.className = BASE_CLASS_PREFIX + '-body-map-grid';
-            const views = [
-                { id: 'front', title: 'Tampak Depan', image: 'assets/image/body-front.png' },
-                { id: 'back', title: 'Tampak Belakang', image: 'assets/image/body-back.png' },
-                { id: 'left', title: 'Tampak Samping Kiri', image: 'assets/image/body-left.png' },
-                { id: 'right', title: 'Tampak Samping Kanan', image: 'assets/image/body-right.png' }
-            ];
-            const bodySvgs = {};
-            views.forEach(function (v) {
-                const card = document.createElement('div');
-                card.className = BASE_CLASS_PREFIX + '-body-card';
-                const title = document.createElement('div');
-                title.className = BASE_CLASS_PREFIX + '-body-title';
-                title.textContent = v.title;
-                card.appendChild(title);
-                const svgNS = 'http://www.w3.org/2000/svg';
-                const svg = document.createElementNS(svgNS, 'svg');
-                svg.setAttribute('viewBox', '0 0 120 180');
-                svg.setAttribute('xmlns', svgNS);
-                svg.classList.add(BASE_CLASS_PREFIX + '-body-figure');
-                if (editable) svg.classList.add('is-clickable');
-                svg.dataset.view = v.id;
-                svg.dataset.bodyMapFieldKey = field.key;
-                const img = document.createElementNS(svgNS, 'image');
-                img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', v.image);
-                img.setAttribute('href', v.image);
-                img.setAttribute('x', '0');
-                img.setAttribute('y', '0');
-                img.setAttribute('width', '120');
-                img.setAttribute('height', '180');
-                img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                svg.appendChild(img);
-                card.appendChild(svg);
-                grid.appendChild(card);
-                bodySvgs[v.id] = svg;
-
-                if (editable) {
-                    svg.addEventListener('click', function (e) {
-                        onBodyMapSvgClick(e, field.key, v.id, bodySvgs);
-                    });
-                }
-            });
-            wrap.appendChild(grid);
-
-            const toolbar = document.createElement('div');
-            toolbar.className = BASE_CLASS_PREFIX + '-body-map-toolbar';
-            const leftBox = document.createElement('div');
-            leftBox.className = BASE_CLASS_PREFIX + '-body-map-count';
-            leftBox.innerHTML = '📍 Jumlah Tanda : <span data-count="' + field.key + '">0</span> lokasi. Klik gambar untuk menambah tanda lokasi nyeri / kelainan. ' +
-                (editable ? '' : '<strong>Mode Lihat Saja</strong>');
-            toolbar.appendChild(leftBox);
-            if (editable) {
-                const clearBtn = document.createElement('button');
-                clearBtn.type = 'button';
-                clearBtn.className = BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-body-clear';
-                clearBtn.dataset.clearFieldKey = field.key;
-                clearBtn.textContent = '🔄 Hapus Semua Tanda';
-                clearBtn.addEventListener('click', function () {
-                    clearBodyMapMarkers(field.key, bodySvgs);
-                });
-                toolbar.appendChild(clearBtn);
-            }
-            wrap.appendChild(toolbar);
-
-            const noteRow = document.createElement('div');
-            noteRow.className = BASE_CLASS_PREFIX + '-body-map-note-row';
-            const noteLabel = document.createElement('label');
-            noteLabel.className = BASE_CLASS_PREFIX + '-field-label';
-            noteLabel.textContent = field.noteLabel || 'Catatan Lokalis / Keterangan Lokasi Keluhan :';
-            if (field.required) {
-                const s = document.createElement('span');
-                s.className = 'is-required';
-                s.textContent = ' *';
-                noteLabel.appendChild(s);
-            }
-            const noteControl = document.createElement('div');
-            noteControl.className = BASE_CLASS_PREFIX + '-field-control';
-            const noteTextarea = document.createElement('textarea');
-            noteTextarea.className = BASE_CLASS_PREFIX + '-textarea';
-            noteTextarea.id = id + '__note';
-            noteTextarea.dataset.fieldKey = field.key + '__note';
-            noteTextarea.rows = Number(field.noteRows || 3);
-            noteTextarea.placeholder = field.notePlaceholder || 'Isikan penjelasan lokasi keluhan: misal "Nyeri tekan perut kanan bawah daerah appendiks, nyeri lepas (+), defense musculer (-). Lokasi tanda merah di gambar adalah titik paling nyeri."';
-            if (field.required) noteTextarea.required = true;
-            if (!editable) { noteTextarea.setAttribute('readonly', 'readonly'); noteTextarea.classList.add('is-readonly'); }
-            noteControl.appendChild(noteTextarea);
-            noteRow.appendChild(noteLabel);
-            noteRow.appendChild(noteControl);
-            wireFieldValue(noteTextarea, { key: field.key + '__note' }, 'value');
-            wrap.appendChild(noteRow);
-
-            state.bodyMapFields = state.bodyMapFields || {};
-            state.bodyMapFields[field.key] = { svgs: bodySvgs };
-            return wrap;
-        }
-
-        function onBodyMapSvgClick(event, fieldKey, viewId, svgs) {
-            const svg = svgs && svgs[viewId] ? svgs[viewId] : null;
-            if (!svg) return;
-            const rect = svg.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            const xR = ratioNormalize((event.clientX - rect.left) / rect.width);
-            const yR = ratioNormalize((event.clientY - rect.top) / rect.height);
-            const entry = {
-                id: 'bm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-                view: String(viewId || ''),
-                x: xR,
-                y: yR,
-                created_at: new Date().toISOString(),
-                created_by_name: String(getCurrentOperatorName() || '').trim(),
-                created_by_email: String(getCurrentOperatorEmail() || '').trim()
-            };
-            const values = state.formValues || {};
-            const keyStore = fieldKey + '__markers';
-            const arr = Array.isArray(values[keyStore]) ? values[keyStore].slice() : [];
-            arr.push(entry);
-            values[keyStore] = arr;
-            state.formValues = values;
-            refreshBodyMapVisual(fieldKey);
-            onFieldChange();
-            scheduleSave(250);
-        }
-
-        function clearBodyMapMarkers(fieldKey, svgs) {
-            const values = state.formValues || {};
-            values[fieldKey + '__markers'] = [];
-            state.formValues = values;
-            refreshBodyMapVisual(fieldKey);
-            onFieldChange();
-            scheduleSave(250);
-        }
-
-        function refreshBodyMapVisual(fieldKey) {
-            const values = state.formValues || {};
-            const markers = Array.isArray(values[fieldKey + '__markers']) ? values[fieldKey + '__markers'] : [];
-            const fieldEntry = state.bodyMapFields && state.bodyMapFields[fieldKey] ? state.bodyMapFields[fieldKey] : null;
-            const svgs = fieldEntry && fieldEntry.svgs ? fieldEntry.svgs : null;
-            const countEl = document.querySelector('[data-count="' + fieldKey + '"]');
-            if (countEl) countEl.textContent = String(markers.length);
-            if (!svgs) return;
-            Object.keys(svgs).forEach(function (viewId) {
-                const svg = svgs[viewId];
-                if (!svg) return;
-                const circles = svg.querySelectorAll('circle.' + BASE_CLASS_PREFIX + '-body-marker');
-                for (let i = 0; i < circles.length; i++) circles[i].remove();
-                const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : null;
-                const vbW = vb ? vb.width : 120;
-                const vbH = vb ? vb.height : 180;
-                const list = markers.filter(function (m) { return String(m?.view || '') === viewId; });
-                list.forEach(function (m) {
-                    const cx = ratioNormalize(Number(m?.x)) * vbW;
-                    const cy = ratioNormalize(Number(m?.y)) * vbH;
-                    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    c.setAttribute('class', BASE_CLASS_PREFIX + '-body-marker');
-                    c.setAttribute('cx', String(cx));
-                    c.setAttribute('cy', String(cy));
-                    c.setAttribute('r', '6.5');
-                    svg.appendChild(c);
-                });
-            });
-        }
-
-        function computeDetailedAgeLabel(dateOfBirthRaw) {
-            try {
-                if (!dateOfBirthRaw) return '';
-                let dob = null;
-                if (dateOfBirthRaw instanceof Date) {
-                    dob = new Date(dateOfBirthRaw.getTime());
-                } else if (/^\d{4}-\d{2}-\d{2}/.test(String(dateOfBirthRaw))) {
-                    const parts = String(dateOfBirthRaw).slice(0, 10).split('-');
-                    dob = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-                } else if (/^\d{2}-\d{2}-\d{4}/.test(String(dateOfBirthRaw))) {
-                    const parts = String(dateOfBirthRaw).slice(0, 10).split('-');
-                    dob = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-                } else {
-                    dob = new Date(String(dateOfBirthRaw));
-                }
-                if (!dob || isNaN(dob.getTime())) return '';
-                const now = new Date();
-                let years = now.getFullYear() - dob.getFullYear();
-                let months = now.getMonth() - dob.getMonth();
-                let days = now.getDate() - dob.getDate();
-                if (days < 0) {
-                    months -= 1;
-                    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-                    days += prevMonth.getDate();
-                }
-                if (months < 0) {
-                    years -= 1;
-                    months += 12;
-                }
-                years = Math.max(0, years);
-                months = Math.max(0, months);
-                days = Math.max(0, days);
-                let out = '';
-                if (years > 0) out += years + 'th ';
-                if (months > 0) out += months + 'bln ';
-                if (days > 0 || out === '') out += days + 'hri';
-                return out.trim();
-            } catch (_e) { return ''; }
-        }
-        function formatDateDdmmyyyy(raw) {
-            if (!raw) return '-';
-            try {
-                let dob = null;
-                if (raw instanceof Date) dob = new Date(raw.getTime());
-                else if (/^\d{4}-\d{2}-\d{2}/.test(String(raw))) {
-                    const parts = String(raw).slice(0, 10).split('-');
-                    dob = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-                } else if (/^\d{2}-\d{2}-\d{4}/.test(String(raw))) {
-                    const parts = String(raw).slice(0, 10).split('-');
-                    dob = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-                } else dob = new Date(String(raw));
-                if (!dob || isNaN(dob.getTime())) return String(raw || '-');
-                return String(dob.getDate()).padStart(2, '0') + '-' + String(dob.getMonth() + 1).padStart(2, '0') + '-' + dob.getFullYear();
-            } catch (_e) { return String(raw || '-'); }
-        }
-
-        function renderGcStyleHeader(schema, patient) {
-            const wrap = document.createElement('div');
-            wrap.className = BASE_CLASS_PREFIX + '-gc-header';
-            const p = patient || {};
-            const umurFull = (typeof p.umur === 'number' && p.umur > 0)
-                ? (computeDetailedAgeLabel(p.tanggal_lahir) || (String(p.umur) + 'th'))
-                : computeDetailedAgeLabel(p.tanggal_lahir) || (typeof p.umur === 'number' ? String(p.umur) + 'th' : '');
-            wrap.innerHTML = [
-                '<div class="gc-header-box">',
-                '  <div class="gc-header-left">',
-                '    <div class="gc-logo-wrap"><img class="gc-logo" src="assets/image/logo-rsud.png" alt="Logo RSUD Aji Muhammad Idris"></div>',
-                '    <div class="gc-header-center">',
-                '      <div class="gc-header-line">PEMERINTAH KABUPATEN KUTAI KARTANEGARA</div>',
-                '      <div class="gc-header-line gc-header-strong">DINAS KESEHATAN</div>',
-                '      <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>',
-                '      <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>',
-                '      <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>',
-                '      <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris1@gmail.com</div>',
-                '    </div>',
-                '  </div>',
-                '  <div class="gc-patient-col">',
-                '    <div class="gc-patient-box">',
-                '      <table class="gc-patient-meta">',
-                '        <tr><td>Nomor RM</td><td>:</td><td>' + escapeHtml(String(p.no_rm || '-')) + '</td></tr>',
-                '        <tr><td>Nomor REG</td><td>:</td><td>' + escapeHtml(String(p.no_registrasi || '-')) + '</td></tr>',
-                '        <tr><td>Nama</td><td>:</td><td>' + escapeHtml(String(p.nama_pasien || '-')) + '</td></tr>',
-                '        <tr><td>JK</td><td>:</td><td id="gc_jk">' + escapeHtml(String(p.jenis_kelamin || '-')) + '</td></tr>',
-                '        <tr><td>TL</td><td>:</td><td>' + formatDateDdmmyyyy(p.tanggal_lahir) + '</td></tr>',
-                '        <tr><td>Umur</td><td>:</td><td>' + escapeHtml(String(umurFull || '-')) + '</td></tr>',
-                '      </table>',
-                '    </div>',
-                '  </div>',
-                '</div>'
-            ].join('');
-            return wrap.firstElementChild;
-        }
-
-        function renderRekapButton(patient) {
-            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
-            if (!isNs) return '';
-            const registry = getRegistry();
-            if (!registry || !registry.listAll) return '';
-            const patientUnit = String(patient.unit || '').toUpperCase();
-            const pasienUmur = patient.umur;
-            const poliTujuan = String(patient.poli_tujuan || '').toUpperCase();
-            const isPediatrikRow = poliTujuan.includes('ANAK') || poliTujuan.includes('PEDIATRIK')
-                || (typeof pasienUmur === 'number' && pasienUmur < 18) || /anak|pediatrik|bayi|balita/i.test(String(patient.poli_tujuan || ''));
-            const isUgdRow = patientUnit === 'UGD';
-
-            const available = registry.listAll().filter(function (s) {
-                if (!userCanAccess(s)) return false;
-                if (s.id === 'triase_ugd') return isUgdRow;
-                if (s.id === 'pediatrik_awal') return isPediatrikRow;
-                if (s.id === 'rawat_jalan_dewasa') return !isPediatrikRow; // dewasa default non-anak
-                return true;
-            });
-            if (!available.length) return '';
-            return available.map(function (s) {
-                const tone = s.id === 'triase_ugd'
-                    ? 'border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100'
-                    : (s.id === 'pediatrik_awal'
-                        ? 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-800 hover:bg-fuchsia-100'
-                        : 'border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100');
-                const dataset = JSON.stringify({
-                    id: patient.id,
-                    nama_pasien: patient.nama_pasien,
-                    tanggal_lahir: patient.tanggal_lahir,
-                    jenis_kelamin: patient.jenis_kelamin,
-                    no_rm: patient.no_rm,
-                    no_registrasi: patient.no_registrasi,
-                    unit: patient.unit,
-                    no_antrian: patient.no_antrian,
-                    poli_tujuan: patient.poli_tujuan,
-                    umur: patient.umur,
-                    alamat: patient.alamat,
-                    no_telepon: patient.no_telepon,
-                    schemaId: s.id
-                });
-                const btnLabel = (s.id === 'triase_ugd')
-                    ? 'Triase UGD'
-                    : (s.id === 'pediatrik_awal' ? 'Asesmen Pediatrik' : 'Asesmen R.Jalan');
-                return `<button type="button" class="assessment-shared-btn inline-flex items-center justify-center rounded-lg border ${tone} px-3 py-1.5 text-[11px] font-extrabold transition whitespace-nowrap" data-schema-id="${escapeHtml(String(s.id))}" data-patient='${escapeHtml(dataset)}' title="${escapeHtml(String(s.title || ''))}">${escapeHtml(btnLabel)}</button>`;
-            }).join('');
-        }
-
-        function handleRekapButtonClick(btnEl) {
-            if (!btnEl) return;
-            const isNs = (typeof window.isNurseStationRole === 'function') ? Boolean(window.isNurseStationRole()) : false;
-            if (!isNs) {
-                const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
-                alert('[AKSES DITOLAK]\n\nTombol asesmen pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PETUGAS NURSE STATION.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sebagai Nurse Station untuk mengakses formulir asesmen dari menu Rekap Pasien, atau akses melalui Worklist Nurse Station dashboard sesuai peran Anda.');
-                return;
-            }
-            const schemaId = btnEl.getAttribute('data-schema-id');
-            const payloadRaw = btnEl.getAttribute('data-patient');
-            let payload = null;
-            try { payload = JSON.parse(payloadRaw); } catch (_e) { return; }
-            if (!payload || !schemaId) return;
-            openAssessmentBySchemaId(payload, schemaId);
-        }
-
-        function openAssessmentBySchemaId(patientPayload, schemaId) {
-            const schema = getSchemaById(schemaId);
-            if (!schema) { alert('Skema asesmen tidak ditemukan: ' + String(schemaId)); return; }
-            openAssessment(patientPayload, schema);
-        }
-
-        async function openAssessment(patientPayload, schemaOrId) {
-            if (!patientPayload) {
-                console.error('[openAssessment] patientPayload null/undefined. schemaOrId=', schemaOrId);
-                alert('[ERROR BUKA FORM] Data pasien tidak valid (kosong).\nSilakan klik tombol pada kartu pasien di worklist (bukan tombol submenu langsung), atau hubungi admin.');
-                return;
-            }
-            const schema = typeof schemaOrId === 'string' ? getSchemaById(schemaOrId) : schemaOrId;
-            if (!schema) {
-                console.error('[openAssessment] Schema tidak ditemukan. schemaOrId=', schemaOrId);
-                const registry = getRegistry();
-                const listKeys = registry ? Object.keys(registry).filter(function (k) { const v = registry[k]; return v && typeof v === 'object' && v.id; }) : [];
-                const listIds = registry && typeof registry.listAll === 'function' ? registry.listAll().map(function (s) { return s.id; }) : [];
-                alert('[ERROR] Skema asesmen tidak ditemukan: ' + String(schemaOrId) + '\n\nSchema keys tersedia:\n  • ' + (listKeys.join('\n  • ') || '-') + '\n\nSchema ID listAll:\n  • ' + (listIds.join('\n  • ') || '-'));
-                return;
-            }
-            if (!userCanAccess(schema)) {
-                const curRoleName = (typeof getCurrentAdminRole === 'function' ? String(getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
-                console.warn('[openAssessment] userCanAccess FALSE. schema.allowRoles=', schema && schema.allowRoles, 'schema=', schema);
-                alert('[AKSES DITOLAK]\n\nFormulir: ' + (schema.label || schema.id) + '\n\nAkun Anda (role: ' + curRoleName + ') tidak diizinkan mengakses formulir ini.\n\nHanya role berikut yang dapat mengakses: ' + ((schema.allowRoles || []).join(', ') || '-') + '\n\nJika ini kesalahan, login sebagai perawat Nurse Station / Dokter Spesialis.');
-                return;
-            }
-
-            state.schema = schema;
-            state.schemaId = String(schema.id || '');
-            state.patient = patientPayload;
-            state.record = null;
-            state.recordId = null;
-            state.formValues = {};
-            state.lastWriteAt = 0;
-            state.bodyMapFields = state.bodyMapFields || {};
-
-            if (state.realtimeChannel) {
-                try { supabaseClient.removeChannel(state.realtimeChannel); } catch (_e) {}
-                state.realtimeChannel = null;
-            }
-
-            try {
-                ensureModalInjected();
-                wireDom();
-                wireEvents();
-            } catch (e) {
-                console.error('[openAssessment] modal inject gagal:', e);
-                alert('[ERROR GAGAL BUKA MODAL]\n\n' + (e?.message || String(e)));
-                return;
-            }
-
-            try {
-                applyHeaderMeta(schema, patientPayload);
-                applyRoleText(schema);
-                renderFormFromSchema(schema);
-                openModal();
-                setStatus('Memuat data asesmen dari server...', 'loading');
-            } catch (renderErr) {
-                console.error('[openAssessment] renderFormFromSchema error:', renderErr);
-                setStatus('Gagal merender form.', 'error');
-                alert('[ERROR RENDER FORM]\n\n' + (renderErr?.message || String(renderErr)) + '\n\nKemungkinan ada kesalahan sintaks schema ' + (schema.id || '') + '. Hubungi admin.');
-                return;
-            }
-            try {
-                await ensureRecordLoaded(schema, patientPayload);
-                subscribeRealtime(schema, patientPayload);
-                setStatus('Data siap. Perubahan akan disimpan otomatis.', 'ready');
-                scheduleSave(0);
-            } catch (err) {
-                console.warn(err);
-                setStatus('Gagal memuat data asesmen, harap Refresh. ' + (err?.message || String(err)), 'error');
-            }
-        }
-
-        async function ensureRecordLoaded(schema, patient) {
-            const pid = String(patient.id || '').trim();
-            if (!pid) return;
-            const table = schema.table;
-            const query = supabaseClient
-                .from(table)
-                .select('*')
-                .eq('pasien_id', pid)
-                .order('id', { ascending: false })
-                .limit(1);
-            const { data, error } = await withTimeout(query, 15000, 'load-' + table);
-            if (error) throw new Error(error.message);
-            const row = (data && data.length) ? data[0] : null;
-            if (row) {
-                state.record = row;
-                state.recordId = row.id;
-                // Combine fixed meta + JSONB column ke formValues
-                const combined = {};
-                const jsonb = row[schema.jsonbColumn] || {};
-                if (jsonb && typeof jsonb === 'object') Object.assign(combined, jsonb);
-                // Mirror fixed vital signs ke formValues (jika ada di fixed column):
-                const mirrorFixedKeys = ['td_sistolik', 'td_diastolik', 'nadi', 'suhu', 'respirasi', 'spo2', 'berat_badan_kg', 'panjang_badan_cm', 'skala_nyeri_wong_baker', 'kategori_triase'];
-                for (const k of mirrorFixedKeys) if (row[k] != null) combined[k] = row[k];
-                // category label fallback
-                if (!combined.kategori_triase_label && row.kategori_triase_label) combined.kategori_triase_label = row.kategori_triase_label;
-                state.formValues = combined;
-                hydrateFormFromValues();
-            } else {
-                state.record = null;
-                state.recordId = null;
-                state.formValues = {};
-                hydrateFormFromValues();
-            }
-            syncFixedBadges();
-        }
-
-        function subscribeRealtime(schema, patient) {
-            const pid = String(patient.id || '').trim();
-            if (!pid) return;
-            const table = schema.table;
-            try {
-                state.realtimeChannel = supabaseClient
-                    .channel('simami-shared-assessment-' + table + '-' + pid)
-                    .on('postgres_changes', { event: '*', schema: 'public', table: table, filter: 'pasien_id=eq.' + pid }, function () {
-                        if (Date.now() - state.lastWriteAt < 1500) return;
-                        refreshCurrentRecord(true);
-                    })
-                    .subscribe();
-            } catch (_e) {
-                state.realtimeChannel = null;
-            }
-        }
-
-        async function refreshCurrentRecord(fromRealtime) {
-            if (!state.schema || !state.patient) return;
-            try {
-                await ensureRecordLoaded(state.schema, state.patient);
-                if (fromRealtime) setStatus('Data diperbarui dari perangkat lain (realtime).', 'sync');
-            } catch (err) {
-                setStatus('Gagal refresh data. ' + (err?.message || String(err)), 'error');
-            }
-        }
-
-        // ---- UI Rendering dari Schema ----
-        function renderFormFromSchema(schema) {
-            state.fieldsById = {};
-            const form = dom.form;
-            if (!form) return;
-            form.innerHTML = '';
-
-            const sectionsParent = document.createElement('div');
-            if (schema.useGcHeaderStyle) {
-                const kopEl = renderGcStyleHeader(schema, state.patient);
-                if (kopEl) form.appendChild(kopEl);
-                const titleBox = document.createElement('div');
-                titleBox.className = BASE_CLASS_PREFIX + '-print-title-box';
-                const printTitle = document.createElement('div');
-                printTitle.className = BASE_CLASS_PREFIX + '-print-title';
-                printTitle.textContent = schema.printTitle || schema.title || '';
-                titleBox.appendChild(printTitle);
-                if (schema.printSubtitle) {
-                    const printSub = document.createElement('div');
-                    printSub.className = BASE_CLASS_PREFIX + '-print-subtitle';
-                    printSub.textContent = schema.printSubtitle;
-                    titleBox.appendChild(printSub);
-                }
-                form.appendChild(titleBox);
-                sectionsParent.className = BASE_CLASS_PREFIX + '-body-box';
-            } else {
-                sectionsParent.className = BASE_CLASS_PREFIX + '-sections-plain';
-            }
-            form.appendChild(sectionsParent);
-
-            const sections = Array.isArray(schema.sections) ? schema.sections : [];
-            sections.forEach(function (section, idx) {
-                const sec = document.createElement('section');
-                sec.className = BASE_CLASS_PREFIX + '-section';
-                sec.dataset.sectionKey = section.key || 'sec-' + idx;
-                if (section.pageBreakBefore) sec.classList.add('is-page-break-before');
-                const editable = canEditSection(section);
-                if (!editable) sec.classList.add('is-locked');
-                const tone = String(section.roleTone || '').toLowerCase();
-                if (tone === 'nurse') sec.classList.add('is-nurse-section');
-                else if (tone === 'doctor') sec.classList.add('is-doctor-section');
-
-                if (!section.hideHeader) {
-                    const head = document.createElement('div');
-                    head.className = BASE_CLASS_PREFIX + '-section-head';
-                    const headTop = document.createElement('div');
-                    headTop.className = BASE_CLASS_PREFIX + '-section-head-top';
-                    const title = document.createElement('h3');
-                    title.className = BASE_CLASS_PREFIX + '-section-title';
-                    title.textContent = section.title || 'Bagian ' + (idx + 1);
-                    headTop.appendChild(title);
-                    if (section.roleLabel) {
-                        const pill = document.createElement('span');
-                        const toneCls = tone === 'doctor' ? 'is-doctor' : 'is-nurse';
-                        pill.className = BASE_CLASS_PREFIX + '-role-pill ' + toneCls;
-                        pill.textContent = section.roleLabel;
-                        headTop.appendChild(pill);
-                    }
-                    head.appendChild(headTop);
-                    if (!editable) {
-                        const note = document.createElement('div');
-                        note.className = BASE_CLASS_PREFIX + '-readonly-note';
-                        const who = describeSectionRole(section) || 'role yang berwenang';
-                        note.textContent = '🔒 Bagian ini hanya dapat diisi oleh ' + who + '. Akun Anda hanya bisa melihat data dan perubahan realtime.';
-                        head.appendChild(note);
-                    }
-                    if (section.hint) {
-                        const hint = document.createElement('p');
-                        hint.className = BASE_CLASS_PREFIX + '-section-hint';
-                        hint.textContent = section.hint;
-                        head.appendChild(hint);
-                    }
-                    sec.appendChild(head);
-                }
-
-                const body = document.createElement('div');
-                body.className = BASE_CLASS_PREFIX + '-section-body';
-                if (!editable) body.classList.add('is-locked-body');
-                const fields = Array.isArray(section.fields) ? section.fields : [];
-
-                const vitals = fields.filter(function (f) { return f.vitalSign === true; });
-                const nonVitals = fields.filter(function (f) { return f.vitalSign !== true; });
-
-                if (vitals.length) {
-                    const vt = renderVitalSignTable(vitals, schema);
-                    if (vt) body.appendChild(vt);
-                }
-
-                nonVitals.forEach(function (field) {
-                    if (field.computed) return;
-                    const noWrapperTypes = new Set(['heading-text', 'pdf-table', 'side-by-side-row', 'inline-group', 'body-map']);
-                    if (noWrapperTypes.has(String(field.type || '')) === true) {
-                        if (field.type === 'body-map') {
-                            const mapRow = renderBodyMapField(field, schema, editable);
-                            if (mapRow) {
-                                if (!editable) mapRow.classList.add('is-locked-field');
-                                body.appendChild(mapRow);
-                            }
-                            return;
-                        }
-                        const inner = buildInputElement(field, schema);
-                        if (inner) {
-                            const wrap = document.createElement('div');
-                            wrap.className = BASE_CLASS_PREFIX + '-full-field';
-                            if (field.noWrapper) wrap.className = '';
-                            if (wrap.className) {
-                                if (!editable) wrap.classList.add('is-locked-field');
-                                wrap.appendChild(inner);
-                                body.appendChild(wrap);
-                            } else {
-                                if (!editable && inner.classList) inner.classList.add('is-locked-field');
-                                body.appendChild(inner);
-                            }
-                        }
-                        return;
-                    }
-                    const row = renderFieldRow(field, schema);
-                    if (row) {
-                        if (!editable) row.classList.add('is-locked-field');
-                        body.appendChild(row);
-                    }
-                });
-
-                if (section.key === 'hal1_pemeriksaan_vitals' || section.key === 'hal1_perawat_b' || section.key === 'hal1_perawat') {
-                    const imtRow = document.createElement('div');
-                    imtRow.className = BASE_CLASS_PREFIX + '-field-row is-computed';
-                    const imtLabel = document.createElement('label');
-                    imtLabel.className = BASE_CLASS_PREFIX + '-field-label';
-                    imtLabel.textContent = 'IMT (Indeks Massa Tubuh)';
-                    imtRow.appendChild(imtLabel);
-                    const imtCtrl = document.createElement('div');
-                    imtCtrl.className = BASE_CLASS_PREFIX + '-field-control';
-                    const imtInput = document.createElement('input');
-                    imtInput.type = 'text';
-                    imtInput.id = 'f_' + state.schemaId + '_imt_computed';
-                    imtInput.dataset.fieldKey = 'imt';
-                    imtInput.className = BASE_CLASS_PREFIX + '-line is-readonly';
-                    imtInput.readOnly = true;
-                    imtInput.placeholder = 'Otomatis dihitung ketika BB & TB terisi';
-                    imtCtrl.appendChild(imtInput);
-                    imtRow.appendChild(imtCtrl);
-                    if (!editable) imtRow.classList.add('is-locked-field');
-                    body.appendChild(imtRow);
-                }
-
-                if (!editable) {
-                    const inputs = body.querySelectorAll('input, textarea, select, button');
-                    for (let i = 0; i < inputs.length; i++) {
-                        const inp = inputs[i];
-                        if (inp.type === 'radio' || inp.type === 'checkbox') inp.disabled = true;
-                        else { inp.setAttribute('readonly', 'readonly'); inp.classList.add('is-readonly'); }
-                    }
-                }
-
-                sec.appendChild(body);
-                sectionsParent.appendChild(sec);
-            });
-
-            const signatureEl = renderSignatureSection(schema);
-            if (signatureEl) sectionsParent.appendChild(signatureEl);
-
-            hydrateFormFromValues();
-            refreshComputedFields();
-        }
-
-        function renderVitalSignTable(vitals, schema) {
-            const wrap = document.createElement('div');
-            wrap.className = BASE_CLASS_PREFIX + '-vital-table-wrap';
-            const label = document.createElement('div');
-            label.className = BASE_CLASS_PREFIX + '-vital-label';
-            label.textContent = 'PENGUKURAN VITAL SIGN';
-            wrap.appendChild(label);
-            const table = document.createElement('table');
-            table.className = BASE_CLASS_PREFIX + '-vital-table';
-            const thead = document.createElement('thead');
-            const headRow = document.createElement('tr');
-            vitals.forEach(function (f) {
-                const th = document.createElement('th');
-                th.textContent = f.label || f.key;
-                const suf = f.suffix ? (' (' + f.suffix + ')') : '';
-                th.innerHTML = escapeHtml(f.label || f.key) + (suf ? '<span class="muted"> ' + escapeHtml(suf) + '</span>' : '');
-                headRow.appendChild(th);
-            });
-            thead.appendChild(headRow);
-            table.appendChild(thead);
-            const tbody = document.createElement('tbody');
-            const row = document.createElement('tr');
-            vitals.forEach(function (f) {
-                const td = document.createElement('td');
-                const input = buildInputElement(f, schema);
-                input.classList.add(BASE_CLASS_PREFIX + '-vital-input');
-                td.appendChild(input);
-                row.appendChild(td);
-            });
-            tbody.appendChild(row);
-            table.appendChild(tbody);
-            wrap.appendChild(table);
-            return wrap;
-        }
-
-        function renderFieldRow(field, schema) {
-            const row = document.createElement('div');
-            row.className = BASE_CLASS_PREFIX + '-field-row';
-            if (field.type === 'wong-baker-0-5') row.classList.add('is-wong-baker');
-            const labelEl = document.createElement('label');
-            labelEl.className = BASE_CLASS_PREFIX + '-field-label';
-            labelEl.textContent = field.label || field.key;
-            if (field.required) {
-                const star = document.createElement('span');
-                star.className = 'is-required';
-                star.textContent = ' *';
-                labelEl.appendChild(star);
-            }
-            row.appendChild(labelEl);
-            const ctrl = document.createElement('div');
-            ctrl.className = BASE_CLASS_PREFIX + '-field-control';
-            const input = buildInputElement(field, schema);
-            if (input) ctrl.appendChild(input);
-            row.appendChild(ctrl);
-            return row;
-        }
-
-        function buildInputElement(field, schema) {
-            const id = 'f_' + state.schemaId + '_' + field.key;
-            state.fieldsById[id] = field;
-            const t = field.type || 'text';
-
-            if (t === 'textarea') {
-                const ta = document.createElement('textarea');
-                ta.id = id;
-                ta.dataset.fieldKey = field.key;
-                ta.rows = Number(field.rows || 2);
-                ta.placeholder = field.placeholder || '';
-                ta.className = BASE_CLASS_PREFIX + '-textarea';
-                if (field.required) ta.required = true;
-                wireFieldValue(ta, field, 'value');
-                return ta;
-            }
-            if (t === 'radio-group') {
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-options';
-                const opts = (Array.isArray(field.options) ? field.options : []).map(function (opt) {
-                    if (opt && typeof opt === 'object') return { value: String(opt.value), label: String(opt.label) };
-                    return { value: String(opt), label: String(opt) };
-                });
-                opts.forEach(function (opt) {
-                    const lbl = document.createElement('label');
-                    lbl.className = BASE_CLASS_PREFIX + '-option';
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = 'grp_' + state.schemaId + '_' + field.key;
-                    radio.dataset.fieldKey = field.key;
-                    radio.value = opt.value;
-                    radio.className = BASE_CLASS_PREFIX + '-radio';
-                    const span = document.createElement('span');
-                    span.textContent = opt.label;
-                    lbl.appendChild(radio);
-                    lbl.appendChild(span);
-                    wrap.appendChild(lbl);
-                    wireFieldValue(radio, field, 'checked');
-                });
-                if (field.otherField) {
-                    const otherLabel = document.createElement('label');
-                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
-                    otherLabel.textContent = 'Lainnya: ';
-                    const otherInput = document.createElement('input');
-                    otherInput.type = 'text';
-                    otherInput.className = BASE_CLASS_PREFIX + '-line';
-                    otherInput.id = id + '__other';
-                    otherInput.dataset.fieldKey = field.key + '__other';
-                    otherInput.placeholder = 'Keterangan lainnya';
-                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
-                    otherLabel.appendChild(otherInput);
-                    wrap.appendChild(otherLabel);
-                }
-                return wrap;
-            }
-            if (t === 'checkbox-group') {
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-options is-checkbox';
-                const opts = (Array.isArray(field.options) ? field.options : []).map(String);
-                opts.forEach(function (opt) {
-                    const lbl = document.createElement('label');
-                    lbl.className = BASE_CLASS_PREFIX + '-option';
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.dataset.fieldKey = field.key + '[]';
-                    cb.dataset.optionValue = opt;
-                    cb.value = opt;
-                    cb.className = BASE_CLASS_PREFIX + '-checkbox';
-                    const span = document.createElement('span');
-                    span.textContent = opt;
-                    lbl.appendChild(cb);
-                    lbl.appendChild(span);
-                    wrap.appendChild(lbl);
-                    wireCheckboxField(cb, field);
-                });
-                if (field.otherField) {
-                    const otherLabel = document.createElement('label');
-                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
-                    otherLabel.textContent = 'Lainnya: ';
-                    const otherInput = document.createElement('input');
-                    otherInput.type = 'text';
-                    otherInput.className = BASE_CLASS_PREFIX + '-line';
-                    otherInput.id = id + '__other';
-                    otherInput.dataset.fieldKey = field.key + '__other';
-                    otherInput.placeholder = 'Keterangan lainnya';
-                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
-                    otherLabel.appendChild(otherInput);
-                    wrap.appendChild(otherLabel);
-                }
-                return wrap;
-            }
-            if (t === 'wong-baker-0-5') {
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-wong-baker';
-                const faces = [
-                    { value: 0, label: '0 - Tidak Nyeri', face: '😊' },
-                    { value: 1, label: '1 - Nyeri Ringan', face: '🙂' },
-                    { value: 2, label: '2 - Nyeri Sedikit', face: '😐' },
-                    { value: 3, label: '3 - Nyeri Sedang', face: '😟' },
-                    { value: 4, label: '4 - Nyeri Hebat', face: '😢' },
-                    { value: 5, label: '5 - Nyeri Paling Hebat', face: '😭' }
-                ];
-                faces.forEach(function (f) {
-                    const lbl = document.createElement('label');
-                    lbl.className = BASE_CLASS_PREFIX + '-wb-item';
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = 'wb_' + state.schemaId + '_' + field.key;
-                    radio.dataset.fieldKey = field.key;
-                    radio.value = String(f.value);
-                    const face = document.createElement('div');
-                    face.className = BASE_CLASS_PREFIX + '-wb-face';
-                    face.textContent = f.face;
-                    const vlabel = document.createElement('div');
-                    vlabel.className = BASE_CLASS_PREFIX + '-wb-label';
-                    vlabel.textContent = f.label;
-                    lbl.appendChild(radio);
-                    lbl.appendChild(face);
-                    lbl.appendChild(vlabel);
-                    wrap.appendChild(lbl);
-                    wireFieldValue(radio, field, 'checked');
-                });
-                return wrap;
-            }
-            if (t === 'heading-text') {
-                const hWrap = document.createElement('div');
-                const heading = document.createElement('div');
-                heading.className = BASE_CLASS_PREFIX + '-heading';
-                if (field.align === 'center') heading.classList.add('is-center');
-                if (field.align === 'left') heading.classList.add('is-left');
-                if (field.weight === 'bold') heading.classList.add('is-bold');
-                if (field.size === 'lg') heading.classList.add('is-lg');
-                if (field.size === 'md') heading.classList.add('is-md');
-                if (field.spacing) heading.style.marginTop = String(field.spacing);
-                heading.textContent = field.text || field.label || field.key || '';
-                hWrap.appendChild(heading);
-                return hWrap;
-            }
-            if (t === 'radio-inline' || t === 'radio-group') {
-                const isInline = t === 'radio-inline';
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-options' + (isInline ? ' is-inline' : '');
-                const opts = (Array.isArray(field.options) ? field.options : []).map(function (opt) {
-                    if (opt && typeof opt === 'object') return { value: String(opt.value), label: String(opt.label) };
-                    return { value: String(opt), label: String(opt) };
-                });
-                opts.forEach(function (opt, idx) {
-                    const lbl = document.createElement('label');
-                    lbl.className = BASE_CLASS_PREFIX + '-option' + (isInline ? ' is-inline' : '');
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = 'grp_' + state.schemaId + '_' + field.key;
-                    radio.dataset.fieldKey = field.key;
-                    radio.value = opt.value;
-                    radio.className = BASE_CLASS_PREFIX + '-radio';
-                    const span = document.createElement('span');
-                    span.textContent = opt.label;
-                    lbl.appendChild(radio);
-                    lbl.appendChild(span);
-                    wrap.appendChild(lbl);
-                    wireFieldValue(radio, field, 'checked');
-                    if (isInline && Array.isArray(field.suffixInputs) && field.suffixInputs[idx]) {
-                        const sfx = field.suffixInputs[idx];
-                        if (sfx && typeof sfx === 'object') {
-                            if (sfx.space) wrap.appendChild(document.createTextNode('  '));
-                            const sfxWrap = document.createElement('span');
-                            sfxWrap.className = BASE_CLASS_PREFIX + '-inline-suffix';
-                            if (sfx.prefix) {
-                                const sp = document.createElement('span');
-                                sp.textContent = String(sfx.prefix);
-                                sfxWrap.appendChild(sp);
-                            }
-                            const sfxInput = document.createElement('input');
-                            sfxInput.type = sfx.type || 'text';
-                            sfxInput.className = BASE_CLASS_PREFIX + '-line' + (sfx.size ? ' is-' + sfx.size : ' is-sm');
-                            sfxInput.id = id + '__sfx_' + String(idx);
-                            sfxInput.dataset.fieldKey = String(sfx.key || (field.key + '__sfx_' + String(idx)));
-                            if (sfx.placeholder) sfxInput.placeholder = sfx.placeholder;
-                            wireFieldValue(sfxInput, { key: sfxInput.dataset.fieldKey }, 'value');
-                            sfxWrap.appendChild(sfxInput);
-                            if (sfx.suffix) {
-                                const ss = document.createElement('span');
-                                ss.textContent = String(sfx.suffix);
-                                sfxWrap.appendChild(ss);
-                            }
-                            wrap.appendChild(sfxWrap);
-                        }
-                    }
-                });
-                if (field.otherField) {
-                    const otherLabel = document.createElement('label');
-                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
-                    otherLabel.textContent = field.otherLabel ? String(field.otherLabel) : 'Lainnya: ';
-                    const otherInput = document.createElement('input');
-                    otherInput.type = 'text';
-                    otherInput.className = BASE_CLASS_PREFIX + '-line';
-                    otherInput.id = id + '__other';
-                    otherInput.dataset.fieldKey = field.key + '__other';
-                    otherInput.placeholder = 'Keterangan lainnya';
-                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
-                    otherLabel.appendChild(otherInput);
-                    wrap.appendChild(otherLabel);
-                }
-                return wrap;
-            }
-            if (t === 'checkbox-inline' || t === 'checkbox-group') {
-                const isInline = t === 'checkbox-inline';
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-options is-checkbox' + (isInline ? ' is-inline' : '');
-                const opts = (Array.isArray(field.options) ? field.options : []).map(String);
-                opts.forEach(function (opt, idx) {
-                    const lbl = document.createElement('label');
-                    lbl.className = BASE_CLASS_PREFIX + '-option' + (isInline ? ' is-inline' : '');
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.dataset.fieldKey = field.key + '[]';
-                    cb.dataset.optionValue = opt;
-                    cb.value = opt;
-                    cb.className = BASE_CLASS_PREFIX + '-checkbox';
-                    const span = document.createElement('span');
-                    span.textContent = opt;
-                    lbl.appendChild(cb);
-                    lbl.appendChild(span);
-                    wrap.appendChild(lbl);
-                    wireCheckboxField(cb, field);
-                    if (isInline && Array.isArray(field.suffixInputs) && field.suffixInputs[idx]) {
-                        const sfx = field.suffixInputs[idx];
-                        if (sfx && typeof sfx === 'object') {
-                            if (sfx.space) wrap.appendChild(document.createTextNode('  '));
-                            const sfxWrap = document.createElement('span');
-                            sfxWrap.className = BASE_CLASS_PREFIX + '-inline-suffix';
-                            if (sfx.prefix) {
-                                const sp = document.createElement('span');
-                                sp.textContent = String(sfx.prefix);
-                                sfxWrap.appendChild(sp);
-                            }
-                            const sfxInput = document.createElement('input');
-                            sfxInput.type = sfx.type || 'text';
-                            sfxInput.className = BASE_CLASS_PREFIX + '-line' + (sfx.size ? ' is-' + sfx.size : ' is-sm');
-                            sfxInput.id = id + '__cb_sfx_' + String(idx);
-                            sfxInput.dataset.fieldKey = String(sfx.key || (field.key + '__sfx_' + String(idx)));
-                            if (sfx.placeholder) sfxInput.placeholder = sfx.placeholder;
-                            wireFieldValue(sfxInput, { key: sfxInput.dataset.fieldKey }, 'value');
-                            sfxWrap.appendChild(sfxInput);
-                            if (sfx.suffix) {
-                                const ss = document.createElement('span');
-                                ss.textContent = String(sfx.suffix);
-                                sfxWrap.appendChild(ss);
-                            }
-                            wrap.appendChild(sfxWrap);
-                        }
-                    }
-                });
-                if (field.otherField) {
-                    const otherLabel = document.createElement('label');
-                    otherLabel.className = BASE_CLASS_PREFIX + '-other';
-                    otherLabel.textContent = field.otherLabel ? String(field.otherLabel) : 'Lainnya: ';
-                    const otherInput = document.createElement('input');
-                    otherInput.type = 'text';
-                    otherInput.className = BASE_CLASS_PREFIX + '-line';
-                    otherInput.id = id + '__other';
-                    otherInput.dataset.fieldKey = field.key + '__other';
-                    otherInput.placeholder = 'Keterangan lainnya';
-                    wireFieldValue(otherInput, { key: field.key + '__other' }, 'value');
-                    otherLabel.appendChild(otherInput);
-                    wrap.appendChild(otherLabel);
-                }
-                return wrap;
-            }
-            if (t === 'side-by-side-row') {
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-side-row';
-                if (field.gap) wrap.style.gap = String(field.gap);
-                const children = Array.isArray(field.children) ? field.children : [];
-                children.forEach(function (childField) {
-                    const cell = document.createElement('div');
-                    cell.className = BASE_CLASS_PREFIX + '-side-cell';
-                    if (childField.flex) cell.style.flex = String(childField.flex);
-                    if (childField.label) {
-                        const cl = document.createElement('label');
-                        cl.className = BASE_CLASS_PREFIX + '-side-label';
-                        cl.textContent = String(childField.label);
-                        if (childField.required) {
-                            const star = document.createElement('span');
-                            star.className = 'is-required';
-                            star.textContent = ' *';
-                            cl.appendChild(star);
-                        }
-                        cell.appendChild(cl);
-                    }
-                    const childId = 'f_' + state.schemaId + '_' + childField.key;
-                    state.fieldsById[childId] = childField;
-                    const childInput = buildInputElement(childField, schema);
-                    if (childInput) cell.appendChild(childInput);
-                    wrap.appendChild(cell);
-                });
-                return wrap;
-            }
-            if (t === 'inline-group') {
-                const wrap = document.createElement('div');
-                wrap.className = BASE_CLASS_PREFIX + '-inline-group';
-                if (field.gap) wrap.style.gap = String(field.gap);
-                const children = Array.isArray(field.children) ? field.children : [];
-                children.forEach(function (childField) {
-                    const item = document.createElement('div');
-                    item.className = BASE_CLASS_PREFIX + '-inline-group-item';
-                    if (childField.flex) item.style.flex = String(childField.flex);
-                    const lblSpan = document.createElement('span');
-                    lblSpan.className = BASE_CLASS_PREFIX + '-inline-group-prefix';
-                    lblSpan.textContent = String(childField.label || '') + (childField.label ? ' : ' : '');
-                    item.appendChild(lblSpan);
-                    const childId2 = 'f_' + state.schemaId + '_' + childField.key;
-                    state.fieldsById[childId2] = childField;
-                    const childIn = buildInputElement(childField, schema);
-                    if (childIn) item.appendChild(childIn);
-                    if (childField.suffix) {
-                        const sf = document.createElement('span');
-                        sf.className = BASE_CLASS_PREFIX + '-inline-group-suffix';
-                        sf.textContent = String(childField.suffix);
-                        item.appendChild(sf);
-                    }
-                    wrap.appendChild(item);
-                });
-                return wrap;
-            }
-            if (t === 'pdf-table') {
-                const tWrap = document.createElement('div');
-                tWrap.className = BASE_CLASS_PREFIX + '-pdf-table-wrap';
-                if (field.title) {
-                    const tTitle = document.createElement('div');
-                    tTitle.className = BASE_CLASS_PREFIX + '-pdf-table-title' + (field.titleCenter ? ' is-center' : '');
-                    if (field.titleBold) tTitle.classList.add('is-bold');
-                    tTitle.textContent = String(field.title);
-                    tWrap.appendChild(tTitle);
-                }
-                const table = document.createElement('table');
-                table.className = BASE_CLASS_PREFIX + '-pdf-table' + (field.compact ? ' is-compact' : '') + (field.stripe ? ' is-stripe' : '');
-                if (field.width) table.style.width = String(field.width);
-                const thead = document.createElement('thead');
-                const headRow = document.createElement('tr');
-                (field.headers || []).forEach(function (h) {
-                    const th = document.createElement('th');
-                    th.textContent = String(h && typeof h === 'object' ? (h.label || h.text || '') : String(h));
-                    if (h && typeof h === 'object' && h.width) th.style.width = String(h.width);
-                    if (h && typeof h === 'object' && h.align) th.style.textAlign = String(h.align);
-                    headRow.appendChild(th);
-                });
-                thead.appendChild(headRow);
-                table.appendChild(thead);
-                const tbody = document.createElement('tbody');
-                (field.rows || []).forEach(function (rowData, rIdx) {
-                    const tr = document.createElement('tr');
-                    (Array.isArray(rowData) ? rowData : []).forEach(function (cellData, cIdx) {
-                        const td = document.createElement('td');
-                        if (cellData && typeof cellData === 'object' && cellData.field) {
-                            const fk = String(cellData.field.key || cellData.field || '');
-                            if (cellData.field && typeof cellData.field === 'object') {
-                                const cellField = cellData.field;
-                                if (!cellField.key) cellField.key = fk + '__r' + rIdx + 'c' + cIdx;
-                                const cid = 'f_' + state.schemaId + '_' + cellField.key;
-                                state.fieldsById[cid] = cellField;
-                                const ci = buildInputElement(cellField, schema);
-                                if (ci) td.appendChild(ci);
-                            } else if (String(cellData.field) === '__text_only__') {
-                                td.textContent = String(cellData.text || '');
-                            }
-                        } else if (cellData && typeof cellData === 'object' && cellData.type === 'text-only') {
-                            td.textContent = String(cellData.text || '');
-                        } else if (cellData && typeof cellData === 'object' && cellData.type === 'textarea') {
-                            const ta = document.createElement('textarea');
-                            ta.className = BASE_CLASS_PREFIX + '-textarea';
-                            ta.rows = Number(cellData.rows || 3);
-                            ta.dataset.fieldKey = String(cellData.key || (field.key + '__r' + rIdx + 'c' + cIdx));
-                            ta.id = id + '__cell_' + rIdx + '_' + cIdx;
-                            if (cellData.placeholder) ta.placeholder = String(cellData.placeholder);
-                            wireFieldValue(ta, { key: ta.dataset.fieldKey }, 'value');
-                            td.appendChild(ta);
-                        } else {
-                            td.textContent = String(cellData == null ? '' : cellData);
-                        }
-                        if (cellData && typeof cellData === 'object' && cellData.align) td.style.textAlign = String(cellData.align);
-                        if (cellData && typeof cellData === 'object' && cellData.rowspan) td.rowSpan = Number(cellData.rowspan);
-                        if (cellData && typeof cellData === 'object' && cellData.colspan) td.colSpan = Number(cellData.colspan);
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
-                });
-                table.appendChild(tbody);
-                tWrap.appendChild(table);
-                return tWrap;
-            }
-            if (t === 'body-map') {
-                return renderBodyMapFieldInner(field, schema, true);
-            }
-            if (t === 'date') {
-                const input = document.createElement('input');
-                input.type = 'date';
-                input.id = id;
-                input.dataset.fieldKey = field.key;
-                input.className = BASE_CLASS_PREFIX + '-line';
-                if (field.required) input.required = true;
-                wireFieldValue(input, field, 'value');
-                return input;
-            }
-            if (t === 'text') {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.id = id;
-                input.dataset.fieldKey = field.key;
-                if (typeof field.maxLength === 'number') input.maxLength = Number(field.maxLength);
-                input.placeholder = field.placeholder || '';
-                let clsLine = BASE_CLASS_PREFIX + '-line';
-                if (field.size === 'xs') clsLine += ' is-xs';
-                else if (field.size === 'sm') clsLine += ' is-sm';
-                else if (field.size === 'lg') clsLine += ' is-lg';
-                input.className = clsLine;
-                if (field.required) input.required = true;
-                wireFieldValue(input, field, 'value');
-                return input;
-            }
-            if (t === 'radio') {
-                const wrap = document.createElement('label');
-                wrap.className = BASE_CLASS_PREFIX + '-single-radio';
-                const r = document.createElement('input');
-                r.type = 'radio';
-                const grp = field.groupName || ('sr_' + state.schemaId + '_' + field.key);
-                r.name = grp;
-                r.id = id;
-                r.dataset.fieldKey = field.key;
-                r.value = String(field.value ?? '1');
-                r.className = BASE_CLASS_PREFIX + '-radio';
-                if (field.required) r.required = true;
-                wrap.appendChild(r);
-                wireFieldValue(r, field, 'checked');
-                return wrap;
-            }
-            if (t === 'number') {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.id = id;
-                input.dataset.fieldKey = field.key;
-                if (typeof field.min === 'number') input.min = String(field.min);
-                if (typeof field.max === 'number') input.max = String(field.max);
-                if (typeof field.step === 'number') input.step = String(field.step);
-                input.placeholder = (field.placeholder ? field.placeholder : (field.suffix ? 'isi dalam ' + field.suffix : ''));
-                input.className = BASE_CLASS_PREFIX + '-line';
-                if (field.required) input.required = true;
-                wireFieldValue(input, field, 'value');
-                if (field.suffix) {
-                    const wrap = document.createElement('div');
-                    wrap.className = BASE_CLASS_PREFIX + '-suffix-wrap';
-                    wrap.appendChild(input);
-                    const suf = document.createElement('span');
-                    suf.className = BASE_CLASS_PREFIX + '-suffix';
-                    suf.textContent = field.suffix;
-                    wrap.appendChild(suf);
-                    return wrap;
-                }
-                return input;
-            }
-            // default text
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.id = id;
-            input.dataset.fieldKey = field.key;
-            input.placeholder = field.placeholder || '';
-            input.className = BASE_CLASS_PREFIX + '-line';
-            if (field.required) input.required = true;
-            wireFieldValue(input, field, 'value');
-            return input;
-        }
-
-        function wireFieldValue(el, field, prop) {
-            const key = field.key;
-            el.addEventListener('input', function () { onFieldChange(); scheduleSave(600); }, { passive: true });
-            el.addEventListener('change', function () { onFieldChange(); scheduleSave(250); }, { passive: true });
-        }
-
-        function wireCheckboxField(el, field) {
-            el.addEventListener('change', function () { onFieldChange(); scheduleSave(250); }, { passive: true });
-        }
-
-        function onFieldChange() {
-            collectFormValuesIntoState();
-            refreshComputedFields();
-            syncFixedBadges();
-        }
-
-        function refreshComputedFields() {
-            const values = state.formValues || {};
-            const schema = state.schema;
-            if (!schema || schema.id !== 'rawat_jalan_pd') return;
-            const bb = Number(values.berat_badan);
-            const tbCm = Number(values.tinggi_badan);
-            let imtText = '';
-            if (!Number.isNaN(bb) && !Number.isNaN(tbCm) && tbCm > 0 && bb > 0) {
-                const tbM = tbCm / 100.0;
-                const imtVal = bb / (tbM * tbM);
-                let ket = '';
-                if (imtVal < 18.5) ket = ' (Kurus)';
-                else if (imtVal < 25) ket = ' (Normal)';
-                else if (imtVal < 30) ket = ' (Gemuk)';
-                else ket = ' (Obesitas)';
-                imtText = imtVal.toFixed(1) + ket;
-            }
-            const imtEl = document.getElementById('f_' + state.schemaId + '_imt_computed');
-            if (imtEl) { imtEl.value = imtText; values.imt = imtText; }
-        }
-
-        function collectFormValuesIntoState() {
-            const form = dom.form;
-            if (!form) return;
-            const values = {};
-            // inputs with data-fieldKey
-            const inputs = form.querySelectorAll('[data-field-key]');
-            for (let i = 0; i < inputs.length; i++) {
-                const el = inputs[i];
-                const key = el.getAttribute('data-field-key') || '';
-                if (!key) continue;
-                if (el.type === 'radio') {
-                    if (el.checked) values[key.replace(/\[\]$/, '')] = el.value;
-                    continue;
-                }
-                if (el.type === 'checkbox') {
-                    const arrKey = key.replace(/\[\]$/, '');
-                    if (!Array.isArray(values[arrKey])) values[arrKey] = [];
-                    if (el.checked) {
-                        const opt = el.getAttribute('data-option-value') || el.value || '';
-                        if (opt) values[arrKey].push(opt);
-                    }
-                    continue;
-                }
-                if (el.type === 'number') {
-                    const raw = el.value;
-                    if (raw === '' || raw == null) { values[key] = null; continue; }
-                    values[key] = Number.isNaN(Number(raw)) ? raw : Number(raw);
-                    continue;
-                }
-                values[key] = (el.value == null ? '' : String(el.value));
-            }
-            state.formValues = values;
-            return values;
-        }
-
-        function hydrateFormFromValues() {
-            const form = dom.form;
-            if (!form) return;
-            const values = state.formValues || {};
-            const inputs = form.querySelectorAll('[data-field-key]');
-            for (let i = 0; i < inputs.length; i++) {
-                const el = inputs[i];
-                const key = el.getAttribute('data-field-key') || '';
-                if (!key) continue;
-                if (el.type === 'radio') {
-                    const arrKey = key.replace(/\[\]$/, '');
-                    el.checked = String(values[arrKey] ?? '') === String(el.value ?? '');
-                    continue;
-                }
-                if (el.type === 'checkbox') {
-                    const arrKey = key.replace(/\[\]$/, '');
-                    const arr = Array.isArray(values[arrKey]) ? values[arrKey] : [];
-                    const opt = el.getAttribute('data-option-value') || el.value || '';
-                    el.checked = arr.indexOf(opt) !== -1;
-                    continue;
-                }
-                const raw = values[key];
-                if (raw != null) el.value = String(raw); else el.value = '';
-            }
-            if (state.bodyMapFields) {
-                Object.keys(state.bodyMapFields).forEach(function (fieldKey) {
-                    refreshBodyMapVisual(fieldKey);
-                });
-            }
-        }
-
-        function syncFixedBadges() {
-            const schema = state.schema;
-            if (!schema) return;
-            const v = state.formValues || {};
-            const ews = calculateEwsScore(schema, v);
-            if (dom.ewsBadge) {
-                dom.ewsBadge.textContent = (schema?.fixedMeta?.skorLabel || 'Skor EWS') + ': ' + String(ews);
-                if (ews >= 5) { dom.ewsBadge.className = BASE_CLASS_PREFIX + '-ews-badge is-high'; }
-                else if (ews >= 3) { dom.ewsBadge.className = BASE_CLASS_PREFIX + '-ews-badge is-medium'; }
-                else { dom.ewsBadge.className = BASE_CLASS_PREFIX + '-ews-badge is-low'; }
-            }
-            if (schema.id === 'triase_ugd' && v.kategori_triase) {
-                const mapping = {
-                    1: { cls: 'is-k1', label: 'KATEGORI 1 - RESUSITASI' },
-                    2: { cls: 'is-k2', label: 'KATEGORI 2 - EMERGENSI' },
-                    3: { cls: 'is-k3', label: 'KATEGORI 3 - URGEN' },
-                    4: { cls: 'is-k4', label: 'KATEGORI 4 - KURANG URGEN' },
-                    5: { cls: 'is-k5', label: 'KATEGORI 5 - NON URGEN' }
-                };
-                const info = mapping[Number(v.kategori_triase)] || null;
-                if (dom.kategoriBadge && info) {
-                    dom.kategoriBadge.className = BASE_CLASS_PREFIX + '-kategori-badge ' + info.cls;
-                    dom.kategoriBadge.textContent = info.label;
-                }
-            }
-        }
-
-        function calculateEwsScore(schema, v) {
-            // Skor EWS / PEWS standar ringkas; disesuaikan RS nanti
-            const td_sistolik = Number(v.td_sistolik);
-            const nadi = Number(v.nadi);
-            const rr = Number(v.rr) || Number(v.respirasi);
-            const suhu = Number(v.suhu);
-            const spo2 = Number(v.spo2);
-            let score = 0;
-            if (!Number.isNaN(td_sistolik)) {
-                if (td_sistolik <= 70) score += 3;
-                else if (td_sistolik >= 200) score += 2;
-                else if (td_sistolik < 90) score += 2;
-                else if (td_sistolik > 180) score += 1;
-            }
-            if (!Number.isNaN(nadi)) {
-                if (nadi <= 40) score += 3;
-                else if (nadi >= 130) score += 3;
-                else if (nadi < 60) score += 1;
-                else if (nadi > 110) score += 1;
-            }
-            if (!Number.isNaN(rr)) {
-                if (rr <= 8) score += 2;
-                else if (rr >= 30) score += 3;
-                else if (rr < 12) score += 1;
-                else if (rr > 20) score += 1;
-            }
-            if (!Number.isNaN(suhu)) {
-                if (suhu >= 38.5) score += 2;
-                else if (suhu < 35) score += 2;
-                else if (suhu >= 38) score += 1;
-            }
-            if (!Number.isNaN(spo2) && spo2 > 0) {
-                if (spo2 < 92) score += 3;
-                else if (spo2 < 95) score += 2;
-                else if (spo2 < 96) score += 1;
-            }
-            return Math.min(20, score);
-        }
-
-        function renderSignatureSection(schema) {
-            const wrap = document.createElement('section');
-            wrap.className = BASE_CLASS_PREFIX + '-sign-section';
-            const custom = schema.signature && typeof schema.signature === 'object' ? schema.signature : null;
-
-            if (custom) {
-                const lokasi = String(custom.footerLokasi || 'Muara Badak');
-                const timezone = String(custom.timezone || 'WITA');
-                const dt = new Date();
-                const yyyy = dt.getFullYear();
-                const mm = String(dt.getMonth() + 1).padStart(2, '0');
-                const dd = String(dt.getDate()).padStart(2, '0');
-                const hh = String(dt.getHours()).padStart(2, '0');
-                const mi = String(dt.getMinutes()).padStart(2, '0');
-                const todayStr = dd + '  /  ' + mm + '  /  ' + yyyy;
-                const jamStr = hh + ' : ' + mi;
-                const head = document.createElement('div');
-                head.className = BASE_CLASS_PREFIX + '-sign-meta-row';
-                const locationEl = document.createElement('div');
-                locationEl.className = BASE_CLASS_PREFIX + '-sign-location';
-                locationEl.textContent = lokasi + ',  Tgl  ..........................................    Jam  ................    ' + timezone;
-                head.appendChild(locationEl);
-                wrap.appendChild(head);
-
-                const row = document.createElement('div');
-                row.className = BASE_CLASS_PREFIX + '-sign-row is-two-col';
-
-                const labelPerawat = custom.perawat?.label || 'Perawat Pemeriksa';
-                const labelDokter = custom.dokter?.label || 'Dokter DPJP';
-                const stampPerawatField = custom.perawat?.stampField || 'perawat_nama_stamp';
-                const stampDokterField = custom.dokter?.stampField || 'dokter_nama_stamp';
-                const nipPerawatField = custom.perawat?.nipField || 'perawat_nip';
-                const nipDokterField = custom.dokter?.nipField || 'dokter_nip';
-
-                const defaultPerawatNama = (isPerawatRole() || isNurseStationRole()) ? (getCurrentOperatorName() || '') : '';
-                const defaultDokterNama = isDoctorRole() ? (getCurrentOperatorName() || '') : '';
-
-                const colPerawat = document.createElement('div');
-                colPerawat.className = BASE_CLASS_PREFIX + '-sign-col';
-                colPerawat.innerHTML = [
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-title">' + escapeHtml(labelPerawat) + '</div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-space is-short"></div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-name">Nama : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" data-field-key="' + stampPerawatField + '" value="' + escapeHtml(defaultPerawatNama) + '" placeholder="Nama lengkap terang"></div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-nip">NIP   : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" data-field-key="' + nipPerawatField + '" placeholder="NIP / NIK perawat"></div>'
-                ].join('');
-                row.appendChild(colPerawat);
-
-                const colDokter = document.createElement('div');
-                colDokter.className = BASE_CLASS_PREFIX + '-sign-col';
-                colDokter.innerHTML = [
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-title">' + escapeHtml(labelDokter) + '</div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-space is-short"></div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-name">Nama : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" data-field-key="' + stampDokterField + '" value="' + escapeHtml(defaultDokterNama) + '" placeholder="dr. Nama lengkap"></div>',
-                    '<div class="' + BASE_CLASS_PREFIX + '-sign-nip">SIP  : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" data-field-key="' + nipDokterField + '" placeholder="No. SIP / NIP dokter"></div>'
-                ].join('');
-                row.appendChild(colDokter);
-
-                wrap.appendChild(row);
-                setTimeout(function () {
-                    const locVal = document.querySelector('[data-field-key="' + stampPerawatField + '__loc"]');
-                }, 0);
-                return wrap;
-            }
-
-            const head = document.createElement('div');
-            head.className = BASE_CLASS_PREFIX + '-sign-head';
-            head.textContent = 'FINALISASI DAN TANDA TANGAN PERAWAT / DOKTER';
-            wrap.appendChild(head);
-            const row = document.createElement('div');
-            row.className = BASE_CLASS_PREFIX + '-sign-row';
-            const colPerawat = document.createElement('div');
-            colPerawat.className = BASE_CLASS_PREFIX + '-sign-col';
-            colPerawat.innerHTML = [
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-title">Perawat Pemeriksa</div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-meta">Tanggal <input type="text" class="' + BASE_CLASS_PREFIX + '-line is-sign-date" id="sh_sign_tanggal_perawat" placeholder="dd/mm/yyyy"> Jam <input type="text" class="' + BASE_CLASS_PREFIX + '-line is-sign-date" id="sh_sign_jam_perawat" placeholder="HH:MM"> Wita</div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-space"></div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-name-row">Nama : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" id="sh_sign_nama_perawat" placeholder="Nama perawat"></div>'
-            ].join('');
-            row.appendChild(colPerawat);
-            const colDokter = document.createElement('div');
-            colDokter.className = BASE_CLASS_PREFIX + '-sign-col';
-            colDokter.innerHTML = [
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-title">Dokter (jika ada)</div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-meta">Tanggal <input type="text" class="' + BASE_CLASS_PREFIX + '-line is-sign-date" id="sh_sign_tanggal_dokter" placeholder="dd/mm/yyyy"> Jam <input type="text" class="' + BASE_CLASS_PREFIX + '-line is-sign-date" id="sh_sign_jam_dokter" placeholder="HH:MM"> Wita</div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-space"></div>',
-                '<div class="' + BASE_CLASS_PREFIX + '-sign-name-row">Nama : <input type="text" class="' + BASE_CLASS_PREFIX + '-line" id="sh_sign_nama_dokter" placeholder="Nama dokter"></div>'
-            ].join('');
-            row.appendChild(colDokter);
-            wrap.appendChild(row);
-
-            const dt = new Date();
-            const yyyy = dt.getFullYear();
-            const mm = String(dt.getMonth() + 1).padStart(2, '0');
-            const dd = String(dt.getDate()).padStart(2, '0');
-            const hh = String(dt.getHours()).padStart(2, '0');
-            const mi = String(dt.getMinutes()).padStart(2, '0');
-            setTimeout(function () {
-                const tp = document.getElementById('sh_sign_tanggal_perawat'); if (tp && !tp.value) tp.value = dd + '/' + mm + '/' + yyyy;
-                const jp = document.getElementById('sh_sign_jam_perawat'); if (jp && !jp.value) jp.value = hh + ':' + mi;
-                const np = document.getElementById('sh_sign_nama_perawat'); if (np && !np.value) np.value = getCurrentOperatorName() || '';
-            }, 30);
-            return wrap;
-        }
-
-        // ---- Header / Status / Modal ----
-        function ensureModalInjected() {
-            if (document.getElementById(MODAL_ID)) return;
-            const wrap = document.createElement('div');
-            wrap.innerHTML = [
-                '<div id="' + MODAL_ID + '" class="' + BASE_CLASS_PREFIX + '-modal" aria-hidden="true">',
-                '  <div class="' + BASE_CLASS_PREFIX + '-overlay"></div>',
-                '  <div class="' + BASE_CLASS_PREFIX + '-dialog">',
-                '    <div class="' + BASE_CLASS_PREFIX + '-panel">',
-                '      <div class="' + BASE_CLASS_PREFIX + '-shell">',
-                '        <div class="' + BASE_CLASS_PREFIX + '-toolbar">',
-                '          <div class="' + BASE_CLASS_PREFIX + '-toolbar-main">',
-                '            <div class="' + BASE_CLASS_PREFIX + '-kicker">Asesmen Terpadu</div>',
-                '            <div id="' + BASE_CLASS_PREFIX + '_title" class="' + BASE_CLASS_PREFIX + '-title">Asesmen</div>',
-                '            <div id="' + BASE_CLASS_PREFIX + '_subtitle" class="' + BASE_CLASS_PREFIX + '-subtitle">-</div>',
-                '            <div class="' + BASE_CLASS_PREFIX + '-badges">',
-                '              <div id="' + BASE_CLASS_PREFIX + '_role" class="' + BASE_CLASS_PREFIX + '-role-badge">Role: -</div>',
-                '              <div id="' + BASE_CLASS_PREFIX + '_ews" class="' + BASE_CLASS_PREFIX + '-ews-badge is-low">Skor: 0</div>',
-                '              <div id="' + BASE_CLASS_PREFIX + '_kategori" class="' + BASE_CLASS_PREFIX + '-kategori-badge hidden"></div>',
-                '            </div>',
+        function injectModalHtml() {
+            if (document.getElementById('assessmentUgdModal')) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = [
+                '<div id="assessmentUgdModal" class="assessment-ugd-modal" aria-hidden="true">',
+                '  <div class="assessment-ugd-overlay"></div>',
+                '  <div class="assessment-ugd-dialog">',
+                '    <div class="assessment-ugd-panel">',
+                '      <div class="assessment-ugd-shell">',
+                '        <div class="assessment-ugd-toolbar">',
+                '          <div class="assessment-ugd-toolbar-main">',
+                '            <div class="assessment-ugd-kicker">Asesmen UGD</div>',
+                '            <div class="assessment-ugd-title">Asesmen Awal Pasien Gawat Darurat</div>',
+                '            <div id="assessmentUgdSubtitle" class="assessment-ugd-subtitle">Memuat data pasien...</div>',
                 '          </div>',
-                '          <div class="' + BASE_CLASS_PREFIX + '-toolbar-actions">',
-                '            <div id="' + BASE_CLASS_PREFIX + '_status" class="' + BASE_CLASS_PREFIX + '-status">Siap</div>',
-                '            <button type="button" class="' + BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-secondary" id="' + BASE_CLASS_PREFIX + '_refresh">Refresh</button>',
-                '            <button type="button" class="' + BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-print" id="' + BASE_CLASS_PREFIX + '_print">Cetak</button>',
-                '            <button type="button" class="' + BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-primary" id="' + BASE_CLASS_PREFIX + '_finalize" title="Kunci formulir (hanya bisa dibuka supervisor)">Finalisasi & Kunci</button>',
-                '            <button type="button" class="' + BASE_CLASS_PREFIX + '-btn ' + BASE_CLASS_PREFIX + '-btn-primary" id="' + BASE_CLASS_PREFIX + '_close">Tutup</button>',
+                '          <div class="assessment-ugd-toolbar-actions">',
+                '            <div id="assessmentUgdStatus" class="assessment-ugd-status">Siap</div>',
+                '            <button id="assessmentUgdRefreshBtn" type="button" class="assessment-ugd-btn assessment-ugd-btn-secondary">Refresh</button>',
+                '            <button id="assessmentUgdPrintBtn" type="button" class="assessment-ugd-btn assessment-ugd-btn-secondary">Cetak</button>',
+                '            <button id="assessmentUgdCloseBtn" type="button" class="assessment-ugd-btn assessment-ugd-btn-primary">Tutup</button>',
                 '          </div>',
                 '        </div>',
-                '        <div class="' + BASE_CLASS_PREFIX + '-body">',
-                '          <div id="' + FORM_ID + '" class="' + BASE_CLASS_PREFIX + '-document"></div>',
+                '        <div class="assessment-ugd-body">',
+                '          <div class="assessment-ugd-help">',
+                '            <div class="assessment-ugd-help-card">',
+                '              <div class="assessment-ugd-help-title">Role Aktif</div>',
+                '              <div id="assessmentUgdRoleText" class="assessment-ugd-help-text">-</div>',
+                '            </div>',
+                '            <div class="assessment-ugd-help-card">',
+                '              <div class="assessment-ugd-help-title">Sinkronisasi</div>',
+                '              <div id="assessmentUgdRealtimeText" class="assessment-ugd-help-text">Perubahan akan disimpan ke tabel asesmen UGD dan disinkronkan realtime antar dokter dan perawat.</div>',
+                '            </div>',
+                '          </div>',
+                '          <div id="assessmentUgdForm" class="assessment-ugd-document">',
+                '            <section class="assessment-ugd-sheet">',
+                '              <div class="gc-header-box">',
+                '                <div class="gc-header-left">',
+                '                  <div class="gc-logo-wrap">',
+                '                    <img src="assets/image/logo-rsud.png" alt="Logo RSUD" class="gc-logo">',
+                '                  </div>',
+                '                  <div class="gc-header-center">',
+                '                    <div class="gc-header-line">PEMERINTAH KABUPATEN KUTAI KARTANEGARA</div>',
+                '                    <div class="gc-header-line gc-header-strong">DINAS KESEHATAN</div>',
+                '                    <div class="gc-header-line gc-header-strong">UNIT ORGANISASI BERSIFAT KHUSUS</div>',
+                '                    <div class="gc-header-title">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD IDRIS</div>',
+                '                    <div class="gc-header-address">Jalan Pramuka Muara Badak-Mangkujoyo, RT 02 Sambutan Jembatan, Desa Tanjung Limau</div>',
+                '                    <div class="gc-header-address">Kec. Muara Badak, Kode Pos 75382, Pos-el: rsudajimuhammadidris@gmail.com</div>',
+                '                  </div>',
+                '                </div>',
+                '                <div class="gc-patient-col">',
+                '                  <div class="gc-patient-box">',
+                '                    <table class="gc-patient-meta">',
+                '                      <tr><td>No RM</td><td>:</td><td id="assessment_no_rm"></td></tr>',
+                '                      <tr><td>No REG</td><td>:</td><td id="assessment_no_registrasi"></td></tr>',
+                '                      <tr><td>Nama</td><td>:</td><td id="assessment_nama_pasien"></td></tr>',
+                '                      <tr><td>JK</td><td>:</td><td id="assessment_jk"></td></tr>',
+                '                      <tr><td>TL</td><td>:</td><td id="assessment_tanggal_lahir"></td></tr>',
+                '                      <tr><td>Umur</td><td>:</td><td id="assessment_umur"></td></tr>',
+                '                    </table>',
+                '                  </div>',
+                '                </div>',
+                '              </div>',
+                '              <div class="assessment-ugd-title-box">ASESMEN AWAL PASIEN GAWAT DARURAT</div>',
+                '              <div class="assessment-ugd-section-box">',
+                '                <div class="assessment-ugd-section-head">DOKTER</div>',
+                '                <div class="assessment-ugd-section-body">',
+                '                  <div id="assessmentDoctorReadonlyNote" class="assessment-ugd-readonly-note hidden">Bagian ini hanya dapat diubah oleh dokter. Akun Anda tetap dapat melihat perubahan secara realtime.</div>',
+                '                  <div class="assessment-ugd-role-pill is-doctor">Halaman Dokter</div>',
+                '                  <div class="assessment-ugd-datetime assessment-ugd-datetime-single">',
+                '                    <div class="assessment-ugd-inline-row assessment-ugd-datetime-row">',
+                '                      <span>Tanggal :</span><input id="assessment_tanggal" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-date" placeholder="">',
+                '                      <span class="assessment-ugd-datetime-sep">Jam :</span><input id="assessment_jam" type="text" class="assessment-ugd-line-input assessment-ugd-line-input-time" placeholder="">',
+                '                      <span>Wita</span>',
+                '                    </div>',
+                '                  </div>',
+                '                  <div class="assessment-ugd-field-block">',
+                '                    <label class="assessment-ugd-field-label">Survey Primer</label>',
+                '                  </div>',
+                '                  <div class="assessment-ugd-grid-2">',
+                '                    <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">A (Airway)</label><textarea id="assessment_airway" class="assessment-ugd-textarea"></textarea></div>',
+                '                    <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">B (Breathing)</label><textarea id="assessment_breathing" class="assessment-ugd-textarea"></textarea></div>',
+                '                    <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">C (Circulation)</label><textarea id="assessment_circulation" class="assessment-ugd-textarea"></textarea></div>',
+                '                    <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">D (Disability)</label><textarea id="assessment_disability" class="assessment-ugd-textarea"></textarea></div>',
+                '                  </div>',
+                '                  <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">GCS</label><input id="assessment_gcs" type="text" class="assessment-ugd-line-input" placeholder="contoh: E4 V5 M6"></div>',
+                '                  <div class="assessment-ugd-field-block">',
+                '                    <label class="assessment-ugd-field-label">Survey sekunder</label>',
+                '                    <div class="assessment-ugd-checkline">',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_riwayat_anamnesis" type="checkbox"> Anamnesis</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_riwayat_alloanamnesis" type="checkbox"> Alloanamnesis</label>',
+                '                      <span>dengan nama</span><input id="assessment_riwayat_nama" type="text" class="assessment-ugd-line-input" placeholder="nama pemberi informasi">',
+                '                      <span>hubungan</span><input id="assessment_riwayat_hubungan" type="text" class="assessment-ugd-line-input" placeholder="hubungan dengan pasien">',
+                '                    </div>',
+                '                  </div>',
+                '                  <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">Keluhan Utama</label><textarea id="assessment_keluhan_utama" class="assessment-ugd-textarea is-tall"></textarea></div>',
+                '                  <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">Perjalanan Penyakit</label><textarea id="assessment_perjalanan_penyakit" class="assessment-ugd-textarea is-tall"></textarea></div>',
+                '                  <div class="assessment-ugd-field-block">',
+                '                    <label class="assessment-ugd-field-label">Riwayat Penggunaan Obat</label>',
+                '                    <div class="assessment-ugd-checkline">',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_obat_tidak" type="checkbox"> Tidak Ada</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_obat_ada" type="checkbox"> Ada</label>',
+                '                      <span>Tuliskan :</span><input id="assessment_obat_keterangan" type="text" class="assessment-ugd-line-input" placeholder="nama obat / catatan">',
+                '                    </div>',
+                '                  </div>',
+                '                  <div class="assessment-ugd-field-block"><label class="assessment-ugd-field-label">Riwayat Penyakit Dahulu</label><textarea id="assessment_penyakit_dahulu" class="assessment-ugd-textarea is-tall"></textarea></div>',
+                '                  <div class="assessment-ugd-field-block">',
+                '                    <label class="assessment-ugd-field-label is-underlined">Status General</label>',
+                '                    <div class="assessment-ugd-checkline">',
+                '                      <span>Kondisi Umum :</span>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_baik" type="checkbox"> Baik</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_tampak_sakit" type="checkbox"> Tampak Sakit</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_sesak" type="checkbox"> Sesak</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_pucat" type="checkbox"> Pucat</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_lemah" type="checkbox"> Lemah</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_status_kejang" type="checkbox"> Kejang</label>',
+                '                      <span>Lainnya :</span><input id="assessment_status_lainnya" type="text" class="assessment-ugd-line-input" placeholder="isi bila ada">',
+                '                    </div>',
+                '                  </div>',
+                '                </div>',
+                '              </div>',
+                '            </section>',
+                '            <section class="assessment-ugd-sheet">',
+                '              <div class="assessment-ugd-section-box">',
+                '                <div class="assessment-ugd-section-head">STATUS LOKALIS (Tandai lokasi yang tidak normal)</div>',
+                '                <div class="assessment-ugd-section-body assessment-ugd-lokalis">',
+                '                  <div class="assessment-ugd-lokalis-grid">',
+                '                    <div class="assessment-ugd-body-card" aria-label="Tampak Depan">',
+                '                      <div class="assessment-ugd-body-figure-title">Tampak Depan</div>',
+                '                      <svg id="assessment_body_svg_front" class="assessment-ugd-body-figure" data-view="front" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gambar tubuh tampak depan">',
+                '                        <image href="assets/image/body-front.png" x="0" y="0" width="120" height="180" preserveAspectRatio="xMidYMid meet" />',
+                '                      </svg>',
+                '                    </div>',
+                '                    <div class="assessment-ugd-body-card" aria-label="Tampak Belakang">',
+                '                      <div class="assessment-ugd-body-figure-title">Tampak Belakang</div>',
+                '                      <svg id="assessment_body_svg_back" class="assessment-ugd-body-figure" data-view="back" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gambar tubuh tampak belakang">',
+                '                        <image href="assets/image/body-back.png" x="0" y="0" width="120" height="180" preserveAspectRatio="xMidYMid meet" />',
+                '                      </svg>',
+                '                    </div>',
+                '                    <div class="assessment-ugd-body-card" aria-label="Tampak Samping Kiri">',
+                '                      <div class="assessment-ugd-body-figure-title">Tampak Samping Kiri</div>',
+                '                      <svg id="assessment_body_svg_left" class="assessment-ugd-body-figure" data-view="left" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gambar tubuh tampak samping kiri">',
+                '                        <image href="assets/image/body-left.png" x="0" y="0" width="120" height="180" preserveAspectRatio="xMidYMid meet" />',
+                '                      </svg>',
+                '                    </div>',
+                '                    <div class="assessment-ugd-body-card" aria-label="Tampak Samping Kanan">',
+                '                      <div class="assessment-ugd-body-figure-title">Tampak Samping Kanan</div>',
+                '                      <svg id="assessment_body_svg_right" class="assessment-ugd-body-figure" data-view="right" viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gambar tubuh tampak samping kanan">',
+                '                        <image href="assets/image/body-right.png" x="0" y="0" width="120" height="180" preserveAspectRatio="xMidYMid meet" />',
+                '                      </svg>',
+                '                    </div>',
+                '                  </div>',
+                '                </div>',
+                '              </div>',
+                '              <div class="assessment-ugd-section-box">',
+                '                <div class="assessment-ugd-section-head">DOKTER DAN PERAWAT</div>',
+                '                <div class="assessment-ugd-section-body">',
+                '                  <div id="assessmentDiagnosisReadonlyNote" class="assessment-ugd-readonly-note hidden">Diagnosis kerja / banding hanya dapat diubah oleh dokter.</div>',
+                '                  <div class="assessment-ugd-field-block">',
+                '                    <label class="assessment-ugd-field-label assessment-ugd-field-label">Diagnosis kerja / Diagnosis Banding</label>',
+                '                    <textarea id="assessment_diagnosis" class="assessment-ugd-textarea assessment-ugd-diagnosis"></textarea>',
+                '                  </div>',
+                '                  <table class="assessment-ugd-log-table">',
+                '                    <colgroup>',
+                '                      <col class="assessment-ugd-log-col-time">',
+                '                      <col class="assessment-ugd-log-col-text">',
+                '                      <col class="assessment-ugd-log-col-time">',
+                '                      <col class="assessment-ugd-log-col-text">',
+                '                    </colgroup>',
+                '                    <thead>',
+                '                      <tr>',
+                '                        <th colspan="2">Instruksi Dokter</th>',
+                '                        <th colspan="2">Tindakan Keperawatan</th>',
+                '                      </tr>',
+                '                      <tr>',
+                '                        <th>Jam</th><th>Instruksi</th><th>Jam</th><th>Tindakan</th>',
+                '                      </tr>',
+                '                    </thead>',
+                '                    <tbody id="assessmentLogRows"></tbody>',
+                '                  </table>',
+                '                  <div id="assessmentDoctorEntryBlock">',
+                '                    <div class="assessment-ugd-role-pill is-doctor">Tambah Instruksi Dokter</div>',
+                '                    <div id="assessmentDoctorEntryReadonly" class="assessment-ugd-readonly-note hidden">Kolom ini hanya bisa ditambah oleh dokter.</div>',
+                '                    <div class="assessment-ugd-entry-form">',
+                '                      <input id="assessmentDoctorEntryTime" type="text" class="assessment-ugd-line-input" placeholder="Jam">',
+                '                      <textarea id="assessmentDoctorEntryText" class="assessment-ugd-textarea" placeholder="Tulis instruksi dokter"></textarea>',
+                '                      <button id="assessmentDoctorAddBtn" type="button" class="assessment-ugd-btn assessment-ugd-btn-primary assessment-ugd-entry-btn">Tambah</button>',
+                '                    </div>',
+                '                  </div>',
+                '                  <div id="assessmentNurseEntryBlock" style="margin-top: 14px;">',
+                '                    <div class="assessment-ugd-role-pill is-nurse">Tambah Tindakan Keperawatan</div>',
+                '                    <div id="assessmentNurseEntryReadonly" class="assessment-ugd-readonly-note hidden">Kolom ini hanya bisa ditambah oleh perawat.</div>',
+                '                    <div class="assessment-ugd-entry-form">',
+                '                      <input id="assessmentNurseEntryTime" type="text" class="assessment-ugd-line-input" placeholder="Jam">',
+                '                      <textarea id="assessmentNurseEntryText" class="assessment-ugd-textarea" placeholder="Tulis tindakan keperawatan"></textarea>',
+                '                      <button id="assessmentNurseAddBtn" type="button" class="assessment-ugd-btn assessment-ugd-btn-primary assessment-ugd-entry-btn">Tambah</button>',
+                '                    </div>',
+                '                  </div>',
+                '                </div>',
+                '              </div>',
+                '              <div class="assessment-ugd-signatures">',
+                '                <div class="assessment-ugd-sign-col">',
+                '                  <div class="assessment-ugd-sign-head">Rencana asuhan</div>',
+                '                  <div class="assessment-ugd-sign-body">',
+                '                    <div id="assessmentDoctorPlanReadonly" class="assessment-ugd-readonly-note hidden">Checklist ini hanya dapat diubah oleh dokter.</div>',
+                '                    <div class="assessment-ugd-checkline">',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_pulang" type="checkbox"> Pulang</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_rawat_inap" type="checkbox"> Rawat inap</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_permintaan_sendiri" type="checkbox"> Pulang atas permintaan sendiri</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_rencana_rujuk" type="checkbox"> Rujuk</label>',
+                '                    </div>',
+                '                    <div class="assessment-ugd-sign-meta">Muara Badak, Tgl <input id="assessment_doctor_sign_date" type="text" class="assessment-ugd-line-input assessment-ugd-sign-date-input" placeholder="manual"> Jam <input id="assessment_doctor_sign_time" type="text" class="assessment-ugd-line-input assessment-ugd-sign-time-input" placeholder="manual"> Wita</div>',
+                '                    <div class="assessment-ugd-sign-label">Tanda Tangan dokter Jaga</div>',
+                '                    <div class="assessment-ugd-sign-space"></div>',
+                '                    <div class="assessment-ugd-sign-name">Nama : <input id="assessment_doctor_sign_name" type="text" class="assessment-ugd-line-input assessment-ugd-sign-name-input" placeholder="Nama dokter"></div>',
+                '                  </div>',
+                '                </div>',
+                '                <div class="assessment-ugd-sign-col">',
+                '                  <div class="assessment-ugd-sign-head">Keputusan pelayanan pasien</div>',
+                '                  <div class="assessment-ugd-sign-body">',
+                '                    <div id="assessmentNurseDecisionReadonly" class="assessment-ugd-readonly-note hidden">Checklist dan tanda tangan ini hanya dapat diubah oleh perawat.</div>',
+                '                    <div class="assessment-ugd-checkline">',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_preventif" type="checkbox"> Preventif</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_kuratif" type="checkbox"> Kuratif</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_paliatif" type="checkbox"> Paliatif</label>',
+                '                      <label class="assessment-ugd-checkitem"><input id="assessment_keputusan_rehabilitatif" type="checkbox"> Rehabilitatif</label>',
+                '                    </div>',
+                '                    <div class="assessment-ugd-sign-meta">Muara Badak, Tgl <input id="assessment_nurse_sign_date" type="text" class="assessment-ugd-line-input assessment-ugd-sign-date-input" placeholder="manual"> Jam <input id="assessment_nurse_sign_time" type="text" class="assessment-ugd-line-input assessment-ugd-sign-time-input" placeholder="manual"> Wita</div>',
+                '                    <div class="assessment-ugd-sign-label">Tanda Tangan Perawat</div>',
+                '                    <div class="assessment-ugd-sign-space"></div>',
+                '                    <div class="assessment-ugd-sign-name">Nama : <input id="assessment_nurse_sign_name" type="text" class="assessment-ugd-line-input assessment-ugd-sign-name-input" placeholder="Nama perawat"></div>',
+                '                  </div>',
+                '                </div>',
+                '              </div>',
+                '            </section>',
+                '          </div>',
                 '        </div>',
                 '      </div>',
                 '    </div>',
                 '  </div>',
                 '</div>'
             ].join('');
-            document.body.appendChild(wrap.firstElementChild);
+            document.body.appendChild(wrapper.firstElementChild);
         }
 
         function wireDom() {
-            dom.modal = document.getElementById(MODAL_ID);
-            dom.overlay = dom.modal?.querySelector('.' + BASE_CLASS_PREFIX + '-overlay');
-            dom.closeBtn = document.getElementById(BASE_CLASS_PREFIX + '_close');
-            dom.printBtn = document.getElementById(BASE_CLASS_PREFIX + '_print');
-            dom.refreshBtn = document.getElementById(BASE_CLASS_PREFIX + '_refresh');
-            dom.finalizeBtn = document.getElementById(BASE_CLASS_PREFIX + '_finalize');
-            dom.statusEl = document.getElementById(BASE_CLASS_PREFIX + '_status');
-            dom.titleEl = document.getElementById(BASE_CLASS_PREFIX + '_title');
-            dom.subtitleEl = document.getElementById(BASE_CLASS_PREFIX + '_subtitle');
-            dom.roleBadge = document.getElementById(BASE_CLASS_PREFIX + '_role');
-            dom.ewsBadge = document.getElementById(BASE_CLASS_PREFIX + '_ews');
-            dom.kategoriBadge = document.getElementById(BASE_CLASS_PREFIX + '_kategori');
-            dom.form = document.getElementById(FORM_ID);
+            dom.modal = document.getElementById('assessmentUgdModal');
+            dom.subtitle = document.getElementById('assessmentUgdSubtitle');
+            dom.status = document.getElementById('assessmentUgdStatus');
+            dom.roleText = document.getElementById('assessmentUgdRoleText');
+            dom.realtimeText = document.getElementById('assessmentUgdRealtimeText');
+            dom.closeBtn = document.getElementById('assessmentUgdCloseBtn');
+            dom.refreshBtn = document.getElementById('assessmentUgdRefreshBtn');
+            dom.printBtn = document.getElementById('assessmentUgdPrintBtn');
+            dom.logRows = document.getElementById('assessmentLogRows');
+            dom.noRm = document.getElementById('assessment_no_rm');
+            dom.noRegistrasi = document.getElementById('assessment_no_registrasi');
+            dom.nama = document.getElementById('assessment_nama_pasien');
+            dom.jk = document.getElementById('assessment_jk');
+            dom.tanggalLahir = document.getElementById('assessment_tanggal_lahir');
+            dom.umur = document.getElementById('assessment_umur');
+            dom.bodySvgs = {
+                front: document.getElementById('assessment_body_svg_front'),
+                back: document.getElementById('assessment_body_svg_back'),
+                left: document.getElementById('assessment_body_svg_left'),
+                right: document.getElementById('assessment_body_svg_right')
+            };
+
+            dom.doctorReadonlyNote = document.getElementById('assessmentDoctorReadonlyNote');
+            dom.diagnosisReadonlyNote = document.getElementById('assessmentDiagnosisReadonlyNote');
+            dom.doctorEntryReadonly = document.getElementById('assessmentDoctorEntryReadonly');
+            dom.nurseEntryReadonly = document.getElementById('assessmentNurseEntryReadonly');
+            dom.doctorPlanReadonly = document.getElementById('assessmentDoctorPlanReadonly');
+            dom.nurseDecisionReadonly = document.getElementById('assessmentNurseDecisionReadonly');
+
+            dom.doctorAddBtn = document.getElementById('assessmentDoctorAddBtn');
+            dom.nurseAddBtn = document.getElementById('assessmentNurseAddBtn');
+            dom.doctorEntryTime = document.getElementById('assessmentDoctorEntryTime');
+            dom.doctorEntryText = document.getElementById('assessmentDoctorEntryText');
+            dom.nurseEntryTime = document.getElementById('assessmentNurseEntryTime');
+            dom.nurseEntryText = document.getElementById('assessmentNurseEntryText');
+
+            dom.inputs = {
+                tanggal: document.getElementById('assessment_tanggal'),
+                jam: document.getElementById('assessment_jam'),
+                airway: document.getElementById('assessment_airway'),
+                breathing: document.getElementById('assessment_breathing'),
+                circulation: document.getElementById('assessment_circulation'),
+                disability: document.getElementById('assessment_disability'),
+                gcs: document.getElementById('assessment_gcs'),
+                riwayatAnamnesis: document.getElementById('assessment_riwayat_anamnesis'),
+                riwayatAlloanamnesis: document.getElementById('assessment_riwayat_alloanamnesis'),
+                riwayatNama: document.getElementById('assessment_riwayat_nama'),
+                riwayatHubungan: document.getElementById('assessment_riwayat_hubungan'),
+                keluhanUtama: document.getElementById('assessment_keluhan_utama'),
+                perjalananPenyakit: document.getElementById('assessment_perjalanan_penyakit'),
+                obatTidak: document.getElementById('assessment_obat_tidak'),
+                obatAda: document.getElementById('assessment_obat_ada'),
+                obatKeterangan: document.getElementById('assessment_obat_keterangan'),
+                penyakitDahulu: document.getElementById('assessment_penyakit_dahulu'),
+                statusBaik: document.getElementById('assessment_status_baik'),
+                statusTampakSakit: document.getElementById('assessment_status_tampak_sakit'),
+                statusSesak: document.getElementById('assessment_status_sesak'),
+                statusPucat: document.getElementById('assessment_status_pucat'),
+                statusLemah: document.getElementById('assessment_status_lemah'),
+                statusKejang: document.getElementById('assessment_status_kejang'),
+                statusLainnya: document.getElementById('assessment_status_lainnya'),
+                diagnosis: document.getElementById('assessment_diagnosis'),
+                rencanaPulang: document.getElementById('assessment_rencana_pulang'),
+                rencanaRawatInap: document.getElementById('assessment_rencana_rawat_inap'),
+                rencanaPermintaanSendiri: document.getElementById('assessment_rencana_permintaan_sendiri'),
+                rencanaRujuk: document.getElementById('assessment_rencana_rujuk'),
+                keputusanPreventif: document.getElementById('assessment_keputusan_preventif'),
+                keputusanKuratif: document.getElementById('assessment_keputusan_kuratif'),
+                keputusanPaliatif: document.getElementById('assessment_keputusan_paliatif'),
+                keputusanRehabilitatif: document.getElementById('assessment_keputusan_rehabilitatif'),
+                doctorSignDate: document.getElementById('assessment_doctor_sign_date'),
+                doctorSignTime: document.getElementById('assessment_doctor_sign_time'),
+                doctorSignName: document.getElementById('assessment_doctor_sign_name'),
+                nurseSignDate: document.getElementById('assessment_nurse_sign_date'),
+                nurseSignTime: document.getElementById('assessment_nurse_sign_time'),
+                nurseSignName: document.getElementById('assessment_nurse_sign_name')
+            };
         }
 
         function wireEvents() {
             dom.closeBtn.addEventListener('click', closeModal);
-            dom.overlay.addEventListener('click', closeModal);
-            dom.refreshBtn.addEventListener('click', function () {
-                if (!state.schema || !state.patient) return;
-                setStatus('Refreshing...', 'loading');
-                refreshCurrentRecord(false).then(function () { setStatus('Data diperbarui.', 'ready'); });
+            dom.refreshBtn.addEventListener('click', function() {
+                if (!state.currentPatient) return;
+                refreshCurrentPatient(true);
             });
-            dom.printBtn.addEventListener('click', triggerPrint);
-            dom.finalizeBtn.addEventListener('click', finalizeCurrent);
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && dom.modal.classList.contains('is-open')) { closeModal(); }
+            dom.printBtn.addEventListener('click', function() {
+                document.body.classList.add('assessment-ugd-print');
+                window.print();
+                window.setTimeout(function() {
+                    document.body.classList.remove('assessment-ugd-print');
+                }, 150);
+            });
+            dom.modal.addEventListener('click', function(event) {
+                if (event.target === dom.modal || event.target === dom.modal.querySelector('.assessment-ugd-overlay')) {
+                    closeModal();
+                }
+            });
+
+            Object.keys(dom.inputs).forEach(function(key) {
+                const input = dom.inputs[key];
+                if (!input) return;
+                input.addEventListener('input', onDoctorFieldInput);
+                input.addEventListener('change', onDoctorFieldInput);
+            });
+
+            dom.doctorAddBtn.addEventListener('click', function() {
+                addEntry('doctor');
+            });
+            dom.nurseAddBtn.addEventListener('click', function() {
+                addEntry('nurse');
+            });
+
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.addEventListener('click', function(event) {
+                    onLokalisFigureClick(event, view);
+                });
+            });
+
+            window.addEventListener('afterprint', function() {
+                document.body.classList.remove('assessment-ugd-print');
             });
         }
 
-        function applyHeaderMeta(schema, patient) {
-            if (dom.titleEl) dom.titleEl.textContent = schema.title || 'Asesmen';
-            const lines = [
-                'No RM: ' + String(patient.no_rm || '-'),
-                'No Reg: ' + String(patient.no_registrasi || '-'),
-                'Nama: ' + String(patient.nama_pasien || '-'),
-                'JK: ' + String(patient.jenis_kelamin || '-'),
-                'Umur: ' + (patient.umur != null ? String(patient.umur) : '-'),
-                'Unit: ' + String(patient.unit || '-') + (patient.poli_tujuan ? (' / ' + String(patient.poli_tujuan)) : '')
-            ];
-            if (dom.subtitleEl) dom.subtitleEl.textContent = lines.join('  |  ');
-            if (dom.kategoriBadge) {
-                if (schema.id === 'triase_ugd') dom.kategoriBadge.classList.remove('hidden');
-                else dom.kategoriBadge.classList.add('hidden');
+        function getAssessmentStorageKey(patientId) {
+            return 'assessment-ugd-local:' + String(patientId || '').trim();
+        }
+
+        function getNowStampParts() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return {
+                tanggal: dd + '-' + mm + '-' + yyyy,
+                jam: hh + ':' + min,
+                iso: now.toISOString()
+            };
+        }
+
+        function renderRekapButton(patient) {
+            const isPerawat = (typeof window.isPerawatRole === 'function') ? Boolean(window.isPerawatRole()) : false;
+            const isDokter = (typeof window.isDokterRole === 'function') ? Boolean(window.isDokterRole()) : false;
+            if (!isPerawat && !isDokter) return '';
+            const patientData = buildPatientSnapshot(patient);
+            return '<button type="button" class="assessment-ugd-btn-trigger assessment-ugd-trigger" data-assessment-patient="' +
+                escapeHtml(JSON.stringify(patientData)) +
+                '">Asesmen UGD</button>';
+        }
+
+        function handleRekapButtonClick(buttonEl) {
+            if (!buttonEl) return;
+            const isPerawat = (typeof window.isPerawatRole === 'function') ? Boolean(window.isPerawatRole()) : false;
+            const isDokter = (typeof window.isDokterRole === 'function') ? Boolean(window.isDokterRole()) : false;
+            if (!isPerawat && !isDokter) {
+                const curRole = (typeof window.getCurrentAdminRole === 'function' ? String(window.getCurrentAdminRole() || '') : '') || String(window.currentAdminRole || '') || '-';
+                setStatus('Akses ditolak: formulir asesmen UGD di Rekap untuk Perawat / Dokter.', 'error');
+                alert('[AKSES DITOLAK]\n\nTombol Asesmen UGD pada halaman Rekap Pasien HANYA dapat dibuka oleh akun PERAWAT atau DOKTER.\n\nRole Anda saat ini: ' + curRole + '\n\nSilakan login sesuai peran Anda.');
+                return;
+            }
+            try {
+                const payload = JSON.parse(buttonEl.dataset.assessmentPatient || '{}');
+                openAssessmentFromPayload(payload);
+            } catch (err) {
+                setStatus('Gagal membaca data pasien untuk asesmen UGD.', 'error');
+                console.error(err);
             }
         }
 
-        function applyRoleText(schema) {
-            if (!dom.roleBadge) return;
-            const roles = [];
-            if (isDoctorRole()) roles.push('Dokter');
-            if (isPerawatRole()) roles.push('Perawat');
-            if (isPendaftaranRole()) roles.push('Pendaftaran');
-            if (isIgdRole()) roles.push('IGD');
-            if (isTriaseRole()) roles.push('Petugas Triase');
-            if (isPediatrikRole()) roles.push('Poli Anak');
-            if (isSupervisorRole()) roles.push('Supervisor');
-            dom.roleBadge.textContent = 'Role: ' + (roles.length ? roles.join(', ') : (getCurrentAdminRole() || '-'));
-        }
+        async function openAssessmentFromPayload(patientData) {
+            if (!canAccessAssessment()) return;
+            const patientId = String(patientData?.id || '').trim();
+            if (!patientId) {
+                setStatus('Data pasien UGD belum memiliki ID kunjungan.', 'error');
+                return;
+            }
 
-        function setStatus(text, tone) {
-            if (!dom.statusEl) return;
-            dom.statusEl.textContent = text || '';
-            dom.statusEl.classList.remove('is-loading', 'is-ready', 'is-error', 'is-sync', 'is-saving', 'is-saved');
-            tone = String(tone || 'ready');
-            if (tone === 'loading') dom.statusEl.classList.add('is-loading');
-            else if (tone === 'error') dom.statusEl.classList.add('is-error');
-            else if (tone === 'sync') dom.statusEl.classList.add('is-sync');
-            else if (tone === 'saving') dom.statusEl.classList.add('is-saving');
-            else if (tone === 'saved') dom.statusEl.classList.add('is-saved');
-            else dom.statusEl.classList.add('is-ready');
-        }
-
-        function openModal() {
-            if (!dom.modal) return;
+            state.currentPatient = buildPatientSnapshot(patientData);
             dom.modal.classList.add('is-open');
-            dom.modal.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
+            setStatus('Memuat asesmen UGD...', 'info');
+
+            await withPageLoading('Memuat asesmen UGD...', async function() {
+                await refreshCurrentPatient(false);
+            });
+        }
+
+        async function refreshCurrentPatient(showLoadingStatus) {
+            if (!state.currentPatient?.id) return;
+            if (showLoadingStatus) {
+                setStatus('Menyegarkan data asesmen...', 'info');
+            }
+
+            try {
+                const patientRow = await fetchPatientRow(state.currentPatient.id);
+                state.currentPatient = buildPatientSnapshot(patientRow);
+                state.currentAssessment = readAssessment(patientRow);
+                ensureAutomaticDoctorStamp();
+                renderPatientHeader();
+                renderAssessment();
+                subscribeToPatientRow(state.currentPatient.id);
+                setStatus('Siap', 'success');
+            } catch (err) {
+                setStatus('Gagal memuat asesmen: ' + (err?.message || String(err)), 'error');
+            }
+        }
+
+        async function fetchPatientRow(patientId) {
+            const patientResult = await withTimeout(
+                supabaseClient
+                    .from('pasien')
+                    .select('id,no_rm,no_registrasi,nama_pasien,jenis_kelamin,tanggal_lahir,umur,unit,no_antrian')
+                    .eq('id', patientId)
+                    .limit(1)
+                    .maybeSingle(),
+                15000,
+                'Muat data pasien asesmen UGD'
+            );
+
+            if (patientResult?.error) throw new Error(patientResult.error.message);
+            if (!patientResult?.data) throw new Error('Pasien tidak ditemukan.');
+
+            const assessmentResult = await withTimeout(
+                supabaseClient
+                    .from('asesmen_ugd')
+                    .select('pasien_id,doctor_form,nurse_form,doctor_instructions,nurse_actions')
+                    .eq('pasien_id', patientId)
+                    .limit(1)
+                    .maybeSingle(),
+                15000,
+                'Muat data asesmen UGD'
+            );
+
+            if (assessmentResult?.error) throw new Error(assessmentResult.error.message);
+
+            return {
+                ...patientResult.data,
+                assessment_row: assessmentResult?.data || null
+            };
+        }
+
+        function buildPatientSnapshot(patient) {
+            return {
+                id: String(patient?.id || '').trim(),
+                no_rm: String(patient?.no_rm || '').trim(),
+                no_registrasi: String(patient?.no_registrasi || '').trim(),
+                nama_pasien: String(patient?.nama_pasien || '').trim(),
+                jenis_kelamin: String(patient?.jenis_kelamin || '').trim(),
+                tanggal_lahir: patient?.tanggal_lahir || '',
+                umur: patient?.umur ?? '',
+                unit: String(patient?.unit || '').trim(),
+                no_antrian: patient?.no_antrian ?? '',
+                assessment_row: patient?.assessment_row ?? null
+            };
+        }
+
+        function safeParseJson(value) {
+            if (!value) return {};
+            if (typeof value === 'object') return value;
+            try {
+                const parsed = JSON.parse(value);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (_err) {
+                return {};
+            }
+        }
+
+        function normalizeEntryList(entries) {
+            if (!Array.isArray(entries)) return [];
+            return entries.filter(function(entry) {
+                return entry && typeof entry === 'object';
+            }).map(function(entry) {
+                return {
+                    id: String(entry.id || ''),
+                    jam_manual: String(entry.jam_manual || ''),
+                    text: String(entry.text || ''),
+                    created_at: String(entry.created_at || ''),
+                    created_by_name: String(entry.created_by_name || ''),
+                    created_by_email: String(entry.created_by_email || ''),
+                    created_by_role: String(entry.created_by_role || '')
+                };
+            });
+        }
+
+        function readAssessment(patientRow) {
+            const row = patientRow?.assessment_row && typeof patientRow.assessment_row === 'object'
+                ? patientRow.assessment_row
+                : {};
+            const doctor = safeParseJson(row.doctor_form);
+            const nurse = safeParseJson(row.nurse_form);
+            return {
+                doctor: {
+                    tanggal: String(doctor.tanggal || ''),
+                    jam: String(doctor.jam || ''),
+                    airway: String(doctor.airway || ''),
+                    breathing: String(doctor.breathing || ''),
+                    circulation: String(doctor.circulation || ''),
+                    disability: String(doctor.disability || ''),
+                    gcs: String(doctor.gcs || ''),
+                    riwayat_anamnesis: Boolean(doctor.riwayat_anamnesis),
+                    riwayat_alloanamnesis: Boolean(doctor.riwayat_alloanamnesis),
+                    riwayat_nama: String(doctor.riwayat_nama || ''),
+                    riwayat_hubungan: String(doctor.riwayat_hubungan || ''),
+                    keluhan_utama: String(doctor.keluhan_utama || ''),
+                    perjalanan_penyakit: String(doctor.perjalanan_penyakit || ''),
+                    obat_tidak: Boolean(doctor.obat_tidak),
+                    obat_ada: Boolean(doctor.obat_ada),
+                    obat_keterangan: String(doctor.obat_keterangan || ''),
+                    penyakit_dahulu: String(doctor.penyakit_dahulu || ''),
+                    status_baik: Boolean(doctor.status_baik),
+                    status_tampak_sakit: Boolean(doctor.status_tampak_sakit),
+                    status_sesak: Boolean(doctor.status_sesak),
+                    status_pucat: Boolean(doctor.status_pucat),
+                    status_lemah: Boolean(doctor.status_lemah),
+                    status_kejang: Boolean(doctor.status_kejang),
+                    status_lainnya: String(doctor.status_lainnya || ''),
+                    diagnosis: String(doctor.diagnosis || ''),
+                    rencana_pulang: Boolean(doctor.rencana_pulang),
+                    rencana_rawat_inap: Boolean(doctor.rencana_rawat_inap),
+                    rencana_permintaan_sendiri: Boolean(doctor.rencana_permintaan_sendiri),
+                    rencana_rujuk: Boolean(doctor.rencana_rujuk),
+                    sign_date: String(doctor.sign_date || ''),
+                    sign_time: String(doctor.sign_time || ''),
+                    sign_name: String(doctor.sign_name || ''),
+                    lokalis_markers: Array.isArray(doctor.lokalis_markers) ? doctor.lokalis_markers : []
+                },
+                nurse: {
+                    keputusan_preventif: Boolean(nurse.keputusan_preventif),
+                    keputusan_kuratif: Boolean(nurse.keputusan_kuratif),
+                    keputusan_paliatif: Boolean(nurse.keputusan_paliatif),
+                    keputusan_rehabilitatif: Boolean(nurse.keputusan_rehabilitatif),
+                    sign_date: String(nurse.sign_date || ''),
+                    sign_time: String(nurse.sign_time || ''),
+                    sign_name: String(nurse.sign_name || '')
+                },
+                doctorInstructions: normalizeEntryList(row.doctor_instructions),
+                nurseActions: normalizeEntryList(row.nurse_actions),
+                updated_at: '',
+                updated_by_role: '',
+                updated_by_name: ''
+            };
+        }
+
+        function renderPatientHeader() {
+            const patient = state.currentPatient || {};
+            dom.noRm.textContent = patient.no_rm || '-';
+            if (dom.noRegistrasi) {
+                dom.noRegistrasi.textContent = patient.no_registrasi || '-';
+            }
+            dom.nama.textContent = patient.nama_pasien || '-';
+            dom.jk.textContent = patient.jenis_kelamin || '-';
+            dom.tanggalLahir.textContent = formatBirthDate(patient.tanggal_lahir || '') || '-';
+            if (dom.umur) {
+                dom.umur.textContent = formatDetailedAge(patient.tanggal_lahir || '', patient.umur ?? '') || '-';
+            }
+            dom.subtitle.textContent = 'Pasien ' + (patient.nama_pasien || '-') + ' - No REG ' + (patient.no_registrasi || '-');
+            dom.roleText.textContent = isDoctorRole()
+                ? 'Dokter dapat mengisi halaman 1, diagnosis, instruksi dokter, dan tanda tangan dokter.'
+                : 'Perawat dapat melihat halaman dokter dan menambah tindakan keperawatan.';
+            dom.realtimeText.textContent = 'Perubahan tersimpan ke tabel asesmen UGD dan akan tersinkron secara realtime.';
+        }
+
+        function renderAssessment() {
+            const data = state.currentAssessment || readAssessment(state.currentPatient);
+            const isDoctor = isDoctorRole();
+            const isPerawat = isPerawatRole();
+
+            setInputValue(dom.inputs.tanggal, data.doctor.tanggal);
+            setInputValue(dom.inputs.jam, data.doctor.jam);
+            setInputValue(dom.inputs.airway, data.doctor.airway);
+            setInputValue(dom.inputs.breathing, data.doctor.breathing);
+            setInputValue(dom.inputs.circulation, data.doctor.circulation);
+            setInputValue(dom.inputs.disability, data.doctor.disability);
+            setInputValue(dom.inputs.gcs, data.doctor.gcs);
+            setChecked(dom.inputs.riwayatAnamnesis, data.doctor.riwayat_anamnesis);
+            setChecked(dom.inputs.riwayatAlloanamnesis, data.doctor.riwayat_alloanamnesis);
+            setInputValue(dom.inputs.riwayatNama, data.doctor.riwayat_nama);
+            setInputValue(dom.inputs.riwayatHubungan, data.doctor.riwayat_hubungan);
+            setInputValue(dom.inputs.keluhanUtama, data.doctor.keluhan_utama);
+            setInputValue(dom.inputs.perjalananPenyakit, data.doctor.perjalanan_penyakit);
+            setChecked(dom.inputs.obatTidak, data.doctor.obat_tidak);
+            setChecked(dom.inputs.obatAda, data.doctor.obat_ada);
+            setInputValue(dom.inputs.obatKeterangan, data.doctor.obat_keterangan);
+            setInputValue(dom.inputs.penyakitDahulu, data.doctor.penyakit_dahulu);
+            setChecked(dom.inputs.statusBaik, data.doctor.status_baik);
+            setChecked(dom.inputs.statusTampakSakit, data.doctor.status_tampak_sakit);
+            setChecked(dom.inputs.statusSesak, data.doctor.status_sesak);
+            setChecked(dom.inputs.statusPucat, data.doctor.status_pucat);
+            setChecked(dom.inputs.statusLemah, data.doctor.status_lemah);
+            setChecked(dom.inputs.statusKejang, data.doctor.status_kejang);
+            setInputValue(dom.inputs.statusLainnya, data.doctor.status_lainnya);
+            setInputValue(dom.inputs.diagnosis, data.doctor.diagnosis);
+            setChecked(dom.inputs.rencanaPulang, data.doctor.rencana_pulang);
+            setChecked(dom.inputs.rencanaRawatInap, data.doctor.rencana_rawat_inap);
+            setChecked(dom.inputs.rencanaPermintaanSendiri, data.doctor.rencana_permintaan_sendiri);
+            setChecked(dom.inputs.rencanaRujuk, data.doctor.rencana_rujuk);
+            setInputValue(dom.inputs.doctorSignDate, data.doctor.sign_date);
+            setInputValue(dom.inputs.doctorSignTime, data.doctor.sign_time);
+            setInputValue(dom.inputs.doctorSignName, data.doctor.sign_name);
+
+            setChecked(dom.inputs.keputusanPreventif, data.nurse.keputusan_preventif);
+            setChecked(dom.inputs.keputusanKuratif, data.nurse.keputusan_kuratif);
+            setChecked(dom.inputs.keputusanPaliatif, data.nurse.keputusan_paliatif);
+            setChecked(dom.inputs.keputusanRehabilitatif, data.nurse.keputusan_rehabilitatif);
+            setInputValue(dom.inputs.nurseSignDate, data.nurse.sign_date);
+            setInputValue(dom.inputs.nurseSignTime, data.nurse.sign_time);
+            setInputValue(dom.inputs.nurseSignName, data.nurse.sign_name);
+
+            const doctorEditableIds = new Set([
+                'tanggal', 'jam', 'airway', 'breathing', 'circulation', 'disability', 'gcs',
+                'riwayatAnamnesis', 'riwayatAlloanamnesis', 'riwayatNama', 'riwayatHubungan',
+                'keluhanUtama', 'perjalananPenyakit', 'obatTidak', 'obatAda', 'obatKeterangan',
+                'penyakitDahulu', 'statusBaik', 'statusTampakSakit', 'statusSesak', 'statusPucat',
+                'statusLemah', 'statusKejang', 'statusLainnya', 'statusLokalis', 'diagnosis',
+                'rencanaPulang', 'rencanaRawatInap', 'rencanaPermintaanSendiri', 'rencanaRujuk',
+                'doctorSignDate', 'doctorSignTime', 'doctorSignName'
+            ]);
+            const nurseEditableIds = new Set([
+                'keputusanPreventif', 'keputusanKuratif', 'keputusanPaliatif',
+                'keputusanRehabilitatif', 'nurseSignDate', 'nurseSignTime', 'nurseSignName'
+            ]);
+
+            Object.keys(dom.inputs).forEach(function(key) {
+                const input = dom.inputs[key];
+                if (!input) return;
+                const canEdit = (doctorEditableIds.has(key) && isDoctor) || (nurseEditableIds.has(key) && isPerawat);
+                input.disabled = !canEdit;
+            });
+
+            toggleHidden(dom.doctorReadonlyNote, isDoctor);
+            toggleHidden(dom.diagnosisReadonlyNote, isDoctor);
+            toggleHidden(dom.doctorEntryReadonly, isDoctor);
+            toggleHidden(dom.nurseEntryReadonly, isPerawat);
+            toggleHidden(dom.doctorPlanReadonly, isDoctor);
+            toggleHidden(dom.nurseDecisionReadonly, isPerawat);
+
+            dom.doctorAddBtn.disabled = !isDoctor;
+            dom.nurseAddBtn.disabled = !isPerawat;
+            dom.doctorEntryTime.disabled = !isDoctor;
+            dom.doctorEntryText.disabled = !isDoctor;
+            dom.nurseEntryTime.disabled = !isPerawat;
+            dom.nurseEntryText.disabled = !isPerawat;
+            dom.inputs.tanggal.readOnly = true;
+            dom.inputs.jam.readOnly = true;
+
+            applyLokalisInteractivity(isDoctor);
+            renderLokalisMarkers(data.doctor.lokalis_markers);
+            renderCombinedRows(data.doctorInstructions, data.nurseActions);
+        }
+
+        function applyLokalisInteractivity(isDoctor) {
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.classList.toggle('is-clickable', Boolean(isDoctor));
+            });
+        }
+
+        function normalizeRatio(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+            return Math.max(0, Math.min(1, value));
+        }
+
+        function renderLokalisMarkers(markers) {
+            const list = Array.isArray(markers) ? markers : [];
+            Object.keys(dom.bodySvgs || {}).forEach(function(view) {
+                const svg = dom.bodySvgs[view];
+                if (!svg) return;
+                svg.querySelectorAll('circle.assessment-ugd-marker').forEach(function(el) {
+                    el.remove();
+                });
+
+                const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : null;
+                const vbW = vb ? vb.width : 120;
+                const vbH = vb ? vb.height : 180;
+
+                list.filter(function(item) {
+                    return String(item?.view || '') === view;
+                }).forEach(function(item) {
+                    const cx = normalizeRatio(Number(item?.x)) * vbW;
+                    const cy = normalizeRatio(Number(item?.y)) * vbH;
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('class', 'assessment-ugd-marker');
+                    circle.setAttribute('cx', String(cx));
+                    circle.setAttribute('cy', String(cy));
+                    circle.setAttribute('r', '6.5');
+                    svg.appendChild(circle);
+                });
+            });
+        }
+
+        function onLokalisFigureClick(event, view) {
+            if (!isDoctorRole()) return;
+            const svg = dom.bodySvgs?.[view];
+            if (!svg) return;
+            if (!state.currentPatient?.id) return;
+
+            const rect = svg.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const xRatio = normalizeRatio((event.clientX - rect.left) / rect.width);
+            const yRatio = normalizeRatio((event.clientY - rect.top) / rect.height);
+
+            addLokalisMarker({
+                view,
+                x: xRatio,
+                y: yRatio
+            });
+        }
+
+        async function addLokalisMarker(marker) {
+            const patientId = state.currentPatient?.id;
+            if (!patientId) return;
+            const entry = {
+                id: 'lokalis-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                view: String(marker?.view || ''),
+                x: normalizeRatio(Number(marker?.x)),
+                y: normalizeRatio(Number(marker?.y)),
+                created_at: new Date().toISOString(),
+                created_by_name: String(getCurrentOperatorName() || '').trim(),
+                created_by_email: String(getCurrentOperatorEmail() || '').trim(),
+                created_by_role: 'dokter'
+            };
+
+            try {
+                await persistAssessment(function(root) {
+                    const nextDoctor = root.doctor && typeof root.doctor === 'object' ? { ...root.doctor } : {};
+                    const nextMarkers = Array.isArray(nextDoctor.lokalis_markers) ? nextDoctor.lokalis_markers.slice() : [];
+                    nextMarkers.push(entry);
+                    nextDoctor.lokalis_markers = nextMarkers;
+                    root.doctor = nextDoctor;
+                    return root;
+                }, 'Menyimpan marker lokalis...');
+
+                const list = Array.isArray(state.currentAssessment?.doctor?.lokalis_markers)
+                    ? state.currentAssessment.doctor.lokalis_markers
+                    : [];
+                renderLokalisMarkers(list);
+                setStatus('Marker lokalis ditambahkan.', 'success');
+            } catch (err) {
+                setStatus('Gagal menambah marker: ' + (err?.message || String(err)), 'error');
+            }
+        }
+
+        function ensureAutomaticDoctorStamp() {
+            const data = state.currentAssessment || readAssessment(state.currentPatient);
+            const nowParts = getNowStampParts();
+            let changed = false;
+
+            if (!String(data.doctor.tanggal || '').trim()) {
+                data.doctor.tanggal = nowParts.tanggal;
+                changed = true;
+            }
+            if (!String(data.doctor.jam || '').trim()) {
+                data.doctor.jam = nowParts.jam;
+                changed = true;
+            }
+
+            if (changed) {
+                state.currentAssessment = data;
+            }
+        }
+
+        function renderCombinedRows(doctorInstructions, nurseActions) {
+            const doctorList = Array.isArray(doctorInstructions) ? doctorInstructions : [];
+            const nurseList = Array.isArray(nurseActions) ? nurseActions : [];
+
+            dom.logRows.innerHTML =
+                '<tr class="assessment-ugd-log-mainrow">' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-time">' + renderLogJamColumn(doctorList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-text">' + renderLogTextColumn(doctorList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-time">' + renderLogJamColumn(nurseList) + '</td>' +
+                '<td class="assessment-ugd-log-cell assessment-ugd-log-cell-text">' + renderLogTextColumn(nurseList) + '</td>' +
+                '</tr>';
+        }
+
+        function renderLogJamColumn(entries) {
+            const list = Array.isArray(entries) ? entries : [];
+            if (!list.length) {
+                return '<div class="assessment-ugd-log-stack"><div class="assessment-ugd-log-entry assessment-ugd-log-entry-empty"></div></div>';
+            }
+
+            return '<div class="assessment-ugd-log-stack">' + list.map(function(entry) {
+                return '<div class="assessment-ugd-log-entry assessment-ugd-log-entry-time">' +
+                    escapeHtml(entry?.jam_manual || '') +
+                    '</div>';
+            }).join('') + '</div>';
+        }
+
+        function renderLogTextColumn(entries) {
+            const list = Array.isArray(entries) ? entries : [];
+            if (!list.length) {
+                return '<div class="assessment-ugd-log-stack"><div class="assessment-ugd-log-entry assessment-ugd-log-entry-empty"></div></div>';
+            }
+
+            return '<div class="assessment-ugd-log-stack">' + list.map(function(entry) {
+                return '<div class="assessment-ugd-log-entry assessment-ugd-log-entry-text">' +
+                    '<div class="assessment-ugd-log-text">' + escapeHtml(entry?.text || '') + '</div>' +
+                    '</div>';
+            }).join('') + '</div>';
+        }
+
+        function formatLogMeta(entry) {
+            const actor = String(entry?.created_by_name || entry?.created_by_email || '').trim();
+            const stamp = String(entry?.created_at || '').trim();
+            if (actor && stamp) return actor + ' - ' + formatDateTime(stamp);
+            if (actor) return actor;
+            if (stamp) return formatDateTime(stamp);
+            return '';
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value);
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return dd + '-' + mm + '-' + yyyy + ' ' + hh + ':' + min;
+        }
+
+        function setInputValue(el, value) {
+            if (!el) return;
+            const safeValue = value == null ? '' : String(value);
+            if (el.value !== safeValue) {
+                el.value = safeValue;
+            }
+        }
+
+        function setChecked(el, value) {
+            if (!el) return;
+            el.checked = Boolean(value);
+        }
+
+        function toggleHidden(el, editable) {
+            if (!el) return;
+            el.classList.toggle('hidden', editable);
+        }
+
+        function setStatus(message, tone) {
+            dom.status.textContent = message || 'Siap';
+            dom.status.classList.remove('is-error', 'is-success');
+            if (tone === 'error') {
+                dom.status.classList.add('is-error');
+            } else if (tone === 'success') {
+                dom.status.classList.add('is-success');
+            }
+        }
+
+        function collectDoctorFields() {
+            return {
+                tanggal: state.currentAssessment?.doctor?.tanggal || getNowStampParts().tanggal,
+                jam: state.currentAssessment?.doctor?.jam || getNowStampParts().jam,
+                airway: dom.inputs.airway.value.trim(),
+                breathing: dom.inputs.breathing.value.trim(),
+                circulation: dom.inputs.circulation.value.trim(),
+                disability: dom.inputs.disability.value.trim(),
+                gcs: dom.inputs.gcs.value.trim(),
+                riwayat_anamnesis: dom.inputs.riwayatAnamnesis.checked,
+                riwayat_alloanamnesis: dom.inputs.riwayatAlloanamnesis.checked,
+                riwayat_nama: dom.inputs.riwayatNama.value.trim(),
+                riwayat_hubungan: dom.inputs.riwayatHubungan.value.trim(),
+                keluhan_utama: dom.inputs.keluhanUtama.value.trim(),
+                perjalanan_penyakit: dom.inputs.perjalananPenyakit.value.trim(),
+                obat_tidak: dom.inputs.obatTidak.checked,
+                obat_ada: dom.inputs.obatAda.checked,
+                obat_keterangan: dom.inputs.obatKeterangan.value.trim(),
+                penyakit_dahulu: dom.inputs.penyakitDahulu.value.trim(),
+                status_baik: dom.inputs.statusBaik.checked,
+                status_tampak_sakit: dom.inputs.statusTampakSakit.checked,
+                status_sesak: dom.inputs.statusSesak.checked,
+                status_pucat: dom.inputs.statusPucat.checked,
+                status_lemah: dom.inputs.statusLemah.checked,
+                status_kejang: dom.inputs.statusKejang.checked,
+                status_lainnya: dom.inputs.statusLainnya.value.trim(),
+                diagnosis: dom.inputs.diagnosis.value.trim(),
+                rencana_pulang: dom.inputs.rencanaPulang.checked,
+                rencana_rawat_inap: dom.inputs.rencanaRawatInap.checked,
+                rencana_permintaan_sendiri: dom.inputs.rencanaPermintaanSendiri.checked,
+                rencana_rujuk: dom.inputs.rencanaRujuk.checked,
+                sign_date: dom.inputs.doctorSignDate.value.trim(),
+                sign_time: dom.inputs.doctorSignTime.value.trim(),
+                sign_name: dom.inputs.doctorSignName.value.trim(),
+                lokalis_markers: Array.isArray(state.currentAssessment?.doctor?.lokalis_markers)
+                    ? state.currentAssessment.doctor.lokalis_markers
+                    : []
+            };
+        }
+
+        function collectNurseFields() {
+            return {
+                keputusan_preventif: dom.inputs.keputusanPreventif.checked,
+                keputusan_kuratif: dom.inputs.keputusanKuratif.checked,
+                keputusan_paliatif: dom.inputs.keputusanPaliatif.checked,
+                keputusan_rehabilitatif: dom.inputs.keputusanRehabilitatif.checked,
+                sign_date: dom.inputs.nurseSignDate.value.trim(),
+                sign_time: dom.inputs.nurseSignTime.value.trim(),
+                sign_name: dom.inputs.nurseSignName.value.trim()
+            };
+        }
+
+        function onDoctorFieldInput() {
+            if (!state.currentPatient?.id) return;
+            if (isDoctorRole()) {
+                if (state.saveTimer) window.clearTimeout(state.saveTimer);
+                state.saveTimer = window.setTimeout(function() {
+                    persistDoctorPage();
+                }, 650);
+                return;
+            }
+
+            if (isPerawatRole()) {
+                if (state.saveTimer) window.clearTimeout(state.saveTimer);
+                state.saveTimer = window.setTimeout(function() {
+                    persistNurseMeta();
+                }, 650);
+            }
+        }
+
+        async function persistDoctorPage() {
+            if (!state.currentPatient?.id || !isDoctorRole()) return;
+            ensureAutomaticDoctorStamp();
+            const doctorPayload = collectDoctorFields();
+            try {
+                await persistAssessment(function(root) {
+                    root.doctor = doctorPayload;
+                    return root;
+                }, 'Menyimpan asesmen dokter...');
+                state.currentAssessment.doctor = doctorPayload;
+                setStatus('Perubahan dokter tersimpan.', 'success');
+            } catch (err) {
+                setStatus('Gagal menyimpan asesmen dokter: ' + (err?.message || String(err)), 'error');
+            }
+        }
+
+        async function persistNurseMeta() {
+            if (!state.currentPatient?.id || !isPerawatRole()) return;
+            const nursePayload = collectNurseFields();
+            try {
+                await persistAssessment(function(root) {
+                    root.nurse = nursePayload;
+                    return root;
+                }, 'Menyimpan data perawat...');
+                state.currentAssessment.nurse = nursePayload;
+                setStatus('Perubahan perawat tersimpan.', 'success');
+            } catch (err) {
+                setStatus('Gagal menyimpan data perawat: ' + (err?.message || String(err)), 'error');
+            }
+        }
+
+        async function addEntry(type) {
+            if (!state.currentPatient?.id) return;
+            const isDoctor = type === 'doctor';
+            if (isDoctor && !isDoctorRole()) return;
+            if (!isDoctor && !isPerawatRole()) return;
+
+            const timeInput = isDoctor ? dom.doctorEntryTime : dom.nurseEntryTime;
+            const textInput = isDoctor ? dom.doctorEntryText : dom.nurseEntryText;
+            const jamManual = String(timeInput.value || '').trim();
+            const text = String(textInput.value || '').trim();
+
+            if (!jamManual || !text) {
+                setStatus('Jam dan isi catatan wajib diisi sebelum ditambahkan.', 'error');
+                return;
+            }
+
+            const entry = {
+                id: 'entry-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                jam_manual: jamManual,
+                text: text,
+                created_at: new Date().toISOString(),
+                created_by_name: String(getCurrentOperatorName() || '').trim(),
+                created_by_email: String(getCurrentOperatorEmail() || '').trim(),
+                created_by_role: isDoctor ? 'dokter' : 'perawat'
+            };
+
+            try {
+                await persistAssessment(function(root) {
+                    if (isDoctor) {
+                        const nextDoctor = Array.isArray(root.doctor_instructions) ? root.doctor_instructions.slice() : [];
+                        nextDoctor.push(entry);
+                        root.doctor_instructions = nextDoctor;
+                    } else {
+                        const nextNurse = Array.isArray(root.nurse_actions) ? root.nurse_actions.slice() : [];
+                        nextNurse.push(entry);
+                        root.nurse_actions = nextNurse;
+                    }
+                    return root;
+                }, 'Menyimpan catatan baru...');
+
+                if (isDoctor) {
+                    dom.doctorEntryTime.value = '';
+                    dom.doctorEntryText.value = '';
+                } else {
+                    dom.nurseEntryTime.value = '';
+                    dom.nurseEntryText.value = '';
+                }
+
+                renderCombinedRows(state.currentAssessment.doctorInstructions, state.currentAssessment.nurseActions);
+                setStatus('Catatan baru berhasil ditambahkan.', 'success');
+            } catch (err) {
+                setStatus('Gagal menambah catatan: ' + (err?.message || String(err)), 'error');
+            }
+        }
+
+        async function persistAssessment(mutator, loadingLabel) {
+            const patientId = state.currentPatient?.id;
+            if (!patientId) throw new Error('Pasien asesmen belum dipilih.');
+
+            state.lastWriteAt = Date.now();
+            setStatus(loadingLabel || 'Menyimpan...', 'info');
+
+            const latestPatient = await fetchPatientRow(patientId);
+            const latestAssessment = readAssessment(latestPatient);
+            const nextAssessment = {
+                doctor: latestAssessment.doctor,
+                nurse: latestAssessment.nurse,
+                doctor_instructions: latestAssessment.doctorInstructions.slice(),
+                nurse_actions: latestAssessment.nurseActions.slice()
+            };
+
+            const mutated = mutator(nextAssessment) || nextAssessment;
+            const upsertPayload = {
+                pasien_id: patientId,
+                doctor_form: mutated.doctor || latestAssessment.doctor,
+                nurse_form: mutated.nurse || latestAssessment.nurse,
+                doctor_instructions: Array.isArray(mutated.doctor_instructions) ? mutated.doctor_instructions : latestAssessment.doctorInstructions,
+                nurse_actions: Array.isArray(mutated.nurse_actions) ? mutated.nurse_actions : latestAssessment.nurseActions
+            };
+
+            const updateResult = await withTimeout(
+                supabaseClient
+                    .from('asesmen_ugd')
+                    .upsert(upsertPayload, {
+                        onConflict: 'pasien_id'
+                    }),
+                15000,
+                'Simpan asesmen UGD'
+            );
+
+            if (updateResult?.error) {
+                throw new Error(updateResult.error.message);
+            }
+
+            state.currentAssessment = {
+                doctor: upsertPayload.doctor_form,
+                nurse: upsertPayload.nurse_form,
+                doctorInstructions: normalizeEntryList(upsertPayload.doctor_instructions),
+                nurseActions: normalizeEntryList(upsertPayload.nurse_actions),
+                updated_at: '',
+                updated_by_role: '',
+                updated_by_name: ''
+            };
+
+            if (state.broadcastChannel) {
+                state.broadcastChannel.postMessage({ patientId: patientId });
+            }
+        }
+
+        function subscribeToPatientRow(patientId) {
+            unsubscribe();
+            const channelName = 'assessment-ugd-patient-' + String(patientId);
+            state.subscription = supabaseClient
+                .channel(channelName)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'asesmen_ugd',
+                    filter: 'pasien_id=eq.' + String(patientId)
+                }, function() {
+                    if (!dom.modal.classList.contains('is-open')) return;
+                    if (Date.now() - state.lastWriteAt < 1000) return;
+                    refreshCurrentPatient(false);
+                })
+                .subscribe();
+        }
+
+        function unsubscribe() {
+            if (!state.subscription) return;
+            try {
+                supabaseClient.removeChannel(state.subscription);
+            } catch (_err) {
+                /* noop */
+            }
+            state.subscription = null;
         }
 
         function closeModal() {
-            if (!dom.modal) return;
             dom.modal.classList.remove('is-open');
-            dom.modal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
-            if (state.realtimeChannel) {
-                try { supabaseClient.removeChannel(state.realtimeChannel); } catch (_e) {}
-                state.realtimeChannel = null;
+            if (state.saveTimer) {
+                window.clearTimeout(state.saveTimer);
+                state.saveTimer = null;
             }
-        }
-
-        // ---- SAVE Pipeline ----
-        function scheduleSave(delay) {
-            if (state.saveTimer) window.clearTimeout(state.saveTimer);
-            const d = Math.max(0, Number(delay) || 0);
-            state.saveTimer = window.setTimeout(function () {
-                saveCurrent(false).catch(function (err) {
-                    setStatus('Gagal menyimpan: ' + (err?.message || String(err)), 'error');
-                });
-            }, d);
-        }
-
-        function buildPayloadToUpsert(schema, patient, values, includeFixedMeta) {
-            const now = new Date().toISOString();
-            const operatorName = getCurrentOperatorName() || '';
-            const operatorEmail = getCurrentOperatorEmail() || '';
-            const payload = {};
-            payload.pasien_id = patient.id;
-            payload[schema.jsonbColumn] = Object.assign({}, values);
-            // Meta nama/tanggal wajib
-            const fm = schema.fixedMeta || {};
-            if (fm.tanggalColumn) payload[fm.tanggalColumn] = now;
-            if (fm.namaColumn) payload[fm.namaColumn] = operatorName;
-            if (fm.emailColumn) payload[fm.emailColumn] = operatorEmail;
-
-            // copyToFixed / mapToFixed di schema fields:
-            const sections = Array.isArray(schema.sections) ? schema.sections : [];
-            sections.forEach(function (sec) {
-                const fields = Array.isArray(sec.fields) ? sec.fields : [];
-                fields.forEach(function (field) {
-                    const v = values[field.key];
-                    if (field.copyToFixed) payload[field.copyToFixed] = v;
-                    if (field.mapToFixed && v != null && typeof field.mapToFixed === 'string') {
-                        payload[field.mapToFixed] = typeof v === 'number' ? v : String(v);
-                    }
-                    if (field.mapLabelTo && Array.isArray(field.options) && v != null) {
-                        const found = field.options.find(function (opt) {
-                            if (opt && typeof opt === 'object') return String(opt.value) === String(v);
-                            return String(opt) === String(v);
-                        });
-                        if (found && typeof found === 'object') payload[field.mapLabelTo] = String(found.label);
-                    }
-                });
-            });
-
-            // Hitung skor EWS
-            const ews = calculateEwsScore(schema, values);
-            if (fm.skorColumn) payload[fm.skorColumn] = Math.min(20, ews);
-
-            if (includeFixedMeta && includeFixedMeta.forceFinalize) {
-                if (fm.finalizeColumn) payload[fm.finalizeColumn] = true;
-                if (fm.finalizedAtColumn) payload[fm.finalizedAtColumn] = now;
-            }
-            return payload;
-        }
-
-        async function saveCurrent(forceFinalize) {
-            if (!state.schema || !state.patient) return false;
-            if (state.inFlight) return false;
-            state.inFlight = true;
-            try {
-                collectFormValuesIntoState();
-                const values = state.formValues || {};
-                // Validate required fields for finalize only (bukan auto save)
-                if (forceFinalize) {
-                    const error = findFirstRequiredError(state.schema, values);
-                    if (error) { alert('Belum bisa difinalisasi: ' + error); return false; }
-                }
-                const payload = buildPayloadToUpsert(state.schema, state.patient, values, { forceFinalize: !!forceFinalize });
-                const table = state.schema.table;
-                let result;
-                if (state.recordId) {
-                    const query = supabaseClient
-                        .from(table)
-                        .update(payload)
-                        .eq('id', state.recordId)
-                        .select('*')
-                        .limit(1);
-                    result = await withTimeout(query, 15000, 'update-' + table);
-                } else {
-                    const query = supabaseClient
-                        .from(table)
-                        .insert(payload)
-                        .select('*')
-                        .limit(1);
-                    result = await withTimeout(query, 15000, 'insert-' + table);
-                }
-                const { data, error } = result || {};
-                if (error) throw new Error(error.message);
-                const row = (data && data.length) ? data[0] : null;
-                if (row) {
-                    state.record = row;
-                    state.recordId = row.id;
-                    state.lastWriteAt = Date.now();
-                    if (forceFinalize) setStatus('Formulir telah difinalisasi dan dikunci. (Bisa dibuka oleh Supervisor)', 'saved');
-                    else setStatus('Disimpan otomatis ' + formatTimeNow(), 'saved');
-                    if (state.broadcast) {
-                        try {
-                            state.broadcast.postMessage({
-                                patientId: state.patient.id,
-                                schemaId: state.schemaId,
-                                at: state.lastWriteAt
-                            });
-                        } catch (_e) {}
-                    }
-                    return true;
-                }
-                return false;
-            } finally {
-                state.inFlight = false;
-            }
-        }
-
-        function findFirstRequiredError(schema, values) {
-            const sections = Array.isArray(schema.sections) ? schema.sections : [];
-            for (let i = 0; i < sections.length; i++) {
-                const fields = Array.isArray(sections[i].fields) ? sections[i].fields : [];
-                for (let j = 0; j < fields.length; j++) {
-                    const f = fields[j];
-                    if (!f.required) continue;
-                    const v = values[f.key];
-                    if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) {
-                        return 'wajib diisi — ' + (f.label || f.key);
-                    }
-                }
-            }
-            return null;
-        }
-
-        async function finalizeCurrent() {
-            if (!state.schema || !state.patient) return;
-            const nama = String(state.patient.nama_pasien || 'pasien');
-            const canFinalize = isPerawatRole() || isDoctorRole() || isSupervisorRole() || isTriaseRole();
-            if (!canFinalize) { alert('Hanya Perawat / Dokter / Supervisor yang bisa Finalisasi.'); return; }
-            if (state.record?.[state.schema.fixedMeta?.finalizeColumn] && !isSupervisorRole()) {
-                const unlock = confirm('Formulir sudah dikunci. Hanya Supervisor bisa membuka kunci. Lanjut sebagai Supervisor unlock?');
-                if (!unlock) return;
-                // supervisor unlock -> set finalized false
-                try {
-                    state.inFlight = true;
-                    const table = state.schema.table;
-                    const fm = state.schema.fixedMeta || {};
-                    const patch = {};
-                    if (fm.finalizeColumn) patch[fm.finalizeColumn] = false;
-                    if (fm.finalizedAtColumn) patch[fm.finalizedAtColumn] = null;
-                    const q = supabaseClient.from(table).update(patch).eq('id', state.recordId).select('*').limit(1);
-                    const { data, error } = await withTimeout(q, 15000, 'unlock-' + table);
-                    if (error) throw new Error(error.message);
-                    if (data && data.length) { state.record = data[0]; setStatus('Kunci dibuka oleh Supervisor.', 'ready'); syncFixedBadges(); }
-                } catch (err) {
-                    alert('Gagal buka kunci: ' + (err?.message || String(err)));
-                } finally { state.inFlight = false; }
-                return;
-            }
-            const ok = confirm('Finalisasi & kunci formulir untuk pasien: ' + nama + ' ?\nSetelah dikunci, hanya Supervisor bisa membuka kembali.');
-            if (!ok) return;
-            try {
-                const saved = await saveCurrent(true);
-                if (saved && state.recordId) await ensureRecordLoaded(state.schema, state.patient);
-            } catch (err) {
-                alert('Gagal finalisasi: ' + (err?.message || String(err)));
-            }
-        }
-
-        function formatTimeNow() {
-            const d = new Date();
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            return hh + ':' + mm + ':' + ss;
-        }
-
-        // ---- PRINT ----
-        function triggerPrint() {
-            if (!state.schema || !state.patient || !dom.modal) return;
-            // Flush pending auto save terlebih dahulu
-            if (state.saveTimer) { window.clearTimeout(state.saveTimer); state.saveTimer = null; }
-            saveCurrent(false).finally(function () {
-                const mode = PRINT_MODE;
-                document.body.setAttribute('data-print-mode', mode);
-                try {
-                    if (window.preparePrintContainer && typeof window.preparePrintContainer === 'function') {
-                        window.preparePrintContainer(mode, {
-                            sourceEl: dom.form,
-                            schema: state.schema,
-                            patient: state.patient,
-                            record: state.record
-                        });
-                    } else {
-                        // Fallback: set style inline untuk dokumen
-                        dom.form.classList.add('is-print-mode');
-                    }
-                } catch (_e) {}
-                const wPrintReady = function () {
-                    try { window.print(); } catch (_e) { /* ignore */ }
-                    window.setTimeout(function () {
-                        document.body.removeAttribute('data-print-mode');
-                        dom.form.classList.remove('is-print-mode');
-                    }, 1200);
-                };
-                window.setTimeout(wPrintReady, 180);
-            });
+            unsubscribe();
         }
     }
 
-    window.createAssessmentModule = createAssessmentModule;
+    window.createUgdAssessmentModule = createUgdAssessmentModule;
 })();
