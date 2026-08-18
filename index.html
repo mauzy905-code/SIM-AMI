@@ -3013,7 +3013,7 @@
                                 if (exportBtn) {
                                     exportBtn.classList.toggle('hidden', isPetugasPoli || isNurseStation || isReadOnlyViewer);
                                 }
-                                if (unitWrap) unitWrap.classList.toggle('hidden', isRme || scopedPetugasPoli || isNurseStation);
+                                if (unitWrap) unitWrap.classList.toggle('hidden', isRme || scopedPetugasPoli);
                                 if (jenisWrap) jenisWrap.classList.toggle('hidden', isRme);
                                 if (poliWrap) poliWrap.classList.toggle('hidden', isRme || scopedPetugasPoli);
                                 if (fromInput?.parentElement) fromInput.parentElement.classList.toggle('hidden', scopedPetugasPoli);
@@ -3029,7 +3029,7 @@
                                 } else if (isNurseStation) {
                                     const unitSel = document.getElementById('r_unit');
                                     const today = new Date().toISOString().slice(0, 10);
-                                    if (unitSel) unitSel.value = 'POLIKLINIK';
+                                    if (unitSel) unitSel.value = '';
                                     if (fromInput && !fromInput.value) fromInput.value = today;
                                     if (toInput && !toInput.value) toInput.value = today;
                                 } else if (isRme) {
@@ -7709,10 +7709,12 @@
                                     || isPendaftaranRole()
                                     || isIgdRole()
                                     || isReadOnlyPatientViewerRole()
+                                    || isNurseStationRole()
+                                    || isFarmasiControlRole()
                                     || (isPetugasPoliRole() && !isPetugasPoliScopedRekap());
-                                const unit = isNurseStationRole()
-                                    ? 'POLIKLINIK'
-                                    : (shouldDefaultAllUnits ? (rEls.unit.value || '') : (rEls.unit.value || 'POLIKLINIK'));
+                                const unit = shouldDefaultAllUnits
+                                    ? (rEls.unit.value || '')
+                                    : (rEls.unit.value || 'POLIKLINIK');
                                 const jenisPasien = rEls.jenisPasien.value || '';
                                 const poliTujuan = rEls.poliTujuan.value || '';
                                 const fromISO = r_toISOStart(rEls.from.value);
