@@ -14,12 +14,22 @@
                         size: 90mm 25mm;
                         margin: 0mm;
                     }
+                    @page general-consent {
+                        size: 210mm 330mm;
+                        margin: 10mm 12mm 10mm 12mm;
+                    }
+                    @page triase-ugd {
+                        size: 210mm 330mm;
+                        margin: 10mm 12mm 10mm 12mm;
+                    }
 
                 @media print {
                     body[data-print-mode="barcode"] { page: barcode; }
                     body[data-print-mode="nurse-station-ticket"] { page: nurse-station-ticket; }
                     body[data-print-mode="ugd-ticket"] { page: ugd-ticket; }
                     body[data-print-mode="wristband"] { page: wristband; }
+                    body[data-print-mode="general-consent"] { page: general-consent; }
+                    body[data-print-mode="triase-ugd"] { page: triase-ugd; }
 
                     body[data-print-mode="barcode"],
                     body[data-print-mode="wristband"] {
@@ -61,12 +71,49 @@
                         width: 90mm;
                         max-width: 90mm;
                     }
-                    body[data-print-mode="barcode"] > *,
-                    body[data-print-mode="wristband"] > *,
-                    body[data-print-mode="nurse-station-ticket"] > *,
-                    body[data-print-mode="ugd-ticket"] > * {
+                    /* [Thermal mode - barcode/wristband/NS/UGD] Gunakan visibility agar container nested tidak hilang. */
+                    body[data-print-mode="barcode"] *:not(#stickerContainer):not(#stickerContainer *),
+                    body[data-print-mode="wristband"] *:not(#wristbandContainer):not(#wristbandContainer *),
+                    body[data-print-mode="nurse-station-ticket"] *:not(#nurseStationTicketContainer):not(#nurseStationTicketContainer *),
+                    body[data-print-mode="ugd-ticket"] *:not(#ugdTicketContainer):not(#ugdTicketContainer *) {
                         visibility: hidden !important;
+                    }
+                    body[data-print-mode="barcode"] #stickerContainer,
+                    body[data-print-mode="wristband"] #wristbandContainer,
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer,
+                    body[data-print-mode="ugd-ticket"] #ugdTicketContainer {
+                        visibility: visible !important;
+                        display: block !important;
+                        opacity: 1 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    /* [F4 mode - GENERAL-CONSENT / TRIASE-UGD] Sudah di-detach jadi direct-child body, aman pakai display:none > * supaya tidak ada halaman kosong. */
+                    body[data-print-mode="general-consent"] > *:not(#generalConsentForm),
+                    body[data-print-mode="triase-ugd"] > *:not(#triageUgdForm) {
                         display: none !important;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm {
+                        visibility: visible !important;
+                        display: block !important;
+                        opacity: 1 !important;
+                        position: static !important;
+                        left: auto !important;
+                        top: auto !important;
+                        width: 210mm !important;
+                        max-width: 210mm !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        margin: 0 auto !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        box-sizing: border-box !important;
+                        background: #fff !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        page-break-after: auto !important;
+                        page-break-before: auto !important;
                     }
                     body[data-print-mode="barcode"] {
                         height: 60mm;
@@ -470,6 +517,96 @@
                         font-size: 9pt !important;
                         font-weight: 900 !important;
                         color: #0f766e !important;
+                    }
+
+                    /* ===== GENERAL CONSENT PRINT MODE (F4 / Legal 210x330) ===== */
+                    body[data-print-mode="general-consent"],
+                    body[data-print-mode="triase-ugd"] {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        background: #fff !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        width: 210mm !important;
+                        min-width: 210mm !important;
+                        max-width: 210mm !important;
+                        height: auto !important;
+                        min-height: auto !important;
+                        max-height: none !important;
+                        box-sizing: border-box;
+                        color: #000 !important;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm {
+                        display: block !important;
+                        visibility: visible !important;
+                        position: static !important;
+                        left: auto !important;
+                        top: auto !important;
+                        width: 210mm !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        max-width: 210mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        box-sizing: border-box !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
+                        page-break-inside: avoid !important;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm > section.gc-sheet-break,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm > section.triage-sheet-break {
+                        page-break-before: always !important;
+                        page-break-inside: avoid !important;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm *,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm * {
+                        box-sizing: border-box;
+                        max-width: 100%;
+                        overflow-wrap: anywhere;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        color: #000 !important;
+                    }
+                    /* Hide input placeholder (menghilangkan tulisan "Alamat penandatangan" pada field yang kosong) */
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-input::placeholder,
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-input::-webkit-input-placeholder,
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-input::-moz-placeholder,
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-input::-ms-input-placeholder,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm .triage-input::placeholder,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm .triage-input::-webkit-input-placeholder,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm .triage-input::-moz-placeholder,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm .triage-input::-ms-input-placeholder {
+                        color: transparent !important;
+                        -webkit-text-fill-color: transparent !important;
+                        opacity: 0 !important;
+                    }
+                    /* Semua input, textarea, select → GAYA NYA SEPERTI TEKS BIASA SAAT DICETAK (bukan kotak input browser) */
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-input,
+                    body[data-print-mode="general-consent"] #generalConsentForm textarea.gc-input,
+                    body[data-print-mode="general-consent"] #generalConsentForm select.gc-input,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm .triage-input,
+                    body[data-print-mode="triase-ugd"] #triageUgdForm select.triage-input {
+                        border: none !important;
+                        outline: none !important;
+                        box-shadow: none !important;
+                        background: transparent !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        color: #000 !important;
+                        -webkit-appearance: none;
+                        -moz-appearance: none;
+                        appearance: none;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-line-input {
+                        border-bottom: 1px solid #475569 !important;
+                        padding-bottom: 1px !important;
+                    }
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-line-entry {
+                        border-bottom: 1px dotted #64748b !important;
+                        padding-bottom: 1px !important;
                     }
                 }
 
