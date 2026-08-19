@@ -608,5 +608,20 @@
                         border-bottom: 1px dotted #64748b !important;
                         padding-bottom: 1px !important;
                     }
+                    /* HAPUS GARIS BAWAH pada biodata penandatangan (Nama, Tgl lahir, Alamat, Telepon, Hubungan) bukan untuk tanda tangan */
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-signer-input.gc-line-input,
+                    body[data-print-mode="general-consent"] #generalConsentForm .gc-signer-input.gc-line-entry {
+                        border-bottom: none !important;
+                        padding-bottom: 0 !important;
+                    }
+                    /* Saksi I - HAPUS TOTAL input pengetikan nama yang ada garis bawah (cuma muncul bagian bawah tanda tangan) */
+                    body[data-print-mode="general-consent"] #generalConsentForm #gc_saksi_manual {
+                        display: none !important;
+                        visibility: hidden !important;
+                        height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        border: none !important;
+                    }
                 }
 
