@@ -1652,7 +1652,9 @@
                                 'barcode': '80mm 60mm',
                                 'wristband': '90mm 25mm',
                                 'nurse-station-ticket': '80mm auto',
-                                'ugd-ticket': '74mm 60mm'
+                                'ugd-ticket': '74mm 60mm',
+                                'general-consent': '210mm 330mm',
+                                'triase-ugd': '210mm 330mm'
                             };
                             const WEBOS_USER_AGENT_HINT = /Web0S|webOS|LG Browser|NetCast/i.test(navigator.userAgent || '');
                             const MOBILE_USER_AGENT_HINT = /Android|iPhone|iPad|iPod|HarmonyOS|Silk|Opera Mini|UCBrowser|MIUI|OPPO|vivo|Huawei/i.test(navigator.userAgent || '');
@@ -2315,12 +2317,15 @@
                             }
 
                             let lastPrintContainerEl = null;
+                            let lastDetachedFormInfo = null;
 
                             const PRINT_MODE_TO_CONTAINER_ID = {
                                 'barcode': 'stickerContainer',
                                 'wristband': 'wristbandContainer',
                                 'nurse-station-ticket': 'nurseStationTicketContainer',
-                                'ugd-ticket': 'ugdTicketContainer'
+                                'ugd-ticket': 'ugdTicketContainer',
+                                'general-consent': 'generalConsentForm',
+                                'triase-ugd': 'triageUgdForm'
                             };
 
                             function lockPrintState() {
@@ -2370,6 +2375,20 @@
                             }
 
                             function clearActivePrintMode() {
+                                if (lastDetachedFormInfo) {
+                                    const { el, parentRef, nextSiblingRef, hadHidden } = lastDetachedFormInfo;
+                                    try {
+                                        if (parentRef) {
+                                            if (nextSiblingRef) {
+                                                parentRef.insertBefore(el, nextSiblingRef);
+                                            } else {
+                                                parentRef.appendChild(el);
+                                            }
+                                        }
+                                    } catch (_e) {}
+                                    if (hadHidden) { try { el.classList.add('hidden'); } catch (_e) {} }
+                                    lastDetachedFormInfo = null;
+                                }
                                 if (lastPrintContainerEl) {
                                     lastPrintContainerEl.classList.add('hidden');
                                     lastPrintContainerEl.removeAttribute('style');
@@ -2450,6 +2469,16 @@
                                 if (!containerId) return;
                                 const el = document.getElementById(containerId);
                                 if (!el) return;
+                                const isF4Form = (mode === 'general-consent' || mode === 'triase-ugd');
+                                if (isF4Form && el.parentNode && el.parentNode !== document.body) {
+                                    lastDetachedFormInfo = {
+                                        el,
+                                        parentRef: el.parentNode,
+                                        nextSiblingRef: el.nextSibling,
+                                        hadHidden: el.classList.contains('hidden')
+                                    };
+                                    document.body.appendChild(el);
+                                }
                                 lastPrintContainerEl = el;
                                 el.classList.remove('hidden');
                                 el.style.setProperty('display', 'block', 'important');
@@ -2457,7 +2486,19 @@
                                 el.style.setProperty('z-index', '99999', 'important');
                                 const isContinuousPaper = (mode === 'nurse-station-ticket');
                                 const isUgdFixedPaper = (mode === 'ugd-ticket');
-                                if (isUgdFixedPaper) {
+                                if (isF4Form) {
+                                    el.style.setProperty('position', 'static', 'important');
+                                    el.style.removeProperty('left');
+                                    el.style.removeProperty('top');
+                                    el.style.setProperty('width', '210mm', 'important');
+                                    el.style.setProperty('min-width', '210mm', 'important');
+                                    el.style.setProperty('max-width', '210mm', 'important');
+                                    el.style.setProperty('height', 'auto', 'important');
+                                    el.style.setProperty('min-height', 'auto', 'important');
+                                    el.style.setProperty('max-height', 'none', 'important');
+                                    el.style.setProperty('overflow', 'visible', 'important');
+                                    el.style.setProperty('box-sizing', 'border-box', 'important');
+                                } else if (isUgdFixedPaper) {
                                     el.style.setProperty('position', 'fixed', 'important');
                                     el.style.setProperty('left', '0', 'important');
                                     el.style.setProperty('top', '0', 'important');
@@ -9315,10 +9356,13 @@
 
                             async function printGeneralConsent() {
                                 if (!validateGeneralConsentAuthorizers()) return;
+                                if (printInFlight) return;
                                 await flushGeneralConsentAutosave(currentPatientForConsent);
+                                lockPrintState();
                                 activePrintMode = 'general-consent';
                                 document.body.setAttribute('data-print-mode', 'general-consent');
-                                setPrintPageSize('210mm 330mm');
+                                preparePrintContainer('general-consent');
+                                setPrintPageSize(PRINT_MODE_TO_PAGE_SIZE['general-consent'] || '210mm 330mm');
                                 window.setTimeout(() => window.print(), 30);
                             }
 
@@ -9797,9 +9841,12 @@
 
                             function printTriaseUgd() {
                                 if (!canAccessTriaseUgd()) return;
+                                if (printInFlight) return;
+                                lockPrintState();
                                 activePrintMode = 'triase-ugd';
                                 document.body.setAttribute('data-print-mode', 'triase-ugd');
-                                setPrintPageSize('210mm 330mm');
+                                preparePrintContainer('triase-ugd');
+                                setPrintPageSize(PRINT_MODE_TO_PAGE_SIZE['triase-ugd'] || '210mm 330mm');
                                 window.setTimeout(() => window.print(), 30);
                             }
 
