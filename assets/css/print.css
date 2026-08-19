@@ -22,9 +22,7 @@
                     body[data-print-mode="wristband"] { page: wristband; }
 
                     body[data-print-mode="barcode"],
-                    body[data-print-mode="wristband"],
-                    body[data-print-mode="nurse-station-ticket"],
-                    body[data-print-mode="ugd-ticket"] {
+                    body[data-print-mode="wristband"] {
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: hidden !important;
@@ -33,6 +31,31 @@
                         print-color-adjust: exact;
                         width: 80mm;
                         max-width: 80mm;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        background: #fff !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        width: 80mm !important;
+                        min-width: 80mm !important;
+                        max-width: 80mm !important;
+                        height: auto !important;
+                        min-height: auto !important;
+                        max-height: none !important;
+                    }
+                    body[data-print-mode="ugd-ticket"] {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        background: #fff !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        width: 74mm !important;
+                        min-width: 74mm !important;
+                        max-width: 74mm !important;
                     }
                     body[data-print-mode="wristband"] {
                         width: 90mm;
@@ -166,9 +189,9 @@
                         box-sizing: border-box;
                         overflow: visible !important;
                         margin: 0 !important;
-                        padding: 1.5mm 2mm 2mm 2mm !important;
-                        font-size: 7.5pt !important;
-                        line-height: 1.12 !important;
+                        padding: 3mm 3.5mm 4mm 3.5mm !important;
+                        font-size: 9pt !important;
+                        line-height: 1.18 !important;
                         page-break-inside: avoid !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket * {
@@ -177,11 +200,12 @@
                         overflow-wrap: anywhere;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-title {
-                        font-size: 10pt;
+                        font-size: 12pt;
+                        font-weight: 900;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-sub {
-                        font-size: 7.5pt;
-                        margin-top: 0.5mm;
+                        font-size: 8.5pt;
+                        margin-top: 0.8mm;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row {
                         display: flex;
@@ -189,8 +213,8 @@
                         align-items: flex-start;
                         gap: 2mm;
                         flex-wrap: nowrap;
-                        margin-top: 1.8mm;
-                        font-size: 7.5pt;
+                        margin-top: 2mm;
+                        font-size: 8.5pt;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row > * {
                         min-width: 0;
@@ -203,44 +227,52 @@
                         text-align: right;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-box {
-                        margin-top: 2mm;
-                        border: 1px dashed #64748b;
-                        border-radius: 2mm;
-                        padding: 2mm 1.5mm;
+                        margin-top: 2.5mm;
+                        border: 1px dashed #475569 !important;
+                        border-radius: 2mm !important;
+                        padding: 3mm 2.5mm !important;
                         text-align: center;
+                        background: #f8fafc;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-label {
-                        font-size: 7pt;
-                        font-weight: bold;
+                        font-size: 8.5pt !important;
+                        font-weight: 900 !important;
+                        letter-spacing: 0.3mm;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-no {
-                        margin-top: 1mm;
-                        font-size: 20pt;
-                        line-height: 1;
-                        font-weight: bold;
-                        letter-spacing: 0.8mm;
+                        margin-top: 1.2mm !important;
+                        font-size: 26pt !important;
+                        line-height: 1 !important;
+                        font-weight: 900 !important;
+                        letter-spacing: 0.8mm !important;
+                        color: #0f172a;
+                        text-shadow: 0 1px 0 rgba(255,255,255,0.6);
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-meta-row {
-                        margin-top: 1.2mm;
-                        font-size: 7.5pt;
+                        margin-top: 1.5mm;
+                        font-size: 8.5pt;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-foot-note {
-                        margin-top: 0.8mm;
-                        font-size: 6.5pt;
-                        color: #475569;
-                        line-height: 1.08;
+                        margin-top: 1.2mm;
+                        font-size: 7.5pt;
+                        color: #334155;
+                        line-height: 1.12;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-barcode-wrap {
-                        margin-top: 1.4mm;
+                        margin-top: 2.2mm;
                         text-align: center;
+                        padding: 1.2mm;
+                        background: #fff;
+                        border: 1px dashed #e2e8f0;
+                        border-radius: 1.5mm;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-barcode-wrap svg {
-                        width: 72mm !important;
-                        height: 14mm !important;
-                        max-width: 72mm !important;
-                        max-height: 14mm !important;
-                        min-width: 72mm !important;
-                        min-height: 14mm !important;
+                        width: 73mm !important;
+                        height: 18mm !important;
+                        max-width: 73mm !important;
+                        max-height: 18mm !important;
+                        min-width: 73mm !important;
+                        min-height: 18mm !important;
                         display: block !important;
                         margin: 0 auto !important;
                         overflow: visible !important;
@@ -252,55 +284,57 @@
                         shape-rendering: crispEdges !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-block {
-                        margin-top: 1.5mm;
+                        margin-top: 2.2mm;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table {
                         width: 100%;
                         border-collapse: collapse;
                         table-layout: fixed;
-                        font-size: 7.5pt;
-                        line-height: 1.1;
+                        font-size: 8pt;
+                        line-height: 1.15;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table thead th {
-                        padding: 0.3mm 0 0.6mm 0;
+                        padding: 0.6mm 0 0.9mm 0;
                         font-weight: 900;
-                        font-size: 7.8pt;
-                        color: #111;
+                        font-size: 8.2pt;
+                        color: #0f172a;
+                        border-bottom: 1px solid #94a3b8;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-checklist-table tbody td {
-                        padding: 0.35mm 0.2mm;
+                        padding: 0.6mm 0.3mm;
                         vertical-align: middle;
-                        color: #111;
+                        color: #0f172a;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-title {
-                        font-size: 9.5pt !important;
+                        font-size: 12pt !important;
+                        font-weight: 900 !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-head-sub {
-                        font-size: 7pt !important;
-                        margin-top: 0.3mm !important;
+                        font-size: 8.5pt !important;
+                        margin-top: 0.8mm !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-reg-row {
-                        margin-top: 1.2mm !important;
-                        font-size: 7pt !important;
-                        gap: 1.5mm !important;
+                        margin-top: 2mm !important;
+                        font-size: 8.5pt !important;
+                        gap: 2mm !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-box {
-                        margin-top: 1.5mm !important;
-                        border: 1px dashed #64748b !important;
-                        border-radius: 1.5mm !important;
-                        padding: 1.5mm 1.2mm !important;
-                        text-align: center;
+                        margin-top: 2.5mm !important;
+                        border: 1px dashed #475569 !important;
+                        border-radius: 2mm !important;
+                        padding: 3mm 2.5mm !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-label {
-                        font-size: 6.8pt !important;
-                        font-weight: bold !important;
+                        font-size: 8.5pt !important;
+                        font-weight: 900 !important;
+                        letter-spacing: 0.2mm !important;
                     }
                     body[data-print-mode="nurse-station-ticket"] #nurseStationTicket .ns-queue-no {
-                        margin-top: 0.6mm !important;
-                        font-size: 18pt !important;
+                        font-size: 26pt !important;
                         line-height: 1 !important;
                         font-weight: 900 !important;
-                        letter-spacing: 0.6mm !important;
+                        letter-spacing: 0.9mm !important;
+                        margin-top: 1.4mm !important;
                     }
                     body[data-print-mode="ugd-ticket"] {
                         width: 74mm;
@@ -362,169 +396,80 @@
                     body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_unit {
                         font-size: 22pt !important;
                         line-height: 1 !important;
-                        letter-spacing: 1.4mm !important;
-                    }
-                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_note {
-                        font-size: 8.2pt !important;
-                        letter-spacing: 0.08mm !important;
-                    }
-                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_rs {
-                        font-size: 8.2pt !important;
-                        margin-top: 0.1mm !important;
+                        text-align: center;
+                        font-weight: 900 !important;
+                        letter-spacing: 1.5mm !important;
                     }
                     body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_nama {
                         font-size: 10.5pt !important;
-                        line-height: 1.06 !important;
                         font-weight: 900 !important;
+                        text-align: center;
+                        color: #0f172a !important;
                     }
                     body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_demografi_row {
+                        text-align: center;
                         font-size: 7.5pt !important;
-                        margin-top: 0.2mm !important;
+                        color: #334155 !important;
                     }
                     body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_nomor_row {
+                        text-align: center;
                         font-size: 8pt !important;
                         font-weight: 900 !important;
-                        margin-top: 0.22mm !important;
+                        color: #0f172a !important;
                     }
-                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_bpjs_sep {
-                        display: none;
+                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_note,
+                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_rs {
+                        text-align: center;
+                        font-size: 8pt !important;
+                        font-weight: 900 !important;
+                        color: #0f172a !important;
+                    }
+                    body[data-print-mode="ugd-ticket"] #ugdTicket #ugd_ticket_rs {
+                        font-size: 8.5pt !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] .ns-checklist-underline-red {
+                        display: inline-block;
+                        width: 100%;
+                        min-width: 12mm;
+                        max-width: 100%;
+                        border-bottom: 1.2pt solid #dc2626 !important;
+                        height: 4.5mm;
+                        vertical-align: baseline;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] .ns-checklist-td-center {
+                        text-align: center;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] .ns-checklist-no-label {
+                        text-align: right;
+                        padding-right: 0.3mm;
+                        color: #b91c1c;
+                        font-weight: 900;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] .ns-checklist-item-name {
+                        font-weight: 900;
+                        color: #0f172a;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] .ns-sep-dashed-row {
+                        border: none;
+                        border-top: 1px dashed #94a3b8 !important;
+                        margin: 1.4mm 0 !important;
+                        height: 0;
+                        overflow: hidden;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket #ns_nama_pasien {
+                        font-size: 10.5pt !important;
+                        font-weight: 900 !important;
+                        color: #0f172a !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket #ns_poli_tujuan {
+                        font-size: 9.5pt !important;
+                        font-weight: 900 !important;
+                        color: #0369a1 !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicket #ns_nama_dokter {
+                        font-size: 9pt !important;
+                        font-weight: 900 !important;
+                        color: #0f766e !important;
                     }
                 }
 
-                @media print {
-                    body[data-print-mode="general-consent"] * {
-                        visibility: hidden;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal,
-                    body[data-print-mode="general-consent"] #generalConsentModal * {
-                        visibility: visible;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        height: auto;
-                        background: white !important;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal > div:first-child {
-                        display: none;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal > div:last-child,
-                    body[data-print-mode="general-consent"] #generalConsentModal > div:last-child > div {
-                        display: block;
-                        min-height: auto;
-                        max-height: none;
-                        overflow: visible;
-                        box-shadow: none;
-                        border-radius: 0;
-                        background: white;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal .sticky {
-                        display: none !important;
-                    }
-                    body[data-print-mode="general-consent"] #generalConsentModal .p-6 {
-                        padding: 0 !important;
-                        background: white !important;
-                    }
-                    body[data-print-mode="general-consent"] #gcValidationMessage {
-                        display: none !important;
-                    }
-                    body[data-print-mode="general-consent"] .gc-sheet {
-                        margin: 0;
-                        width: auto;
-                        min-height: auto;
-                    padding: 5mm 8mm 5mm;
-                        box-shadow: none;
-                        break-after: auto;
-                        page-break-after: auto;
-                    }
-                    body[data-print-mode="general-consent"] .gc-sheet-break {
-                    padding-top: 4mm;
-                    }
-                    body[data-print-mode="general-consent"] .gc-body-box-second {
-                        min-height: auto;
-                    }
-                    body[data-print-mode="general-consent"] .gc-sheet:not(:last-of-type) {
-                        break-after: page;
-                        page-break-after: always;
-                    }
-                    body[data-print-mode="general-consent"] .gc-body-box,
-                    body[data-print-mode="general-consent"] .gc-family-table {
-                        break-inside: avoid;
-                        page-break-inside: avoid;
-                    }
-                    body[data-print-mode="general-consent"] .gc-witness-input {
-                        display: none !important;
-                    }
-                    body[data-print-mode="general-consent"] .gc-admin-select {
-                        display: none !important;
-                    }
-                    body[data-print-mode="general-consent"] .gc-input {
-                        -webkit-appearance: none;
-                        -moz-appearance: none;
-                        appearance: none;
-                        border: none !important;
-                        background: transparent !important;
-                    }
-                    body[data-print-mode="general-consent"] select.gc-input {
-                        pointer-events: none;
-                    }
-                    body[data-print-mode="triase-ugd"] * {
-                        visibility: hidden;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal,
-                    body[data-print-mode="triase-ugd"] #triageUgdModal * {
-                        visibility: visible;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        height: auto;
-                        background: white !important;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:first-child {
-                        display: none;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:last-child,
-                    body[data-print-mode="triase-ugd"] #triageUgdModal > div:last-child > div {
-                        display: block;
-                        min-height: auto;
-                        max-height: none;
-                        overflow: visible;
-                        box-shadow: none;
-                        border-radius: 0;
-                        background: white;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal .sticky {
-                        display: none !important;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdMessage {
-                        display: none !important;
-                    }
-                    body[data-print-mode="triase-ugd"] #triageUgdModal .p-6 {
-                        padding: 0 !important;
-                        background: white !important;
-                    }
-                    body[data-print-mode="triase-ugd"] .triage-sheet {
-                        margin: 0;
-                        width: auto;
-                        min-height: auto;
-                        padding: 3mm 4mm 3mm;
-                        box-shadow: none;
-                        break-after: auto;
-                        page-break-after: auto;
-                    }
-                    body[data-print-mode="triase-ugd"] .triage-sheet-break {
-                        padding-top: 4mm;
-                    }
-                    body[data-print-mode="triase-ugd"] .triage-page3.triage-sheet-break {
-                        padding-top: 2mm;
-                    }
-                    body[data-print-mode="triase-ugd"] .triage-sheet:not(:last-of-type) {
-                        break-after: page;
-                        page-break-after: always;
-                    }
-                }
