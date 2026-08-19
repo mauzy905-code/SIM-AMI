@@ -814,6 +814,7 @@
                                         <label class="block text-slate-700 font-semibold mb-2">Unit</label>
                                         <select id="r_unit" class="w-full rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500">
                                             <option value="">Semua Unit</option>
+                                            <option value="__batal_berobat__" style="color:#b91c1c;font-weight:900;background:#fef2f2;">🔴 BATAL BEROBAT (SEMUA UNIT)</option>
                                             <option value="POLIKLINIK">Poliklinik</option>
                                             <option value="UGD">UGD</option>
                                             <option value="FARMASI">Farmasi</option>
@@ -2159,20 +2160,20 @@
                                         bcSvg.removeAttribute('height');
                                         bcSvg.removeAttribute('style');
                                         bcSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                                        bcSvg.setAttribute('viewBox', '0 0 480 112');
-                                        bcSvg.style.cssText = 'width:72mm; height:14mm; display:block; margin:0 auto;';
+                                        bcSvg.setAttribute('viewBox', '0 0 520 160');
+                                        bcSvg.style.cssText = 'width:73mm; height:18mm; display:block; margin:0 auto; background:#fff;';
                                         JsBarcode('#ns_ticket_barcode', bcValue, {
                                             format: 'CODE128',
                                             width: 1,
-                                            height: 60,
+                                            height: 82,
                                             displayValue: true,
-                                            fontSize: 13,
-                                            margin: 6,
+                                            fontSize: 16,
+                                            margin: 8,
                                             background: '#ffffff',
                                             lineColor: '#000000',
                                             font: 'monospace',
                                             fontOptions: 'bold',
-                                            textMargin: 2,
+                                            textMargin: 4,
                                             flat: true
                                         });
                                         const gRoot = bcSvg.querySelector('g:first-child');
@@ -2180,7 +2181,7 @@
                                             const vb = bcSvg.viewBox && bcSvg.viewBox.baseVal;
                                             const bb = bcSvg.getBBox ? bcSvg.getBBox() : null;
                                             if (bb) {
-                                                const pad = 6;
+                                                const pad = 8;
                                                 const w = Math.ceil(bb.width + pad * 2);
                                                 const h = Math.ceil(bb.height + pad * 2);
                                                 bcSvg.setAttribute('viewBox', [Math.floor(bb.x - pad), Math.floor(bb.y - pad), w, h].join(' '));
@@ -2473,9 +2474,13 @@
                                     el.style.removeProperty('left');
                                     el.style.removeProperty('top');
                                     el.style.setProperty('width', '80mm', 'important');
+                                    el.style.setProperty('min-width', '80mm', 'important');
+                                    el.style.setProperty('max-width', '80mm', 'important');
                                     el.style.setProperty('height', 'auto', 'important');
+                                    el.style.setProperty('min-height', 'auto', 'important');
                                     el.style.setProperty('max-height', 'none', 'important');
                                     el.style.setProperty('overflow', 'visible', 'important');
+                                    el.style.setProperty('box-sizing', 'border-box', 'important');
                                 } else {
                                     el.style.setProperty('position', 'fixed');
                                     el.style.setProperty('left', '0');
@@ -7712,9 +7717,11 @@
                                     || isNurseStationRole()
                                     || isFarmasiControlRole()
                                     || (isPetugasPoliRole() && !isPetugasPoliScopedRekap());
-                                const unit = shouldDefaultAllUnits
+                                let unit = shouldDefaultAllUnits
                                     ? (rEls.unit.value || '')
                                     : (rEls.unit.value || 'POLIKLINIK');
+                                const filterBatalBerobatOnly = unit === '__batal_berobat__';
+                                if (filterBatalBerobatOnly) unit = '';
                                 const jenisPasien = rEls.jenisPasien.value || '';
                                 const poliTujuan = rEls.poliTujuan.value || '';
                                 const fromISO = r_toISOStart(rEls.from.value);
@@ -7722,6 +7729,9 @@
                                 const q = (rEls.q.value || '').trim();
 
                                 if (unit) query = isUgdValue(unit) ? query.in('unit', ['UGD', 'IGD']) : query.eq('unit', unit);
+                                if (filterBatalBerobatOnly && typeof batalBerobatColumnAvailable !== 'undefined' && batalBerobatColumnAvailable) {
+                                    try { query = query.filter('batal_berobat_data', 'not.is', null); } catch (_e) {}
+                                }
                                 if (jenisPasien) query = query.eq('jenis_pasien', jenisPasien);
                                 if (poliTujuan) query = isUgdValue(poliTujuan) ? query.in('poli_tujuan', ['UGD', 'IGD']) : query.eq('poli_tujuan', poliTujuan);
                                 if (fromISO) query = query.gte('created_at', fromISO);
@@ -8029,38 +8039,86 @@
                             }
 
                             async function r_loadPage(page) {
+                                const filterBatalOnly = String(rEls?.unit?.value || '').trim() === '__batal_berobat__';
+
+                                if (filterBatalOnly && rEls.from && rEls.to) {
+                                    const todayEnd = new Date();
+                                    todayEnd.setHours(23, 59, 59, 999);
+                                    const startDay30Ago = new Date(todayEnd);
+                                    startDay30Ago.setDate(startDay30Ago.getDate() - 30);
+                                    startDay30Ago.setHours(0, 0, 0, 1);
+                                    if (!rEls.from.value) rEls.from.value = startDay30Ago.toISOString().slice(0, 10);
+                                    if (!rEls.to.value) rEls.to.value = todayEnd.toISOString().slice(0, 10);
+                                }
+
                                 const from = (page - 1) * R_PAGE_SIZE;
                                 const to = from + R_PAGE_SIZE - 1;
 
                                 r_setLoading(true);
-                                rEls.meta.textContent = 'Memuat data...';
+                                rEls.meta.textContent = filterBatalOnly ? 'Memuat data batal berobat...' : 'Memuat data...';
 
                                 let query = r_applySort(r_applyFilters(
                                     supabaseClient
                                         .from('pasien')
                                         .select(r_getSelectFields({ includeExactCount: true }), { count: 'exact' })
-                                )).range(from, to);
+                                ));
+                                if (!filterBatalOnly) query = query.range(from, to);
 
-                                const { data, error, count } = await query;
+                                let data = [];
+                                let error = null;
+                                let count = null;
+                                try {
+                                    const res = await query;
+                                    data = res?.data || [];
+                                    error = res?.error || null;
+                                    count = res?.count ?? null;
+                                } catch (_err) {
+                                    error = _err;
+                                }
                                 r_setLoading(false);
 
                                 if (error) {
-                                    rEls.meta.textContent = 'Gagal memuat data: ' + error.message;
+                                    rEls.meta.textContent = 'Gagal memuat data: ' + (error?.message || String(error));
                                     r_renderRows([]);
                                     rEls.prev.disabled = true;
                                     rEls.next.disabled = true;
                                     return;
                                 }
 
-                                r_lastCount = typeof count === 'number' ? count : null;
+                                let allFilteredData = null;
+                                if (filterBatalOnly) {
+                                    allFilteredData = (data || []).filter((row) => isBatalBerobatRecord(row));
+                                    r_lastCount = allFilteredData.length;
+                                    const sliced = allFilteredData.slice(from, from + R_PAGE_SIZE);
+                                    data = sliced;
+                                } else {
+                                    r_lastCount = typeof count === 'number' ? count : null;
+                                }
+
                                 const totalText = r_lastCount === null ? '' : ` / total ${r_lastCount}`;
-                                rEls.meta.textContent = `Menampilkan ${data.length} data (halaman ${page})${totalText}`;
+                                const filterBatalBadge = filterBatalOnly ? ` 🔴 MODE BATAL BEROBAT (SEMUA UNIT)` : '';
+                                rEls.meta.textContent = (filterBatalOnly
+                                    ? `Menampilkan ${data.length} data batal berobat (halaman ${page})${totalText}${filterBatalBadge}`
+                                    : `Menampilkan ${data.length} data (halaman ${page})${totalText}`);
+                                if (filterBatalOnly) {
+                                    rEls.meta.style.color = '#b91c1c';
+                                    rEls.meta.style.fontWeight = '900';
+                                } else {
+                                    rEls.meta.style.color = '';
+                                    rEls.meta.style.fontWeight = '';
+                                }
                                 rEls.pageLabel.textContent = `Halaman ${page}`;
                                 r_renderRows(data);
 
-                                rEls.prev.disabled = page <= 1;
-                                const hasNext = data.length === R_PAGE_SIZE && (r_lastCount === null || page * R_PAGE_SIZE < r_lastCount);
-                                rEls.next.disabled = !hasNext;
+                                if (filterBatalOnly) {
+                                    rEls.prev.disabled = page <= 1;
+                                    const filteredTotal = Number(r_lastCount || 0);
+                                    rEls.next.disabled = (from + data.length) >= filteredTotal;
+                                } else {
+                                    rEls.prev.disabled = page <= 1;
+                                    const hasNext = data.length === R_PAGE_SIZE && (r_lastCount === null || page * R_PAGE_SIZE < r_lastCount);
+                                    rEls.next.disabled = !hasNext;
+                                }
                             }
 
                             async function r_reloadToFirstPage() {
