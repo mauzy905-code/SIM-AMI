@@ -1108,11 +1108,17 @@
                     });
 
                     const allDipanggilRows = normalizedRows.filter((item) => item.ns_status === 'dipanggil');
-                    const loket1Last = allDipanggilRows
-                        .filter((item) => (item.ns_loket_code || '') === 'NS_1')
+                    const normalizedDipanggil = allDipanggilRows.map((item) => {
+                        const code = String(item.ns_loket_code || item.called_loket_code || '').trim().toUpperCase();
+                        const label = String(item.ns_loket_label || item.called_loket_label || '').trim()
+                            || (code === 'NS_1' ? 'Loket 1' : (code === 'NS_2' ? 'Loket 2' : ''));
+                        return { ...item, _ns_loket_code: code, _ns_loket_label: label };
+                    });
+                    const loket1Last = normalizedDipanggil
+                        .filter((item) => item._ns_loket_code === 'NS_1')
                         .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
-                    const loket2Last = allDipanggilRows
-                        .filter((item) => (item.ns_loket_code || '') === 'NS_2')
+                    const loket2Last = normalizedDipanggil
+                        .filter((item) => item._ns_loket_code === 'NS_2')
                         .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
 
                     const noLoketCodeCalls = allDipanggilRows.filter((item) => !(item.ns_loket_code || '').trim());
@@ -1913,13 +1919,24 @@
                     const allDipanggil = (queueRows || []).filter((row) => row?.ns_status === 'dipanggil');
                     if (!allDipanggil.length) return;
 
-                    const loket1Row = allDipanggil
-                        .filter((r) => (r.ns_loket_code || '') === 'NS_1')
+                    const normalizedRows = allDipanggil.map((row) => {
+                        const code = String(row?.ns_loket_code || row?.called_loket_code || '').trim().toUpperCase();
+                        const label = String(row?.ns_loket_label || row?.called_loket_label || '').trim()
+                            || (code === 'NS_1' ? 'Loket 1' : (code === 'NS_2' ? 'Loket 2' : ''));
+                        return {
+                            ...row,
+                            _ns_loket_code: code,
+                            _ns_loket_label: label
+                        };
+                    });
+
+                    const loket1Row = normalizedRows
+                        .filter((r) => r._ns_loket_code === 'NS_1')
                         .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
-                    const loket2Row = allDipanggil
-                        .filter((r) => (r.ns_loket_code || '') === 'NS_2')
+                    const loket2Row = normalizedRows
+                        .filter((r) => r._ns_loket_code === 'NS_2')
                         .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
-                    const fallbackRows = allDipanggil.filter((r) => !(r.ns_loket_code || '').trim());
+                    const fallbackRows = normalizedRows.filter((r) => !r._ns_loket_code.trim());
                     const fallbackRow = fallbackRows
                         .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
 
@@ -1935,8 +1952,8 @@
                     candidates.forEach((cand) => {
                         const current = cand.row;
                         if (!current) return;
-                        const loketCode = cand.loketCode || '';
-                        const loketLabel = String(current.ns_loket_label || cand.loketLabel || 'Loket 1').trim();
+                        const loketCode = (cand.loketCode || '').trim().toUpperCase();
+                        const loketLabel = String(current._ns_loket_label || cand.loketLabel || 'Loket 1').trim();
                         const key = prefix + 'NURSE_STATION:CALL:' + cand.keySuffix;
                         const nextVal = buildNurseStationAnnouncementSignature({ ...current, ns_loket_code: loketCode, ns_loket_label: loketLabel });
                         if (lastAnnounced[key] === nextVal) return;
