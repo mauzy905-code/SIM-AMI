@@ -2317,7 +2317,7 @@
                             }
 
                             let lastPrintContainerEl = null;
-                            let lastDetachedFormInfo = null;
+                            let lastDetachedPrintInfo = null;
 
                             const PRINT_MODE_TO_CONTAINER_ID = {
                                 'barcode': 'stickerContainer',
@@ -2376,8 +2376,8 @@
 
                             function clearActivePrintMode() {
                                 let detachedEl = null;
-                                if (lastDetachedFormInfo) {
-                                    const { el, parentRef, nextSiblingRef, hadHidden } = lastDetachedFormInfo;
+                                if (lastDetachedPrintInfo) {
+                                    const { el, parentRef, nextSiblingRef, hadHidden } = lastDetachedPrintInfo;
                                     detachedEl = el;
                                     try {
                                         if (parentRef) {
@@ -2390,11 +2390,11 @@
                                     } catch (_e) {}
                                     try { el.removeAttribute('style'); } catch (_e) {}
                                     if (hadHidden) { try { el.classList.add('hidden'); } catch (_e) {} }
-                                    lastDetachedFormInfo = null;
+                                    lastDetachedPrintInfo = null;
                                 }
                                 if (lastPrintContainerEl) {
-                                    const isDetachedF4Form = (detachedEl && lastPrintContainerEl === detachedEl);
-                                    if (!isDetachedF4Form) {
+                                    const isDetachedMode = (detachedEl && lastPrintContainerEl === detachedEl);
+                                    if (!isDetachedMode) {
                                         lastPrintContainerEl.classList.add('hidden');
                                         lastPrintContainerEl.removeAttribute('style');
                                     }
@@ -2475,9 +2475,13 @@
                                 if (!containerId) return;
                                 const el = document.getElementById(containerId);
                                 if (!el) return;
-                                const isF4Form = (mode === 'general-consent' || mode === 'triase-ugd');
-                                if (isF4Form && el.parentNode && el.parentNode !== document.body) {
-                                    lastDetachedFormInfo = {
+                                const isDetachMode = (
+                                    mode === 'general-consent' ||
+                                    mode === 'triase-ugd' ||
+                                    mode === 'nurse-station-ticket'
+                                );
+                                if (isDetachMode && el.parentNode && el.parentNode !== document.body) {
+                                    lastDetachedPrintInfo = {
                                         el,
                                         parentRef: el.parentNode,
                                         nextSiblingRef: el.nextSibling,
@@ -2492,6 +2496,7 @@
                                 el.style.setProperty('z-index', '99999', 'important');
                                 const isContinuousPaper = (mode === 'nurse-station-ticket');
                                 const isUgdFixedPaper = (mode === 'ugd-ticket');
+                                const isF4Form = (mode === 'general-consent' || mode === 'triase-ugd');
                                 if (isF4Form) {
                                     el.style.setProperty('position', 'static', 'important');
                                     el.style.removeProperty('left');
