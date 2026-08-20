@@ -141,6 +141,9 @@
                         <button id="menuNurseStationDashboard" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
                             Dashboard Nurse Station
                         </button>
+                        <button id="nurseRekapAllPasienBtn" type="button" class="hidden w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3.5 text-left font-bold text-slate-800 transition hover:bg-emerald-50">
+                            Rekap Semua Pasien
+                        </button>
                         <button id="menuPendaftaran" type="button" class="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 text-left font-bold text-emerald-900 transition hover:bg-emerald-100">
                             Input Pasien
                         </button>
@@ -1428,6 +1431,7 @@
                             const menuPoliDashboard = document.getElementById('menuPoliDashboard');
                             const menuPoliDoctorSettings = document.getElementById('menuPoliDoctorSettings');
                             const menuNurseStationDashboard = document.getElementById('menuNurseStationDashboard');
+                            const nurseRekapAllPasienBtn = document.getElementById('nurseRekapAllPasienBtn');
                             const menuPendaftaran = document.getElementById('menuPendaftaran');
                             const menuRekap = document.getElementById('menuRekap');
                             const menuDraftTriase = document.getElementById('menuDraftTriase');
@@ -1637,6 +1641,7 @@
                             let currentPatientEditNoRegistrasi = '';
                             let currentPatientEditName = '';
                             let petugasPoliRekapMode = 'poli';
+                            let nsForceRekapAll = false;
                             let registrationLocked = false;
                             let registrationLockedNoAntrian = '';
                             let currentAdminProfile = null;
@@ -1730,6 +1735,9 @@
                                 if (menuNurseStationDashboard) {
                                     menuNurseStationDashboard.classList.toggle('hidden', !isNurseStationRole());
                                 }
+                                if (nurseRekapAllPasienBtn) {
+                                    nurseRekapAllPasienBtn.classList.toggle('hidden', !isNurseStationRole());
+                                }
                                 menuPendaftaran.classList.toggle('hidden', !canAccessPendaftaranView());
                                 menuRekap.classList.toggle('hidden', !canAccessRekapView());
                                 if (menuDraftTriase) {
@@ -1748,7 +1756,7 @@
                                 const inactiveClass = 'w-full text-left px-4 py-3 rounded-xl border border-emerald-100 bg-white text-slate-800 font-bold hover:bg-emerald-50 transition';
 
                                 const isRekapView = view === 'rekap' || view === 'rekap_all';
-                                const isRekapAll = view === 'rekap_all';
+                                const isRekapAll = view === 'rekap_all' || (view === 'rekap' && isNsForceRekapAll());
                                 const isDraft = view === 'draft_triase';
                                 const isPerawatDashboard = view === 'perawat_dashboard';
                                 const isDokterDashboard = view === 'dokter_dashboard';
@@ -1771,10 +1779,13 @@
                                 if (menuNurseStationDashboard) {
                                     menuNurseStationDashboard.className = isNurseStationDashboard ? activeClass : inactiveClass;
                                 }
+                                if (nurseRekapAllPasienBtn) {
+                                    nurseRekapAllPasienBtn.className = (view === 'rekap' && isNsForceRekapAll()) ? activeClass : inactiveClass;
+                                }
                                 menuPendaftaran.className = view === 'pendaftaran' ? activeClass : inactiveClass;
                                 menuRekap.className = (isRekapView && !isRekapAll) ? activeClass : inactiveClass;
                                 if (menuRekapAll) {
-                                    menuRekapAll.className = (isRekapAll ? activeClass : inactiveClass);
+                                    menuRekapAll.className = (isRekapAll && !isNsForceRekapAll()) ? activeClass : inactiveClass;
                                 }
                                 if (menuDraftTriase) {
                                     menuDraftTriase.className = isDraft ? activeClass : inactiveClass;
@@ -2831,7 +2842,13 @@
 
                                 syncRoleMenuVisibility();
                                 menuPendaftaran.textContent = isSupervisor ? 'Dashboard Supervisor' : 'Input Pasien';
-                                menuRekap.textContent = isRme ? 'Rekap & Riwayat Pasien' : (isPetugasPoli ? 'Daftar Pasien Poli' : (isNurseStation ? 'Daftar Pasien Nurse Station' : (isFarmasi ? 'Kontrol Antrean Farmasi' : 'Rekap Pasien')));
+                                menuRekap.textContent = isRme
+                                    ? 'Rekap & Riwayat Pasien'
+                                    : (isPetugasPoli
+                                        ? 'Daftar Pasien Poli'
+                                        : (isNurseStation
+                                            ? (isNsForceRekapAll() ? 'Rekap Semua Pasien' : 'Daftar Pasien Nurse Station')
+                                            : (isFarmasi ? 'Kontrol Antrean Farmasi' : 'Rekap Pasien')));
                                 updateHistoryDriveAccess();
                                 if (queueControlEyebrow) queueControlEyebrow.textContent = 'Kontrol Slide Antrean';
                                 if (queueControlTitle) queueControlTitle.textContent = 'Geser ke nomor berikutnya secara manual';
@@ -3025,6 +3042,8 @@
                                 const isNurseStation = isNurseStationRole();
                                 const isReadOnlyViewer = isReadOnlyPatientViewerRole();
                                 const scopedPetugasPoli = isPetugasPoliScopedRekap();
+                                const nsFullRekap = isNsForceRekapAll();
+                                const scopedNurseStation = isNurseStationScopedRekap();
                                 const showSupervisorEditColumn = isSupervisorRole() && !isRme && !isPetugasPoli;
                                 const showCancelVisitColumn = canManageBatalBerobat() && !isRme && !isPetugasPoli && !isNurseStation;
                                 const titleEl = document.getElementById('rekapTitle');
@@ -3043,7 +3062,9 @@
                                         ? 'Rekap & Riwayat Pasien'
                                         : (isPetugasPoli
                                             ? (scopedPetugasPoli ? 'Daftar Pasien Poli Hari Ini' : 'Rekap Semua Pasien')
-                                            : (isNurseStation ? 'Daftar Pasien Nurse Station' : (isReadOnlyViewer ? 'Daftar Pasien Masuk' : 'Rekap Pendaftaran Pasien')));
+                                            : (isNurseStation
+                                                ? (nsFullRekap ? 'Rekap Semua Pasien' : 'Daftar Pasien Nurse Station')
+                                                : (isReadOnlyViewer ? 'Daftar Pasien Masuk' : 'Rekap Pendaftaran Pasien')));
                                 }
                                 if (descEl) {
                                     descEl.textContent = isRme
@@ -3053,7 +3074,9 @@
                                                 ? 'Daftar pasien poliklinik hari ini sesuai poli akun yang sedang login.'
                                                 : 'Cari dan filter semua pasien yang sudah masuk dari Poliklinik dan UGD.')
                                             : (isNurseStation
-                                                ? 'Daftar pasien poliklinik hari ini.'
+                                                ? (nsFullRekap
+                                                    ? 'Cari dan filter semua pasien yang sudah masuk dari Pendaftaran Poliklinik, UGD, serta Nurse Station. Gunakan filter Tanggal, Unit, dan Poli Tujuan untuk pencarian detail.'
+                                                    : 'Daftar pasien poliklinik hari ini.')
                                                 : (isReadOnlyViewer
                                                 ? 'Cari dan lihat data pasien yang sudah masuk. Link Google Drive hanya dikelola oleh Admin RME.'
                                                 : 'Cari, filter, audit, dan unduh data pasien yang sudah tersimpan.')));
@@ -3065,10 +3088,12 @@
                                             ? (scopedPetugasPoli
                                                 ? 'Cari Pasien Poli (Nama / NIK)'
                                                 : 'Cari (Nama / NIK)')
-                                            : (isNurseStation ? 'Cari Pasien Nurse Station (Nama / NIK / No RM)' : 'Cari (Nama / NIK)'));
+                                            : (isNurseStation
+                                                ? (nsFullRekap ? 'Cari Pasien (Nama / NIK / No RM / No Antrian)' : 'Cari Pasien Nurse Station (Nama / NIK / No RM)')
+                                                : 'Cari (Nama / NIK)'));
                                 }
                                 if (exportBtn) {
-                                    exportBtn.classList.toggle('hidden', isPetugasPoli || isNurseStation || isReadOnlyViewer);
+                                    exportBtn.classList.toggle('hidden', scopedPetugasPoli || scopedNurseStation || isReadOnlyViewer);
                                 }
                                 if (unitWrap) unitWrap.classList.toggle('hidden', isRme || scopedPetugasPoli);
                                 if (jenisWrap) jenisWrap.classList.toggle('hidden', isRme);
@@ -3083,7 +3108,7 @@
                                     if (poliSel) poliSel.value = getPetugasPoliDefaultPoli() || poliSel.value || '';
                                     if (fromInput) fromInput.value = '';
                                     if (toInput) toInput.value = '';
-                                } else if (isNurseStation) {
+                                } else if (scopedNurseStation) {
                                     const unitSel = document.getElementById('r_unit');
                                     const today = new Date().toISOString().slice(0, 10);
                                     if (unitSel) unitSel.value = '';
@@ -3593,6 +3618,14 @@
 
                             function isPetugasPoliScopedRekap() {
                                 return isPetugasPoliRole() && petugasPoliRekapMode !== 'all';
+                            }
+
+                            function isNsForceRekapAll() {
+                                return Boolean(nsForceRekapAll);
+                            }
+
+                            function isNurseStationScopedRekap() {
+                                return isNurseStationRole() && !isNsForceRekapAll();
                             }
 
                             function isStaffIdentityRequired() {
@@ -4486,14 +4519,36 @@
                             if (menuNurseStationDashboard) {
                                 menuNurseStationDashboard.addEventListener('click', async () => {
                                     closeDrawer();
+                                    nsForceRekapAll = false;
                                     showView('nurse_station_dashboard');
                                     await withPageLoading('Menyegarkan Dashboard Nurse Station...', async () => {
                                         await nurseStationDashboardModule?.refresh?.();
                                     });
                                 });
                             }
+                            if (nurseRekapAllPasienBtn) {
+                                nurseRekapAllPasienBtn.addEventListener('click', async () => {
+                                    closeDrawer();
+                                    nsForceRekapAll = true;
+                                    await withPageLoading('Memuat Semua Rekap Pasien...', async () => {
+                                        showView('rekap');
+                                        const unitSel = document.getElementById('r_unit');
+                                        const poliSel = document.getElementById('r_poli_tujuan');
+                                        const fromInput = document.getElementById('r_from');
+                                        const toInput = document.getElementById('r_to');
+                                        if (unitSel) unitSel.value = '';
+                                        if (poliSel) poliSel.value = '';
+                                        if (fromInput) fromInput.value = '';
+                                        if (toInput) toInput.value = '';
+                                        applyRekapRolePresentation();
+                                        applyRolePresentation();
+                                        await r_reloadToFirstPage();
+                                    });
+                                });
+                            }
                             menuPendaftaran.addEventListener('click', async () => {
                                 closeDrawer();
+                                nsForceRekapAll = false;
                                 showView(isPetugasPoliRole() ? 'poli_dashboard' : 'pendaftaran');
                                 await withPageLoading('Menyegarkan Dashboard...', async () => {
                                     if (isPetugasPoliRole()) {
@@ -4505,6 +4560,7 @@
                             });
                             menuRekap.addEventListener('click', async () => {
                                 closeDrawer();
+                                nsForceRekapAll = false;
                                 await withPageLoading('Memuat Rekap Pasien...', async () => {
                                     if (isPetugasPoliRole()) {
                                         petugasPoliRekapMode = 'poli';
@@ -4512,7 +4568,9 @@
                                         applyRekapRolePresentation();
                                     } else {
                                         showView('rekap');
+                                        applyRekapRolePresentation();
                                     }
+                                    applyRolePresentation();
                                     await r_reloadToFirstPage();
                                 });
                             });
