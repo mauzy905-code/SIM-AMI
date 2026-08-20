@@ -355,9 +355,7 @@
                     .gte('created_at', startISO)
                     .lte('created_at', endISO)
                     .eq('unit', unit)
-                    .ilike('no_antrian', prefix + '-%')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
+                    .ilike('no_antrian', prefix + '-%');
 
                 if (error) {
                     console.error('Error fetching last antrian:', error);
@@ -365,8 +363,19 @@
                 }
 
                 if (!data || data.length === 0) return prefix + '-001';
-                const lastNumber = parseInt(String(data[0].no_antrian || '').split('-')[1] || '0', 10);
-                return prefix + '-' + (lastNumber + 1).toString().padStart(3, '0');
+                let maxNum = 0;
+                data.forEach((row) => {
+                    const raw = String(row.no_antrian || '').trim();
+                    if (!raw) return;
+                    const parts = raw.split('-');
+                    if (!parts || parts.length < 2) return;
+                    const numStr = String(parts[1] || '0').replace(/[^0-9]/g, '');
+                    if (!numStr) return;
+                    const n = parseInt(numStr, 10);
+                    if (Number.isFinite(n) && n > maxNum) maxNum = n;
+                });
+                const nextNum = (maxNum > 0 ? maxNum : 0) + 1;
+                return prefix + '-' + nextNum.toString().padStart(3, '0');
             }
 
             async function processTicket() {
