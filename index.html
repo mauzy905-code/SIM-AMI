@@ -3244,7 +3244,13 @@
                             }
 
                             function getCurrentAdminEmail() {
-                                return String(currentAdminProfile?.email || loginEmail.value || '').trim();
+                                const raw = String(currentAdminProfile?.email || loginEmail.value || '').trim();
+                                try {
+                                    if (window.normalizeEmailForLookup && typeof window.normalizeEmailForLookup === 'function') {
+                                        return window.normalizeEmailForLookup(raw);
+                                    }
+                                } catch (_e) {}
+                                return raw.toLowerCase().replace(/\s+/g, '');
                             }
 
                             function normalizeLoketCode(value) {
