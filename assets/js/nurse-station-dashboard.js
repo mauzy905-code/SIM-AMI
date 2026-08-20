@@ -49,7 +49,20 @@
             function getCurrentNsLoket() {
                 const email = getOperatorEmail();
                 if (typeof getNsLoketByEmail === 'function') {
-                    return getNsLoketByEmail(email);
+                    const loket = getNsLoketByEmail(email);
+                    if (loket) return loket;
+                }
+                if (typeof window.getNsLoketByEmail === 'function') {
+                    const loket = window.getNsLoketByEmail(email);
+                    if (loket) return loket;
+                }
+                const norm = String(email || '').trim().toLowerCase().replace(/\s+/g, '');
+                if (!norm) return null;
+                if (norm.includes('nursestation2') || norm.startsWith('nursestation2@') || norm.endsWith('nursestation2@rsudami.com')) {
+                    return { code: 'NS_2', label: 'Loket 2', accent: 'purple' };
+                }
+                if ((norm.includes('nursestation') && !norm.includes('2')) || norm.startsWith('nursestation@') || norm.endsWith('nursestation@rsudami.com')) {
+                    return { code: 'NS_1', label: 'Loket 1', accent: 'cyan' };
                 }
                 return null;
             }
@@ -1399,22 +1412,71 @@
                 ensureMounted();
                 if (els.staffName) els.staffName.textContent = getStaffName();
                 if (els.roleLabel) els.roleLabel.textContent = getRoleLabel();
-                if (els.loketLabel) els.loketLabel.textContent = getLoketLabel();
+                const loket = getCurrentNsLoket();
+                const rawEmail = getEmail();
+                const displayEmailDebug = rawEmail || getOperatorEmail() || '(tidak terbaca)';
+                if (els.loketLabel) {
+                    if (loket && loket.label) {
+                        els.loketLabel.textContent = loket.label;
+                    } else {
+                        els.loketLabel.textContent = '— Belum Terdaftar —';
+                    }
+                }
                 if (els.loketCard) {
-                    const loket = getCurrentNsLoket();
                     const accent = (typeof nsLoketAccentClass === 'function') ? nsLoketAccentClass(loket?.code || 'NS_1') : null;
                     els.loketCard.classList.remove('is-ns1', 'is-ns2');
                     if (els.loketLabel && accent) {
                         els.loketLabel.classList.remove('text-cyan-700', 'text-purple-700', 'text-slate-700');
-                        els.loketLabel.classList.add(accent.text);
+                        if (loket?.code === 'NS_2') {
+                            els.loketLabel.classList.add('text-purple-700');
+                        } else if (loket?.code === 'NS_1') {
+                            els.loketLabel.classList.add('text-cyan-700');
+                        } else {
+                            els.loketLabel.classList.add('text-slate-700');
+                        }
                     }
                     if (loket?.code === 'NS_2') {
                         els.loketCard.classList.add('is-ns2');
                     } else {
                         els.loketCard.classList.add('is-ns1');
                     }
+                    els.loketCard.title = 'Akun yang terdeteksi: ' + displayEmailDebug;
                 }
-                if (els.email) els.email.textContent = getEmail();
+                if (els.email) els.email.textContent = rawEmail || '-';
+                const messageContainer = els.message;
+                if (messageContainer && !loket) {
+                    try {
+                        const debugWrapper = document.createElement('div');
+                        debugWrapper.className = 'mb-4 rounded-2xl border-2 border-rose-300 bg-rose-50 px-5 py-4 shadow-sm';
+                        debugWrapper.innerHTML = `
+  <div style="font-size:14px;font-weight:800;color:#be123c;margin-bottom:6px;">⚠️ Akun Nurse Station belum terdeteksi</div>
+  <div style="font-size:13px;color:#475569;line-height:1.65;">
+    Email Anda yang sedang terdeteksi:
+    <div style="margin-top:6px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #fecdd3;font-family:ui-monospace,monospace;font-size:12px;color:#0f172a;word-break:break-all;">${escapeHtml(displayEmailDebug)}</div>
+    <div style="margin-top:10px;font-weight:700;color:#0f172a;">Daftar email Loket Nurse Station yang diizinkan:</div>
+    <ul style="margin:4px 0 0 18px;padding:0;list-style:disc;font-size:12.5px;line-height:1.75;color:#0f172a;">
+      <li><b style="color:#0e7490;">Loket 1 (Cyan)</b>: <code>nursestation@rsudami.com</code></li>
+      <li><b style="color:#7e22ce;">Loket 2 (Ungu)</b>: <code>nursestation2@rsudami.com</code></li>
+    </ul>
+    <div style="margin-top:10px;font-size:12.5px;color:#334155;">
+      <b>Troubleshoot:</b><br>
+      1. Logout → Login kembali menggunakan email yang persis sama dengan daftar di atas.<br>
+      2. Pastikan tidak ada spasi di awal / akhir email (di field login).<br>
+      3. Jika pakai email lain, hubungi Admin untuk menambahkan email Anda ke daftar loket Nurse Station.
+    </div>
+  </div>`;
+                        const existingBanner = messageContainer.querySelector('[data-ns-email-debug-banner]');
+                        if (!existingBanner) {
+                            debugWrapper.setAttribute('data-ns-email-debug-banner', '1');
+                            messageContainer.prepend(debugWrapper);
+                        }
+                    } catch (_e) { /* ignore banner render */ }
+                } else if (messageContainer) {
+                    try {
+                        const b = messageContainer.querySelector('[data-ns-email-debug-banner]');
+                        if (b) b.remove();
+                    } catch (_e) {}
+                }
                 if (els.refreshBtn) {
                     els.refreshBtn.disabled = state.loading;
                     els.refreshBtn.textContent = state.loading ? 'Memuat...' : 'Refresh';
