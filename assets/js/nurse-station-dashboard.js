@@ -158,12 +158,17 @@
                 const status = statusRaw === 'selesai'
                     ? 'selesai'
                     : (statusRaw === 'dipanggil' ? 'dipanggil' : 'menunggu');
+                const rawLoketCode = String(value.called_loket_code || value.loket_code || '').trim().toUpperCase();
+                const loketCode = (rawLoketCode === 'NS_1' || rawLoketCode === 'NS_2') ? rawLoketCode : '';
+                const loketLabelFallback = loketCode === 'NS_1' ? 'Loket 1' : (loketCode === 'NS_2' ? 'Loket 2' : '');
                 return {
                     status,
                     queue_no: normalizeQueueNo(value.queue_no || ''),
                     called_at: String(value.called_at || '').trim(),
                     called_by_name: String(value.called_by_name || '').trim(),
                     called_by_email: String(value.called_by_email || '').trim(),
+                    called_loket_code: loketCode,
+                    called_loket_label: String(value.called_loket_label || value.loket_label || loketLabelFallback || '').trim(),
                     completed_at: String(value.completed_at || '').trim(),
                     completed_by_name: String(value.completed_by_name || '').trim(),
                     completed_by_email: String(value.completed_by_email || '').trim()
@@ -315,12 +320,32 @@
                 });
             }
 
-            function getOpenCalledRow(excludeRowId = '') {
+            function getCurrentLoketContextForLocking() {
+                const loket = (typeof getCurrentNsLoket === 'function') ? getCurrentNsLoket() : null;
+                const operatorEmail = (typeof getOperatorEmail === 'function') ? String(getOperatorEmail() || '').trim().toLowerCase() : '';
+                return {
+                    loketCode: String(loket?.code || '').trim().toUpperCase(),
+                    operatorEmail,
+                    loketLabel: String(loket?.label || 'Loket').trim()
+                };
+            }
+
+            function getOpenCalledRow(excludeRowId = '', includeAnyLoket = false) {
                 const excluded = String(excludeRowId || '').trim();
+                const ctx = getCurrentLoketContextForLocking();
+                const myLoket = ctx.loketCode;
+                const myEmail = ctx.operatorEmail;
                 return (Array.isArray(state.rows) ? state.rows : []).find((item) => {
                     const rowId = String(item?.id || '').trim();
                     if (excluded && rowId === excluded) return false;
-                    return item?.nsData?.status === 'dipanggil';
+                    if (item?.nsData?.status !== 'dipanggil') return false;
+                    if (includeAnyLoket) return true;
+                    const rowLoket = String(item?.nsData?.called_loket_code || '').trim().toUpperCase();
+                    const rowEmail = String(item?.nsData?.called_by_email || '').trim().toLowerCase();
+                    if (myLoket && rowLoket === myLoket) return true;
+                    if (myEmail && rowEmail === myEmail) return true;
+                    if (!rowLoket && !rowEmail) return true;
+                    return false;
                 }) || null;
             }
 
