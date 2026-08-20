@@ -1123,7 +1123,18 @@
 
                     const noLoketCodeCalls = allDipanggilRows.filter((item) => !(item.ns_loket_code || '').trim());
                     const current = loket1Last || loket2Last || noLoketCodeCalls[0] || normalizedRows.find((item) => item.ns_status === 'dipanggil') || null;
-                    const waitingRows = normalizedRows.filter((item) => item.ns_status !== 'selesai');
+                    const dipanggilIds = new Set(
+                        [loket1Last, loket2Last, ...noLoketCodeCalls]
+                            .filter((r) => !!r && !!String(r?.id || '').trim())
+                            .map((r) => String(r.id).trim())
+                    );
+                    const waitingRows = normalizedRows.filter((item) => {
+                        if (item.ns_status === 'selesai') return false;
+                        if (item.ns_status === 'dipanggil') return false;
+                        const rowId = String(item?.id || '').trim();
+                        if (rowId && dipanggilIds.has(rowId)) return false;
+                        return true;
+                    });
 
                     if (dualLoketRow) {
                         dualLoketRow.classList.remove('hidden');
@@ -1160,7 +1171,7 @@
                     fillNsLoketCard(loket2Els, loket2Last, 'NS_2');
 
                     if (waitingRows.length === 0) {
-                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean Nurse Station hari ini.</div>';
+                        listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean menunggu. Semua antrean sedang diproses Loket 1 dan Loket 2.</div>';
                         return;
                     }
 
@@ -1173,7 +1184,7 @@
                                     <div class="mt-3 text-2xl font-black tracking-tight text-white">${escapeHtml(item.nama_pasien || 'Pasien')}</div>
                                     <div class="mt-1 text-base font-semibold text-cyan-100/75">${escapeHtml(poliLabel(item.poli_tujuan))}</div>
                                 </div>
-                                <div class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">${item.ns_status === 'dipanggil' ? 'Dipanggil' : 'Menunggu'}</div>
+                                <div class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">Menunggu</div>
                             </div>
                         </div>
                     `).join('');
