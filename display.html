@@ -347,6 +347,24 @@
 
             <div id="focusedNextPanel" class="lg:w-1/3 bg-slate-950 p-6 border-l border-slate-800/70 overflow-y-auto">
                 <h3 id="focusedNextTitle" class="mb-6 border-b border-cyan-500/25 pb-3 bg-gradient-to-r from-cyan-100 via-white to-cyan-200 bg-clip-text text-[2rem] md:text-[2.4rem] font-black tracking-[0.08em] text-transparent drop-shadow-[0_10px_28px_rgba(34,211,238,0.2)] uppercase">ANTREAN BERIKUTNYA</h3>
+                <div id="nsDualLoketRow" class="mb-6 hidden">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div id="nsLoket1Card" class="rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.22)_0%,_rgba(14,165,233,0.22)_100%)] px-5 py-6 shadow-2xl text-center flex flex-col justify-center min-h-[230px]">
+                            <div class="text-cyan-200 text-xs md:text-sm font-extrabold tracking-[0.32em] uppercase">Loket 1</div>
+                            <div id="nsLoket1Queue" class="mt-3 text-[3.8rem] md:text-[5.4rem] xl:text-[6.2rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-sky-200">-</div>
+                            <div id="nsLoket1Nama" class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-white">Belum ada antrean dipanggil</div>
+                            <div id="nsLoket1Poli" class="mt-1 text-base md:text-lg font-bold text-cyan-100/85 min-h-[1.75rem]">-</div>
+                            <div id="nsLoket1Meta" class="mt-3 inline-flex self-center items-center rounded-full border border-cyan-300/20 bg-white/10 px-4 py-1.5 text-[11px] md:text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-100">Belum Ada Panggilan</div>
+                        </div>
+                        <div id="nsLoket2Card" class="rounded-[28px] border border-purple-400/35 bg-[linear-gradient(135deg,_rgba(147,51,234,0.24)_0%,_rgba(168,85,247,0.18)_100%)] px-5 py-6 shadow-2xl text-center flex flex-col justify-center min-h-[230px]">
+                            <div class="text-purple-200 text-xs md:text-sm font-extrabold tracking-[0.32em] uppercase">Loket 2</div>
+                            <div id="nsLoket2Queue" class="mt-3 text-[3.8rem] md:text-[5.4rem] xl:text-[6.2rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-fuchsia-200">-</div>
+                            <div id="nsLoket2Nama" class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-white">Belum ada antrean dipanggil</div>
+                            <div id="nsLoket2Poli" class="mt-1 text-base md:text-lg font-bold text-purple-100/85 min-h-[1.75rem]">-</div>
+                            <div id="nsLoket2Meta" class="mt-3 inline-flex self-center items-center rounded-full border border-purple-300/20 bg-white/10 px-4 py-1.5 text-[11px] md:text-xs font-extrabold uppercase tracking-[0.18em] text-purple-100">Belum Ada Panggilan</div>
+                        </div>
+                    </div>
+                </div>
                 <div id="focusedCurrentNurseCard" class="hidden mb-5 rounded-[28px] border border-cyan-400/35 bg-[linear-gradient(135deg,_rgba(6,182,212,0.18)_0%,_rgba(37,99,235,0.2)_100%)] px-5 py-5 shadow-2xl">
                     <div class="text-cyan-200 text-xs font-extrabold tracking-[0.28em] uppercase">Sedang Dipanggil</div>
                     <div id="focusedCurrentNurseQueue" class="mt-3 text-[5.6rem] md:text-[7.4rem] xl:text-[8.8rem] font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-blue-200">-</div>
@@ -754,11 +772,17 @@
                     }
                     if (!value || typeof value !== 'object') return null;
                     const statusRaw = String(value.status || '').trim().toLowerCase();
+                    const rawLoketCode = String(value.called_loket_code || value.loket_code || '').trim().toUpperCase();
+                    const loketCode = (rawLoketCode === 'NS_1' || rawLoketCode === 'NS_2') ? rawLoketCode : '';
                     return {
                         status: statusRaw === 'selesai' ? 'selesai' : (statusRaw === 'dipanggil' ? 'dipanggil' : 'menunggu'),
                         queue_no: normalizeNsQueueNo(value.queue_no || ''),
                         called_at: String(value.called_at || '').trim(),
-                        completed_at: String(value.completed_at || '').trim()
+                        completed_at: String(value.completed_at || '').trim(),
+                        called_loket_code: loketCode,
+                        called_loket_label: String(value.called_loket_label || value.loket_label || (loketCode === 'NS_1' ? 'Loket 1' : (loketCode === 'NS_2' ? 'Loket 2' : ''))).trim(),
+                        called_by_email: String(value.called_by_email || '').trim(),
+                        called_by_name: String(value.called_by_name || '').trim()
                     };
                 }
 
@@ -1043,6 +1067,21 @@
                     const currentName = document.getElementById('focusedCurrentNurseName');
                     const currentPoli = document.getElementById('focusedCurrentNursePoli');
                     const currentMeta = document.getElementById('focusedCurrentNurseMeta');
+                    const dualLoketRow = document.getElementById('nsDualLoketRow');
+                    const loket1Els = {
+                        card: document.getElementById('nsLoket1Card'),
+                        queue: document.getElementById('nsLoket1Queue'),
+                        nama: document.getElementById('nsLoket1Nama'),
+                        poli: document.getElementById('nsLoket1Poli'),
+                        meta: document.getElementById('nsLoket1Meta')
+                    };
+                    const loket2Els = {
+                        card: document.getElementById('nsLoket2Card'),
+                        queue: document.getElementById('nsLoket2Queue'),
+                        nama: document.getElementById('nsLoket2Nama'),
+                        poli: document.getElementById('nsLoket2Poli'),
+                        meta: document.getElementById('nsLoket2Meta')
+                    };
                     const listContainer = document.getElementById('focusedAntrianList');
 
                     singleCurrent.classList.add('hidden');
@@ -1068,29 +1107,51 @@
                         return new Date(left.created_at || 0).getTime() - new Date(right.created_at || 0).getTime();
                     });
 
-                    const current = normalizedRows.find((item) => item.ns_status === 'dipanggil') || null;
-                    const waitingRows = normalizedRows.filter((item) => item.ns_status !== 'selesai' && item.id !== current?.id);
+                    const allDipanggilRows = normalizedRows.filter((item) => item.ns_status === 'dipanggil');
+                    const loket1Last = allDipanggilRows
+                        .filter((item) => (item.ns_loket_code || '') === 'NS_1')
+                        .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
+                    const loket2Last = allDipanggilRows
+                        .filter((item) => (item.ns_loket_code || '') === 'NS_2')
+                        .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
 
-                    currentCard.classList.remove('hidden');
-                    const isCurrentPriority = !!current && isNsPriorityQueue(current.queue_no);
-                    if (current) {
-                        currentQueue.textContent = current.queue_no || '-';
-                        currentName.textContent = current.nama_pasien || 'Pasien';
-                        currentPoli.textContent = poliLabel(current.poli_tujuan);
-                        currentMeta.textContent = isNsPriorityQueue(current.queue_no) ? 'Prioritas Dipanggil' : 'Umum Dipanggil';
-                    } else {
-                        currentQueue.textContent = '-';
-                        currentName.textContent = 'Belum ada antrean dipanggil';
-                        currentPoli.textContent = 'Menunggu panggilan dari petugas Nurse Station';
-                        currentMeta.textContent = 'Belum Ada Panggilan';
+                    const noLoketCodeCalls = allDipanggilRows.filter((item) => !(item.ns_loket_code || '').trim());
+                    const current = loket1Last || loket2Last || noLoketCodeCalls[0] || normalizedRows.find((item) => item.ns_status === 'dipanggil') || null;
+                    const waitingRows = normalizedRows.filter((item) => item.ns_status !== 'selesai');
+
+                    if (dualLoketRow) {
+                        dualLoketRow.classList.remove('hidden');
                     }
-                    togglePriorityAccent(currentCard, 'priority-card', isCurrentPriority);
-                    togglePriorityAccent(currentCard, 'priority-ring', isCurrentPriority);
-                    togglePriorityAccent(currentQueue, 'priority-number', isCurrentPriority);
-                    togglePriorityAccent(currentMeta, 'priority-chip', isCurrentPriority);
-                    togglePriorityAccent(currentMeta, 'priority-meta', isCurrentPriority);
-                    togglePriorityAccent(currentName, 'priority-text', isCurrentPriority);
-                    togglePriorityAccent(currentPoli, 'priority-text', isCurrentPriority);
+                    currentCard.classList.add('hidden');
+
+                    const fillNsLoketCard = (els, row, loketCode) => {
+                        if (!els || !els.card) return;
+                        const isPriority = !!row && isNsPriorityQueue(row.queue_no);
+                        if (row) {
+                            els.queue.textContent = row.queue_no || '-';
+                            els.nama.textContent = row.nama_pasien || 'Pasien';
+                            els.poli.textContent = poliLabel(row.poli_tujuan);
+                            const metaText = row.ns_loket_label
+                                ? `${row.ns_loket_label} • ${isPriority ? 'Prioritas' : 'Umum'} Dipanggil`
+                                : (isPriority ? 'Prioritas Dipanggil' : 'Umum Dipanggil');
+                            els.meta.textContent = metaText;
+                        } else {
+                            els.queue.textContent = '-';
+                            els.nama.textContent = 'Belum ada antrean dipanggil';
+                            els.poli.textContent = loketCode === 'NS_2' ? 'Menunggu panggilan Petugas Loket 2' : 'Menunggu panggilan Petugas Loket 1';
+                            els.meta.textContent = 'Belum Ada Panggilan';
+                        }
+                        togglePriorityAccent(els.card, 'priority-card', isPriority);
+                        togglePriorityAccent(els.card, 'priority-ring', isPriority);
+                        togglePriorityAccent(els.queue, 'priority-number', isPriority);
+                        togglePriorityAccent(els.meta, 'priority-chip', isPriority);
+                        togglePriorityAccent(els.meta, 'priority-meta', isPriority);
+                        togglePriorityAccent(els.nama, 'priority-text', isPriority);
+                        togglePriorityAccent(els.poli, 'priority-text', isPriority);
+                    };
+
+                    fillNsLoketCard(loket1Els, loket1Last, 'NS_1');
+                    fillNsLoketCard(loket2Els, loket2Last, 'NS_2');
 
                     if (waitingRows.length === 0) {
                         listContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm font-semibold text-white/70">Belum ada antrean Nurse Station hari ini.</div>';
@@ -1119,7 +1180,9 @@
                         const q = String(r.queue_no || r.no_antrian || '');
                         const s = String(r.ns_status || '');
                         const c = String(r.ns_called_at || '');
-                        return `${id}|${q}|${s}|${c}`;
+                        const l = String(r.ns_loket_code || '');
+                        const ll = String(r.ns_loket_label || '');
+                        return `${id}|${q}|${s}|${c}|${l}|${ll}`;
                     }).join('||');
                 }
 
@@ -1171,6 +1234,8 @@
                             ...row,
                             ns_status: nsData.status || 'menunggu',
                             ns_called_at: nsData.called_at || '',
+                            ns_loket_code: nsData.called_loket_code || '',
+                            ns_loket_label: nsData.called_loket_label || '',
                             queue_no: normalizeNsQueueNo(nsData.queue_no || row.no_antrian || '')
                         };
                     }).filter((row) => row.ns_status !== 'selesai' && !isCancelledRow(row));
@@ -1685,7 +1750,7 @@
                 }
 
                 function buildAnnouncementText(unit, item) {
-                    const noAntrian = String(item?.no_antrian || '').trim();
+                    const noAntrian = String(item?.noAntrian || item?.no_antrian || '').trim();
                     if (!noAntrian) return '';
                     const spokenCode = speakQueueCode(noAntrian);
                     const normalizedUnit = String(unit || '').trim().toUpperCase();
@@ -1694,7 +1759,10 @@
                     if (normalizedUnit === 'NURSE_STATION') {
                         const raw = noAntrian.trim().toUpperCase();
                         const isPrioritas = /^(P|B)-/.test(raw);
-                        return `Perhatian. Nomor antrean. ${isPrioritas ? 'Prioritas' : 'Umum'}. ${spokenCode}. Menuju Meja Pemeriksaan.`;
+                        const nsLoketCode = String(item?.loketTujuan || item?.ns_loket_code || '').trim().toUpperCase();
+                        const nsLoketLabel = String(item?.loketLabel || item?.ns_loket_label || '').trim()
+                            || (nsLoketCode === 'NS_2' ? 'Loket 2' : 'Loket 1');
+                        return `Perhatian. Nomor antrean. ${isPrioritas ? 'Prioritas' : 'Umum'}. ${spokenCode}. Menuju ${nsLoketLabel}.`;
                     }
                     if (normalizedUnit === 'POLIKLINIK') {
                         const loketText = loketLabel ? `. ${loketLabel}.` : '.';
@@ -1708,14 +1776,24 @@
                 }
 
                 function buildAnnouncementPayload(unit, item) {
-                    const noAntrian = String(item?.no_antrian || '').trim();
+                    const noAntrian = String(item?.noAntrian || item?.no_antrian || item?.queue_no || '').trim();
                     if (!noAntrian) return null;
-                    return {
+                    const normalizedUnit = String(unit || '').trim().toUpperCase();
+                    const payload = {
                         unit,
                         noAntrian,
-                        jenisPasien: antreanJalurLabel(item, unit),
-                        loketTujuan: item?.loket_tujuan || ''
+                        jenisPasien: antreanJalurLabel(item, unit)
                     };
+                    if (normalizedUnit === 'NURSE_STATION') {
+                        const nsLoketCode = String(item?.loketTujuan || item?.ns_loket_code || '').trim().toUpperCase();
+                        const nsLoketLabel = String(item?.loketLabel || item?.ns_loket_label || '').trim()
+                            || (nsLoketCode === 'NS_2' ? 'Loket 2' : (nsLoketCode === 'NS_1' ? 'Loket 1' : ''));
+                        payload.loketTujuan = nsLoketCode || '';
+                        payload.loketLabel = nsLoketLabel || '';
+                    } else {
+                        payload.loketTujuan = item?.loket_tujuan || '';
+                    }
+                    return payload;
                 }
 
                 function buildAnnouncementSignature(item, fallbackLoket) {
@@ -1729,7 +1807,9 @@
                     const rowId = String(item?.id || '').trim();
                     const noAntrian = String(item?.queue_no || item?.no_antrian || '').trim();
                     const calledAt = String(item?.ns_called_at || item?.called_at || '').trim();
-                    return [rowId, noAntrian, calledAt].join('|');
+                    const loketCode = String(item?.ns_loket_code || item?.loketTujuan || '').trim();
+                    const loketLabel = String(item?.ns_loket_label || item?.loketLabel || '').trim();
+                    return [rowId, noAntrian, calledAt, loketCode, loketLabel].join('|');
                 }
 
                 function buildNurseDoctorSignature(rows) {
@@ -1830,17 +1910,48 @@
                     if (!soundEnabled) return;
                     const currentUnit = String(selectedUnit || 'ALL').trim().toUpperCase();
                     if (currentUnit !== 'ALL' && currentUnit !== 'NURSE_STATION') return;
-                    const current = (queueRows || []).find((row) => row?.ns_status === 'dipanggil') || null;
-                    if (!current) return;
+                    const allDipanggil = (queueRows || []).filter((row) => row?.ns_status === 'dipanggil');
+                    if (!allDipanggil.length) return;
+
+                    const loket1Row = allDipanggil
+                        .filter((r) => (r.ns_loket_code || '') === 'NS_1')
+                        .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
+                    const loket2Row = allDipanggil
+                        .filter((r) => (r.ns_loket_code || '') === 'NS_2')
+                        .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
+                    const fallbackRows = allDipanggil.filter((r) => !(r.ns_loket_code || '').trim());
+                    const fallbackRow = fallbackRows
+                        .sort((a, b) => new Date(b.ns_called_at || 0).getTime() - new Date(a.ns_called_at || 0).getTime())[0] || null;
+
+                    const candidates = [
+                        { keySuffix: 'NS_1', row: loket1Row, loketCode: 'NS_1', loketLabel: 'Loket 1' },
+                        { keySuffix: 'NS_2', row: loket2Row, loketCode: 'NS_2', loketLabel: 'Loket 2' }
+                    ];
+                    if (fallbackRow) {
+                        candidates.push({ keySuffix: 'FALLBACK', row: fallbackRow, loketCode: 'NS_1', loketLabel: 'Loket 1' });
+                    }
+
                     const prefix = announcementKeyPrefix();
-                    const key = prefix + 'NURSE_STATION:CURRENT';
-                    const nextVal = buildNurseStationAnnouncementSignature(current);
-                    if (lastAnnounced[key] === nextVal) return;
-                    lastAnnounced[key] = nextVal;
-                    persistLastAnnounced();
-                    enqueueAnnouncement({
-                        unit: 'NURSE_STATION',
-                        noAntrian: String(current?.queue_no || '').trim() || String(current?.no_antrian || '').trim()
+                    candidates.forEach((cand) => {
+                        const current = cand.row;
+                        if (!current) return;
+                        const loketCode = cand.loketCode || '';
+                        const loketLabel = String(current.ns_loket_label || cand.loketLabel || 'Loket 1').trim();
+                        const key = prefix + 'NURSE_STATION:CALL:' + cand.keySuffix;
+                        const nextVal = buildNurseStationAnnouncementSignature({ ...current, ns_loket_code: loketCode, ns_loket_label: loketLabel });
+                        if (lastAnnounced[key] === nextVal) return;
+                        lastAnnounced[key] = nextVal;
+                        persistLastAnnounced();
+                        const noAntrian = String(current?.queue_no || current?.no_antrian || '').trim();
+                        const isPrioritas = isNsPriorityQueue(noAntrian);
+                        const jalur = isPrioritas ? 'Prioritas' : 'Umum';
+                        enqueueAnnouncement({
+                            unit: 'NURSE_STATION',
+                            noAntrian,
+                            jenisPasien: jalur,
+                            loketTujuan: loketCode,
+                            loketLabel
+                        });
                     });
                 }
 
