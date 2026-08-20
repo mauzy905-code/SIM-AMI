@@ -39,8 +39,19 @@
             }
 
             function getLoketLabel() {
+                const email = getOperatorEmail();
+                const loket = (typeof getNsLoketByEmail === 'function') ? getNsLoketByEmail(email) : null;
+                if (loket && loket.label) return loket.label;
                 const value = String(config?.getLoketLabel?.() || '').trim();
                 return value || 'Nurse Station';
+            }
+
+            function getCurrentNsLoket() {
+                const email = getOperatorEmail();
+                if (typeof getNsLoketByEmail === 'function') {
+                    return getNsLoketByEmail(email);
+                }
+                return null;
             }
 
             function getEmail() {
@@ -326,7 +337,7 @@
                     '      <div class="nurse-station-dashboard-cards">',
                     '        <div class="nurse-station-dashboard-stat-card"><div class="nurse-station-dashboard-stat-label">Petugas Aktif</div><div id="nurseDashStaffName" class="nurse-station-dashboard-stat-value">-</div></div>',
                     '        <div class="nurse-station-dashboard-stat-card"><div class="nurse-station-dashboard-stat-label">Peran</div><div id="nurseDashRoleLabel" class="nurse-station-dashboard-stat-value">-</div></div>',
-                    '        <div class="nurse-station-dashboard-stat-card"><div class="nurse-station-dashboard-stat-label">Loket</div><div id="nurseDashLoketLabel" class="nurse-station-dashboard-stat-value">-</div></div>',
+                    '        <div id="nurseDashLoketCard" class="nurse-station-dashboard-stat-card nurse-station-loket-stat-card"><div class="nurse-station-dashboard-stat-label">Loket</div><div id="nurseDashLoketLabel" class="nurse-station-dashboard-stat-value">-</div></div>',
                     '      </div>',
                     '    </div>',
                     '    <div class="nurse-station-dashboard-hero-side">',
@@ -403,6 +414,7 @@
                 els = {
                     staffName: containerEl.querySelector('#nurseDashStaffName'),
                     roleLabel: containerEl.querySelector('#nurseDashRoleLabel'),
+                    loketCard: containerEl.querySelector('#nurseDashLoketCard'),
                     loketLabel: containerEl.querySelector('#nurseDashLoketLabel'),
                     email: containerEl.querySelector('#nurseDashEmail'),
                     totalCount: containerEl.querySelector('#nurseDashTotalCount'),
@@ -1076,6 +1088,36 @@
                 if (!rowId) return false;
                 const hasColumn = await detectNsColumn();
                 if (hasColumn) {
+                    const targetStatus = String(payload?.status || '').trim().toLowerCase();
+                    if (targetStatus === 'dipanggil') {
+                        try {
+                            const latestFetch = await supabaseClient
+                                .from('pasien')
+                                .select('id, nurse_station_data')
+                                .eq('id', rowId)
+                                .limit(1)
+                                .maybeSingle();
+                            if (!latestFetch?.error) {
+                                const serverNs = normalizeNsData(latestFetch?.data?.nurse_station_data || null);
+                                const serverStatus = String(serverNs?.status || '').trim().toLowerCase();
+                                const serverLoket = String(serverNs?.called_loket_code || '').trim().toUpperCase();
+                                const payloadLoket = String(payload?.called_loket_code || '').trim().toUpperCase();
+                                const serverEmail = String(serverNs?.called_by_email || '').trim().toLowerCase();
+                                const payloadEmail = String(payload?.called_by_email || '').trim().toLowerCase();
+                                if (serverStatus === 'dipanggil') {
+                                    if (serverLoket && serverLoket !== payloadLoket) {
+                                        throw new Error('[MUTEX-LOCKED] Pasien sudah dipanggil di server oleh loket lain (' + (serverNs?.called_loket_label || serverLoket) + (serverEmail ? ' - ' + serverEmail : '') + ')');
+                                    }
+                                    if (serverEmail && serverEmail !== payloadEmail) {
+                                        throw new Error('[MUTEX-LOCKED] Pasien sudah dipanggil oleh petugas lain (email: ' + serverEmail + ') di server.');
+                                    }
+                                }
+                            }
+                        } catch (preErr) {
+                            if (preErr && /MUTEX-LOCKED/.test(preErr?.message || '')) throw preErr;
+                        }
+                    }
+
                     const baseUpdate = { nurse_station_data: payload };
                     const mergedUpdate = extraUpdate && typeof extraUpdate === 'object'
                         ? { ...baseUpdate, ...extraUpdate }
@@ -1103,28 +1145,93 @@
 
             async function markAsCalled(row) {
                 if (!row) return;
+                const loket = getCurrentNsLoket();
+                if (!loket) {
+                    const email = getOperatorEmail() || '(email tidak terbaca)';
+                    setMessage(
+                        `AKUN NURSE STATION TIDAK TERDAFTAR. Email Anda (${email}) tidak terdaftar di daftar loket Nurse Station (Loket 1: nursestation@rsudami.com / Loket 2: nursestation2@rsudami.com). Gunakan akun Nurse Station yang sesuai untuk memanggil pasien.`,
+                        'error'
+                    );
+                    render();
+                    alert(
+                        'Gagal memanggil pasien: Akun Nurse Station tidak terdaftar.\n\n' +
+                        'Email Anda: ' + email + '\n\n' +
+                        'Daftar email Nurse Station yang diizinkan:\n' +
+                        '  • Loket 1: nursestation@rsudami.com\n' +
+                        '  • Loket 2: nursestation2@rsudami.com\n\n' +
+                        'Hubungi Admin SIM-AMI jika akun Anda belum dimasukkan ke daftar loket.'
+                    );
+                    return;
+                }
                 const nsData = mergeNsData(row);
+                const queueNo = getEffectiveQueueNo(row, nsData);
+                const pasienName = String(row?.nama_pasien || 'Pasien').trim();
+
+                if (!queueNo) {
+                    setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
+                    render();
+                    return;
+                }
+
+                const myLoketCode = String(loket?.code || '').trim().toUpperCase();
+                const currentStatus = String(nsData?.status || '').trim().toLowerCase();
+                const currentCalledLoket = String(nsData?.called_loket_code || '').trim().toUpperCase();
+                const currentCalledByEmail = String(nsData?.called_by_email || '').trim();
+                const currentCalledLabel = String(nsData?.called_loket_label || 'Loket NS').trim();
+                const calledAtIso = String(nsData?.called_at || '').trim();
+                let calledAtWib = '-';
+                if (calledAtIso && calledAtIso.length > 8) {
+                    try {
+                        const d = new Date(calledAtIso);
+                        if (!Number.isNaN(d.getTime())) {
+                            calledAtWib = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB';
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+
+                if (currentStatus === 'dipanggil') {
+                    if (currentCalledLoket === myLoketCode) {
+                        setMessage(`Pasien ini (${queueNo} - ${pasienName}) sudah dipanggil di Loket Anda (${loket.label}) pada ${calledAtWib}. Selesaikan dulu atau panggil pasien lain.`, 'error');
+                        render();
+                        alert('Gagal memanggil pasien:\n\nPasien dengan No Antrian ' + queueNo + ' (' + pasienName + ') sudah Anda panggil di ' + loket.label + ' pada ' + calledAtWib + '.\n\nSilakan selesaikan pasien tersebut (klik Selesai) atau pilih pasien lain.');
+                        return;
+                    }
+                    const line2 = currentCalledByEmail
+                        ? ('dipanggil oleh ' + currentCalledLabel + ' (email: ' + currentCalledByEmail + ')')
+                        : ('sedang dipanggil di ' + currentCalledLabel);
+                    setMessage(`Pasien (${queueNo} - ${pasienName}) sudah ${line2} pada ${calledAtWib}. Gunakan pasien lain yang masih status Menunggu.`, 'error');
+                    render();
+                    alert(
+                        '⚠️ PASIEN SEDANG DIPANGGIL DI LOKET LAIN.\n\n' +
+                        'No Antrian  : ' + queueNo + '\n' +
+                        'Nama Pasien : ' + pasienName + '\n' +
+                        'Loket Tujuan: ' + currentCalledLabel + (currentCalledByEmail ? '\nDipanggil Oleh: ' + currentCalledByEmail : '') + '\n' +
+                        'Waktu Panggil: ' + calledAtWib + '\n\n' +
+                        'Anda (' + loket.label + ') TIDAK BISA memanggil pasien yang SAMA sebelum pasien tersebut selesai di loket aslinya.\n\n' +
+                        'Pilih pasien lain yang masih status MENUNGGU.'
+                    );
+                    return;
+                }
+
                 const activeCalledRow = getOpenCalledRow(row?.id || '');
                 if (activeCalledRow) {
                     const activeQueueNo = getEffectiveQueueNo(activeCalledRow, activeCalledRow.nsData) || '-';
                     const activeName = String(activeCalledRow?.nama_pasien || 'Pasien sebelumnya').trim();
                     setMessage(`Selesaikan pasien yang sedang dipanggil dulu (${activeQueueNo} - ${activeName}) sebelum memanggil pasien berikutnya.`, 'error');
                     render();
+                    alert('Gagal memanggil pasien baru:\n\n' + loket.label + ' masih memanggil pasien:\n  • ' + activeQueueNo + ' - ' + activeName + '\n\nSilakan klik SELESAI pada pasien tersebut sebelum memanggil pasien baru.');
                     return;
                 }
-                const queueNo = getEffectiveQueueNo(row, nsData);
-                if (!queueNo) {
-                    setMessage('Nomor Nurse Station belum tersedia dari pendaftaran awal.', 'error');
-                    render();
-                    return;
-                }
+
                 const payload = {
                     ...nsData,
                     queue_no: queueNo,
                     status: 'dipanggil',
                     called_at: new Date().toISOString(),
                     called_by_name: getOperatorName(),
-                    called_by_email: getOperatorEmail()
+                    called_by_email: getOperatorEmail(),
+                    called_loket_code: loket.code,
+                    called_loket_label: loket.label
                 };
                 state.loading = true;
                 setMessage('Menyimpan status panggilan...', 'info');
@@ -1134,7 +1241,13 @@
                     row.nsData = payload;
                     setMessage(`Pasien dipanggil (${payload.queue_no}).`, 'success');
                 } catch (err) {
-                    setMessage('Gagal menyimpan status panggilan: ' + (err?.message || String(err)), 'error');
+                    const errMsg = err?.message || String(err || '');
+                    let userMsg = 'Gagal menyimpan status panggilan: ' + errMsg;
+                    if (/mutex/i.test(errMsg) || /sudah dipanggil/i.test(errMsg) || /conflict/i.test(errMsg)) {
+                        userMsg = 'Pasien ini baru saja dipanggil oleh loket lain secara bersamaan. Refresh daftar pasien (F5) untuk melihat status terbaru.';
+                    }
+                    setMessage(userMsg, 'error');
+                    alert('Gagal memanggil pasien:\n\n' + userMsg);
                 } finally {
                     state.loading = false;
                     render();
@@ -1262,6 +1375,20 @@
                 if (els.staffName) els.staffName.textContent = getStaffName();
                 if (els.roleLabel) els.roleLabel.textContent = getRoleLabel();
                 if (els.loketLabel) els.loketLabel.textContent = getLoketLabel();
+                if (els.loketCard) {
+                    const loket = getCurrentNsLoket();
+                    const accent = (typeof nsLoketAccentClass === 'function') ? nsLoketAccentClass(loket?.code || 'NS_1') : null;
+                    els.loketCard.classList.remove('is-ns1', 'is-ns2');
+                    if (els.loketLabel && accent) {
+                        els.loketLabel.classList.remove('text-cyan-700', 'text-purple-700', 'text-slate-700');
+                        els.loketLabel.classList.add(accent.text);
+                    }
+                    if (loket?.code === 'NS_2') {
+                        els.loketCard.classList.add('is-ns2');
+                    } else {
+                        els.loketCard.classList.add('is-ns1');
+                    }
+                }
                 if (els.email) els.email.textContent = getEmail();
                 if (els.refreshBtn) {
                     els.refreshBtn.disabled = state.loading;
