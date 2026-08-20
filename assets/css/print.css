@@ -71,20 +71,47 @@
                         width: 90mm;
                         max-width: 90mm;
                     }
-                    /* [Thermal mode - barcode/wristband/NS/UGD] Gunakan visibility agar container nested tidak hilang. */
+                    /* [Thermal mode - barcode/wristband/UGD] Gunakan visibility agar container nested tidak hilang. */
                     body[data-print-mode="barcode"] *:not(#stickerContainer):not(#stickerContainer *),
                     body[data-print-mode="wristband"] *:not(#wristbandContainer):not(#wristbandContainer *),
-                    body[data-print-mode="nurse-station-ticket"] *:not(#nurseStationTicketContainer):not(#nurseStationTicketContainer *),
                     body[data-print-mode="ugd-ticket"] *:not(#ugdTicketContainer):not(#ugdTicketContainer *) {
                         visibility: hidden !important;
                     }
                     body[data-print-mode="barcode"] #stickerContainer,
                     body[data-print-mode="wristband"] #wristbandContainer,
-                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer,
                     body[data-print-mode="ugd-ticket"] #ugdTicketContainer {
                         visibility: visible !important;
                         display: block !important;
                         opacity: 1 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    /* [NURSE STATION TICKET] Sudah di-detach jadi direct-child body, aman pakai display:none > * supaya tidak ada halaman kosong. */
+                    body[data-print-mode="nurse-station-ticket"] > *:not(#nurseStationTicketContainer) {
+                        display: none !important;
+                    }
+                    body[data-print-mode="nurse-station-ticket"] #nurseStationTicketContainer {
+                        visibility: visible !important;
+                        display: block !important;
+                        opacity: 1 !important;
+                        position: static !important;
+                        left: auto !important;
+                        top: auto !important;
+                        width: 80mm !important;
+                        min-width: 80mm !important;
+                        max-width: 80mm !important;
+                        height: auto !important;
+                        min-height: auto !important;
+                        max-height: none !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        box-sizing: border-box !important;
+                        z-index: 99999 !important;
+                        background: #fff !important;
+                        page-break-inside: avoid !important;
+                        page-break-after: always !important;
+                        page-break-before: auto !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
