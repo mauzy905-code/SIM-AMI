@@ -109,9 +109,31 @@ const NS_EMAIL_TO_LOKET = {
     'nursestation2@rsudami.com': { code: 'NS_2', label: 'Loket 2', accent: 'purple' }
 };
 
+function normalizeEmailForLookup(raw) {
+    return String(raw || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^\x00-\x7F]/g, '');
+}
+
 function getNsLoketByEmail(email) {
-    const key = String(email || '').trim().toLowerCase();
-    return NS_EMAIL_TO_LOKET[key] || null;
+    const normalized = normalizeEmailForLookup(email);
+    if (!normalized) return null;
+    if (NS_EMAIL_TO_LOKET[normalized]) return NS_EMAIL_TO_LOKET[normalized];
+    const entries = Object.entries(NS_EMAIL_TO_LOKET || {});
+    for (const [key, value] of entries) {
+        const normKey = normalizeEmailForLookup(key);
+        if (normKey && normKey === normalized) return value;
+    }
+    const [loket1, loket2] = entries;
+    if (loket1 && /(^|[^a-z0-9])nursestation([^a-z0-9]|$)/.test(normalized) && !/2/.test(normalized)) {
+        return loket1[1];
+    }
+    if (loket2 && /(^|[^a-z0-9])nursestation2([^a-z0-9]|$)/.test(normalized)) {
+        return loket2[1];
+    }
+    return null;
 }
 
 function isNsLoketCodeValid(code) {
