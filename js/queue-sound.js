@@ -506,7 +506,7 @@ class QueueSoundSystem {
     }
 
     buildNurseStationSequence(queueData) {
-        const { noAntrian } = queueData;
+        const { noAntrian, loketTujuan, loketLabel, unit } = queueData;
         const sequence = [];
 
         sequence.push(this.getNurseOpeningSound());
@@ -532,7 +532,28 @@ class QueueSoundSystem {
             if (numberPath && numberPath.length) sequence.push(numberPath);
         }
 
-        sequence.push(this.getWordSound(this.soundFiles.menujuMejaPemeriksaan));
+        const rawLoket = String(loketTujuan || '').trim().toUpperCase();
+        const hasNsLoket = rawLoket === 'NS_1' || rawLoket === 'NS_2';
+
+        if (hasNsLoket) {
+            sequence.push(this.getWordSound(this.soundFiles.menujuLoket));
+            const loketNumber = rawLoket === 'NS_2' ? '2' : '1';
+            const sound = this.getNumberSound(loketNumber);
+            if (sound && sound.length) sequence.push(sound);
+        } else if (loketTujuan) {
+            sequence.push(this.getWordSound(this.soundFiles.menujuLoket));
+            const loketTokens = this.getLoketTokens(loketTujuan, unit || 'NURSE_STATION');
+            for (let i = 0; i < loketTokens.length; i++) {
+                const token = String(loketTokens[i] || '').trim();
+                if (!token) continue;
+                const soundPath = /^\d+$/.test(token)
+                    ? this.getNumberSound(token)
+                    : this.getLetterSound(token);
+                if (soundPath.length) sequence.push(soundPath);
+            }
+        } else {
+            sequence.push(this.getWordSound(this.soundFiles.menujuMejaPemeriksaan));
+        }
 
         return sequence;
     }
