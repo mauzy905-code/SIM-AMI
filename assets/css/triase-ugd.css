@@ -1138,16 +1138,22 @@
                 }
 
                 @media print {
+                    html,
+                    body,
                     body[data-print-mode="triase-ugd"],
                     body[data-print-mode="triase-ugd"] * {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color-adjust: exact !important;
+                        forced-color-adjust: none !important;
+                        -webkit-filter: none !important;
+                        filter: none !important;
+                        color-scheme: only light !important;
                     }
                     .triage-wb-face,
                     .triage-wb-svg,
                     .triage-wb-svg svg,
-                    .triage-wb-svg svg circle[fill="currentColor"],
+                    .triage-wb-svg svg *,
                     .triage-wb-color-0,
                     .triage-wb-color-2,
                     .triage-wb-color-4,
@@ -1157,6 +1163,9 @@
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color-adjust: exact !important;
+                        forced-color-adjust: none !important;
+                        -webkit-filter: none !important;
+                        filter: none !important;
                     }
                     .triage-wb-color-0  { color: #22c55e !important; }
                     .triage-wb-color-2  { color: #84cc16 !important; }
@@ -1164,9 +1173,21 @@
                     .triage-wb-color-6  { color: #fb923c !important; }
                     .triage-wb-color-8  { color: #f97316 !important; }
                     .triage-wb-color-10 { color: #ef4444 !important; }
+                    .triage-wb-face-bg-0   { background-color: #dcfce7 !important; }
+                    .triage-wb-face-bg-2   { background-color: #ecfccb !important; }
+                    .triage-wb-face-bg-4   { background-color: #fef9c3 !important; }
+                    .triage-wb-face-bg-6   { background-color: #ffedd5 !important; }
+                    .triage-wb-face-bg-8   { background-color: #ffedd5 !important; }
+                    .triage-wb-face-bg-10  { background-color: #fee2e2 !important; }
                     .triage-wb-svg svg circle:first-of-type {
-                        fill: currentColor !important;
+                        fill: #000000 !important;
                     }
+                    .triage-wb-face-bg-0  .triage-wb-svg svg circle:first-of-type { fill: #22c55e !important; }
+                    .triage-wb-face-bg-2  .triage-wb-svg svg circle:first-of-type { fill: #84cc16 !important; }
+                    .triage-wb-face-bg-4  .triage-wb-svg svg circle:first-of-type { fill: #facc15 !important; }
+                    .triage-wb-face-bg-6  .triage-wb-svg svg circle:first-of-type { fill: #fb923c !important; }
+                    .triage-wb-face-bg-8  .triage-wb-svg svg circle:first-of-type { fill: #f97316 !important; }
+                    .triage-wb-face-bg-10 .triage-wb-svg svg circle:first-of-type { fill: #ef4444 !important; }
                     .triage-page2 .triage-wb-ind,
                     .triage-wb-ind-0,.triage-wb-ind-1,.triage-wb-ind-2,.triage-wb-ind-3,.triage-wb-ind-4,
                     .triage-wb-ind-5,.triage-wb-ind-6,.triage-wb-ind-7,.triage-wb-ind-8,.triage-wb-ind-9,.triage-wb-ind-10,
@@ -1176,25 +1197,28 @@
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color-adjust: exact !important;
+                        forced-color-adjust: none !important;
+                        -webkit-filter: none !important;
+                        filter: none !important;
                     }
-                    .triage-page2 .triage-wb-ind-0  { background-color: #60a5fa !important; }
-                    .triage-page2 .triage-wb-ind-1  { background-color: #93c5fd !important; }
-                    .triage-page2 .triage-wb-ind-2  { background-color: #a7f3d0 !important; }
-                    .triage-page2 .triage-wb-ind-3  { background-color: #86efac !important; }
-                    .triage-page2 .triage-wb-ind-4  { background-color: #fde047 !important; }
-                    .triage-page2 .triage-wb-ind-5  { background-color: #facc15 !important; }
-                    .triage-page2 .triage-wb-ind-6  { background-color: #fdba74 !important; }
-                    .triage-page2 .triage-wb-ind-7  { background-color: #fb923c !important; }
-                    .triage-page2 .triage-wb-ind-8  { background-color: #f97316 !important; }
-                    .triage-page2 .triage-wb-ind-9  { background-color: #f87171 !important; }
-                    .triage-page2 .triage-wb-ind-10 { background-color: #ef4444 !important; }
-                    .triage-flacc-face             { background-color: #c4b5fd !important; }
-                    .triage-flacc-legs             { background-color: #fdba74 !important; }
-                    .triage-flacc-activity         { background-color: #86efac !important; }
-                    .triage-flacc-cry              { background-color: #fca5a5 !important; }
-                    .triage-flacc-consolability    { background-color: #93c5fd !important; }
+                    .triage-page2 .triage-wb-ind-0  { background-color: #60a5fa !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-1  { background-color: #93c5fd !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-2  { background-color: #a7f3d0 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-3  { background-color: #86efac !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-4  { background-color: #fde047 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-5  { background-color: #facc15 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-6  { background-color: #fdba74 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-7  { background-color: #fb923c !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-8  { background-color: #f97316 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-9  { background-color: #f87171 !important; color: #0f172a !important; }
+                    .triage-page2 .triage-wb-ind-10 { background-color: #ef4444 !important; color: #ffffff !important; }
+                    .triage-flacc-face             { background-color: #c4b5fd !important; color: #0f172a !important; }
+                    .triage-flacc-legs             { background-color: #fdba74 !important; color: #0f172a !important; }
+                    .triage-flacc-activity         { background-color: #86efac !important; color: #0f172a !important; }
+                    .triage-flacc-cry              { background-color: #fca5a5 !important; color: #0f172a !important; }
+                    .triage-flacc-consolability    { background-color: #93c5fd !important; color: #0f172a !important; }
                     .triage-flacc-total-label,
-                    .triage-flacc-total-score      { background-color: #facc15 !important; }
-                    .triage-page3 .triage-th       { background-color: #e5e7eb !important; }
-                    .triage-section-title          { background-color: #e5e7eb !important; }
+                    .triage-flacc-total-score      { background-color: #facc15 !important; color: #0f172a !important; }
+                    .triage-page3 .triage-th       { background-color: #e5e7eb !important; color: #0f172a !important; }
+                    .triage-section-title          { background-color: #e5e7eb !important; color: #0f172a !important; }
                 }
