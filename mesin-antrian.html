@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,101 +9,85 @@
     <title>SIM-AMI - Mesin Antrian</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/link-qr-popup.css?v=20261021-linkqr">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
-<body class="min-h-screen antialiased text-slate-900 font-['Inter'] bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(37,99,235,0.18),_transparent_30%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
-    <div id="machineAuthScreen" class="min-h-screen px-4 py-5 md:px-8 md:py-8">
-        <div class="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-7xl items-center justify-center">
-            <div class="w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/60 bg-white/95 shadow-[0_36px_90px_-30px_rgba(15,23,42,0.58)]">
-                <div class="grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr]">
-                    <div class="relative overflow-hidden bg-[linear-gradient(135deg,_#064e3b_0%,_#0f766e_36%,_#2563eb_100%)] px-7 py-8 md:px-10 md:py-10">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_24%)]"></div>
-                        <div class="relative">
-                            <div class="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-50">Enterprise Login</div>
-                            <div class="mt-7 text-emerald-100 text-[11px] font-semibold tracking-[0.34em] uppercase">SIM-AMI</div>
-                            <div class="mt-2 text-white text-4xl md:text-5xl font-black tracking-tight leading-tight">Mesin Antrean Digital</div>
-                            <div class="mt-3 max-w-xl text-emerald-50/90 text-sm md:text-base font-medium leading-7">Panel perangkat untuk mencetak nomor antrean pasien dan memilih layanan Poliklinik maupun Farmasi.</div>
-                            <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Akun</div>
-                                    <div class="mt-2 text-white text-lg font-black">Perangkat</div>
-                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Mesin memakai akun khusus yang terpisah dari supervisor atau admin.</div>
-                                </div>
-                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Cetak</div>
-                                    <div class="mt-2 text-white text-lg font-black">Cepat</div>
-                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Nomor antrean dicetak setelah pasien memilih jenis layanan yang dituju.</div>
-                                </div>
-                                <div class="rounded-[24px] border border-white/12 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                                    <div class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-emerald-100/90">Unit</div>
-                                    <div class="mt-2 text-white text-lg font-black">Pilih</div>
-                                    <div class="mt-1 text-xs font-semibold leading-5 text-emerald-50/85">Setelah login, user dapat membuka Mesin Farmasi atau Poliklinik.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(248,250,252,0.98)_100%)] px-6 py-7 md:px-9 md:py-10">
-                        <div class="mx-auto max-w-md">
-                            <div class="inline-flex items-center rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.22em] text-emerald-700">Akses Terverifikasi</div>
-                            <div class="mt-5 text-slate-900 text-3xl font-black tracking-tight">Masuk ke Mesin</div>
-                            <div class="mt-2 text-sm font-semibold leading-6 text-slate-500">Gunakan akun perangkat resmi untuk membuka dashboard mesin antrean.</div>
-                            <form id="machineLoginForm" class="mt-7 space-y-5">
-                            <div>
-                                <label for="machineEmail" class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-500">Email Perangkat</label>
-                                <input id="machineEmail" type="email" value="mesin@rsudami.com" autocomplete="username" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
-                            </div>
-                            <div>
-                                <label for="machinePassword" class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-500">Password</label>
-                                <input id="machinePassword" type="password" autocomplete="current-password" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" placeholder="Masukkan password akun mesin">
-                            </div>
-                                <div class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">
-                                    Session perangkat tetap dipakai pada browser ini sampai Anda logout atau session Supabase berakhir.
-                                </div>
-                                <button id="machineLoginBtn" type="submit" class="w-full rounded-2xl bg-[linear-gradient(135deg,_#059669_0%,_#0f766e_38%,_#2563eb_100%)] py-3.5 text-base font-black text-white shadow-[0_20px_34px_-16px_rgba(5,150,105,0.56)] transition hover:brightness-105">
-                                    Masuk ke Dashboard Mesin
-                                </button>
-                            </form>
-                            <div id="machineAuthMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm font-semibold"></div>
-                            <div class="mt-5 rounded-[24px] border border-emerald-100 bg-emerald-50 px-4 py-4">
-                                <div class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-emerald-700">Akun Perangkat</div>
-                                <div class="mt-2 text-base font-black text-emerald-900">mesin@rsudami.com</div>
-                            </div>
-                        </div>
-                    </div>
+<body class="h-full overflow-hidden antialiased text-slate-900 font-['Inter'] bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(37,99,235,0.18),_transparent_30%),linear-gradient(135deg,_#ecfeff_0%,_#eff6ff_42%,_#f8fafc_100%)]">
+    <style>
+        /* Fokus kiosk (dipakai tombol login). */
+        .kiosk-focus:focus-visible {
+            outline: 3px solid #0f766e;
+            outline-offset: 3px;
+        }
+    </style>
+
+    <!-- Login mesin (akun perangkat) -->
+    <div id="machineAuthScreen" class="flex h-full items-center justify-center px-5 py-8">
+        <div class="grid w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-2">
+            <div class="flex flex-col justify-between bg-[#065f46] px-8 py-9 text-white">
+                <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-100/80">RSUD Aji Muhammad Idris</div>
+                    <div class="mt-3 text-3xl font-bold leading-tight tracking-tight">Mesin antrean</div>
+                    <p class="mt-3 max-w-xs text-sm leading-6 text-emerald-50/85">Panel perangkat untuk mencetak nomor antrean pasien.</p>
                 </div>
+                <div class="mt-8 text-xs font-medium text-emerald-100/70">SIM-AMI</div>
+            </div>
+
+            <div class="px-8 py-9">
+                <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Akses perangkat</div>
+                <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Masuk</h1>
+
+                <form id="machineLoginForm" class="mt-6 space-y-4">
+                    <div>
+                        <label for="machineEmail" class="block text-sm font-semibold text-slate-700">Email perangkat</label>
+                        <input id="machineEmail" type="email" value="mesin@rsudami.com" autocomplete="username"
+                            class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15">
+                    </div>
+                    <div>
+                        <label for="machinePassword" class="block text-sm font-semibold text-slate-700">Password</label>
+                        <input id="machinePassword" type="password" autocomplete="current-password" placeholder="Masukkan password"
+                            class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15">
+                    </div>
+                    <button id="machineLoginBtn" type="submit"
+                        class="kiosk-focus w-full rounded-xl bg-teal-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-teal-800 disabled:opacity-60">
+                        Masuk
+                    </button>
+                </form>
+
+                <div id="machineAuthMessage" class="mt-4 hidden rounded-xl border px-4 py-3 text-sm font-medium"></div>
+
+                <p class="mt-6 text-xs text-slate-500">Akun perangkat: <span class="font-semibold text-slate-700">mesin@rsudami.com</span></p>
             </div>
         </div>
     </div>
-    <div id="machineDashboard" class="hidden min-h-screen px-4 py-5 md:px-8 md:py-8">
-        <div class="mx-auto max-w-7xl">
-            <div class="overflow-hidden rounded-[32px] border border-white/70 bg-white/80 shadow-[0_25px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-                <div class="relative overflow-hidden bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-6 py-7 md:px-10 md:py-9">
+    <!-- Pemilih unit -->
+    <div id="machineDashboard" class="hidden h-full px-4 py-5 md:px-8 md:py-8">
+        <div class="mx-auto flex h-full max-w-7xl flex-col">
+            <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[32px] border border-white/70 bg-white/80 shadow-[0_25px_80px_-30px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                <div class="relative shrink-0 overflow-hidden bg-[linear-gradient(135deg,_#065f46_0%,_#0f766e_38%,_#1d4ed8_100%)] px-6 py-6 md:px-10 md:py-7">
                     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.18),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_24%)]"></div>
-                    <div class="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                    <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div class="max-w-3xl">
-                            <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold tracking-[0.3em] text-emerald-50 uppercase">
+                            <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold tracking-[0.3em] text-emerald-50 uppercase">
                                 Layanan Antrean Digital
                             </div>
-                            <div class="mt-4 text-white text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                                SIM-AMI
+                            <div class="mt-3 text-white text-3xl md:text-4xl font-black tracking-tight leading-tight">
+                                Pilih Unit Tujuan Pasien
                             </div>
-                            <div class="mt-2 text-emerald-50/95 text-sm md:text-base font-semibold tracking-[0.18em] uppercase">
-                                Sistem Informasi Manajemen Aji Muhammad Idris
-                            </div>
-                            <div class="mt-3 text-emerald-50/95 text-lg md:text-xl font-semibold leading-relaxed">
-                                Silakan sentuh layanan yang dituju. Sistem akan memandu pilihan jenis pasien hingga poli tujuan sebelum nomor antrean dicetak.
+                            <div class="mt-2 text-emerald-50/95 text-base md:text-lg font-semibold leading-relaxed">
+                                Sentuh unit pelayanan untuk mengambil nomor antrean, atau pilih menu survey &amp; pengaduan di bagian bawah layar.
                             </div>
                         </div>
-                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                            <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-white">
-                                <div class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-100/90">Layar Sentuh</div>
-                                <div class="mt-1 text-sm font-semibold text-white/90">TOMBOL BESAR • RESPONSIF • MUDAH DIGUNAKAN</div>
-                            </div>
-                            <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-white">
-                                <div class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-100/90">Akun Perangkat</div>
-                                <div id="machineSessionLabel" class="mt-1 text-sm font-semibold text-white/90">mesin@rsudami.com</div>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-3.5 text-white">
+                                <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100/90">Status Mesin</div>
+                                <div class="mt-1 flex items-center gap-2.5">
+                                    <span class="inline-flex h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_0_5px_rgba(52,211,153,0.22)]"></span>
+                                    <span class="text-sm font-black text-white">SIAP DIGUNAKAN</span>
+                                </div>
                             </div>
                             <button id="machineLogoutBtn" type="button" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-black text-white transition hover:bg-white/15">
                                 Logout Mesin
@@ -112,88 +96,61 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 p-6 md:p-8 xl:grid-cols-12 xl:gap-8 xl:p-10">
-                    <section class="xl:col-span-4 space-y-5">
-                        <div class="rounded-[28px] border border-emerald-100 bg-white p-6 shadow-sm">
-                            <div class="text-sm font-extrabold tracking-[0.28em] text-emerald-700 uppercase">Alur Pengambilan</div>
-                            <div class="mt-5 space-y-4">
-                                <div class="flex items-start gap-4 rounded-2xl bg-emerald-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white">1</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Pilih Unit Pelayanan</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">FARMASI atau POLIKLINIK</div>
-                                    </div>
+                <div class="flex min-h-0 flex-1 flex-col gap-4 p-5 md:gap-5 md:p-6">
+                    <div class="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                        <button class="unit-btn group relative flex overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-6 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300/60 active:scale-[0.99]" data-unit="FARMASI">
+                            <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
+                            <div class="relative flex min-h-0 w-full flex-1 flex-col justify-between gap-4">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10" aria-hidden="true">🏥</div>
+                                    <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
                                 </div>
-                                <div class="flex items-start gap-4 rounded-2xl bg-blue-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white">2</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Pilih Jenis Pasien</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">BPJS atau UMUM sebelum nomor diterbitkan</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4 rounded-2xl bg-slate-50 px-4 py-4">
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-lg font-black text-white">3</div>
-                                    <div>
-                                        <div class="text-base font-extrabold text-slate-900">Cetak & Tunggu Dipanggil</div>
-                                        <div class="mt-1 text-sm font-semibold text-slate-500">UNTUK POLIKLINIK, PILIH POLI TUJUAN TERLEBIH DAHULU</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,_#f8fafc_0%,_#ffffff_100%)] p-6 shadow-sm">
-                            <div class="text-sm font-extrabold tracking-[0.28em] text-slate-500 uppercase">Informasi</div>
-                            <div class="mt-4 space-y-3 text-sm font-semibold text-slate-600 leading-6">
-                                <div>PASTIKAN MENYENTUH TOMBOL HANYA SEKALI AGAR NOMOR TIDAK GANDA.</div>
-                                <div>APABILA MEMILIH POLIKLINIK, LANJUTKAN DENGAN MEMILIH JENIS PELAYANAN.</div>
-                                <div>SIMPAN STRUK DAN TUNGGU NOMOR MUNCUL DI DISPLAY.</div>
-                                <div>NOMOR ANTREAN AKAN OTOMATIS MULAI DARI 1 LAGI SETIAP HARI BERGANTI.</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="xl:col-span-8">
-                        <div class="rounded-[32px] border border-emerald-100 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(240,249,255,0.96))] p-6 shadow-inner md:p-8">
-                            <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                                 <div>
-                                    <div class="text-sm font-extrabold tracking-[0.28em] text-blue-700 uppercase">Sentuh Layanan</div>
-                                    <div class="mt-2 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pilih Unit Tujuan Pasien</div>
-                                </div>
-                                <div class="rounded-2xl border border-emerald-100 bg-white px-5 py-4 shadow-sm">
-                                    <div class="text-xs font-extrabold uppercase tracking-[0.24em] text-slate-400">Status Mesin</div>
-                                    <div class="mt-2 flex items-center gap-3">
-                                        <span class="inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,0.16)]"></span>
-                                        <span class="text-base font-black text-emerald-700">SIAP DIGUNAKAN</span>
-                                    </div>
+                                    <div class="text-3xl font-black leading-tight tracking-tight md:text-4xl">FARMASI</div>
+                                    <div class="mt-2 text-base font-semibold text-emerald-50/95 leading-7">AMBIL NOMOR ANTREAN FARMASI</div>
                                 </div>
                             </div>
+                        </button>
 
-                            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                <button class="unit-btn group relative overflow-hidden rounded-[30px] border border-emerald-200 bg-[linear-gradient(145deg,_#6ee7b7_0%,_#34d399_58%,_#10b981_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(16,185,129,0.45)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(16,185,129,0.55)] active:scale-[0.99]" data-unit="FARMASI">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
-                                    <div class="relative">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">🏥</div>
-                                            <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
-                                        </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">FARMASI</div>
-                                        <div class="mt-3 text-base font-semibold text-emerald-50/95 leading-7">LAYANAN PENGAMBILAN NOMOR UNTUK FARMASI DENGAN ALUR CETAK NOMOR OTOMATIS.</div>
-                                    </div>
-                                </button>
-
-                                <button class="unit-btn group relative overflow-hidden rounded-[30px] border border-blue-200 bg-[linear-gradient(145deg,_#2563eb_0%,_#1d4ed8_55%,_#1e3a8a_100%)] p-8 text-left text-white shadow-[0_28px_50px_-24px_rgba(37,99,235,0.55)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(37,99,235,0.62)] active:scale-[0.99]" data-unit="POLIKLINIK">
-                                    <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
-                                    <div class="relative">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10">🩺</div>
-                                            <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
-                                        </div>
-                                        <div class="mt-8 text-3xl font-black leading-tight tracking-tight">POLIKLINIK</div>
-                                        <div class="mt-3 text-base font-semibold text-blue-50/95 leading-7">PILIH JENIS PASIEN, LANJUTKAN KE POLI TUJUAN, KEMUDIAN NOMOR AKAN LANGSUNG TERCETAK.</div>
-                                    </div>
-                                </button>
+                        <button class="unit-btn group relative flex overflow-hidden rounded-[30px] border border-blue-200 bg-[linear-gradient(145deg,_#2563eb_0%,_#1d4ed8_55%,_#1e3a8a_100%)] p-6 text-left text-white shadow-[0_28px_50px_-24px_rgba(37,99,235,0.55)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_34px_60px_-24px_rgba(37,99,235,0.62)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60 active:scale-[0.99]" data-unit="POLIKLINIK">
+                            <div class="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-white/10 blur-2xl"></div>
+                            <div class="relative flex min-h-0 w-full flex-1 flex-col justify-between gap-4">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex h-20 w-20 items-center justify-center rounded-[24px] bg-white/14 text-5xl shadow-inner shadow-white/10" aria-hidden="true">🩺</div>
+                                    <div class="rounded-full bg-white/14 px-4 py-2 text-xs font-extrabold tracking-[0.28em] uppercase">Touch Here</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-black leading-tight tracking-tight md:text-4xl">POLIKLINIK</div>
+                                    <div class="mt-2 text-base font-semibold text-blue-50/95 leading-7">AMBIL NOMOR ANTREAN POLIKLINIK</div>
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </button>
+                    </div>
+
+                    <!-- Pemisah: agar pasien membedakan menu antrean (atas) dengan menu tautan (bawah) -->
+                    <div class="shrink-0 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-center">
+                        <div class="text-[11px] font-extrabold uppercase tracking-[0.3em] text-slate-500">Pengisian Survey dan Pengaduan</div>
+                    </div>
+
+                    <div class="grid shrink-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                        <button type="button" data-link-popup="skm" class="group relative flex items-center gap-5 overflow-hidden rounded-[26px] border border-violet-200 bg-[linear-gradient(145deg,_#8b5cf6_0%,_#7c3aed_55%,_#5b21b6_100%)] px-6 py-5 text-left text-white shadow-[0_24px_44px_-24px_rgba(124,58,237,0.55)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_30px_54px_-24px_rgba(124,58,237,0.62)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-300/60 active:scale-[0.99]">
+                            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10 blur-2xl"></div>
+                            <div class="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-white/16 text-3xl shadow-inner shadow-white/10" aria-hidden="true">★</div>
+                            <div class="relative min-w-0">
+                                <div class="text-xl font-black leading-tight tracking-tight md:text-2xl">SURVEY KEPUASAN (SKM)</div>
+                                <div class="mt-1 text-sm font-semibold leading-6 text-violet-50/95">MUNCULKAN KODE QR SURVEY RESMI</div>
+                            </div>
+                        </button>
+
+                        <button type="button" data-link-popup="pengaduan" class="group relative flex items-center gap-5 overflow-hidden rounded-[26px] border border-orange-200 bg-[linear-gradient(145deg,_#fb923c_0%,_#f97316_55%,_#c2410c_100%)] px-6 py-5 text-left text-white shadow-[0_24px_44px_-24px_rgba(249,115,22,0.55)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_30px_54px_-24px_rgba(249,115,22,0.62)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-300/60 active:scale-[0.99]">
+                            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10 blur-2xl"></div>
+                            <div class="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-white/16 text-3xl shadow-inner shadow-white/10" aria-hidden="true">✉</div>
+                            <div class="relative min-w-0">
+                                <div class="text-xl font-black leading-tight tracking-tight md:text-2xl">PENGADUAN &amp; SARAN</div>
+                                <div class="mt-1 text-sm font-semibold leading-6 text-orange-50/95">MUNCULKAN KODE QR KANAL PENGADUAN</div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -279,7 +236,35 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Popup tautan QR (SKM & Pengaduan) - dirender/dikendalikan assets/js/link-qr-popup.js -->
+    <div id="linkQrPopup" class="hidden">
+        <div class="lqp-backdrop"></div>
+        <div class="lqp-card">
+            <div class="lqp-head">
+                <div class="lqp-eyebrow">Pindai atau Buka Tautan</div>
+                <div class="lqp-title-row">
+                    <span id="lqpIcon" class="lqp-icon" aria-hidden="true">&#9733;</span>
+                    <h2 id="lqpTitle" class="lqp-title">-</h2>
+                </div>
+                <p id="lqpDesc" class="lqp-desc">-</p>
+            </div>
+            <div class="lqp-body">
+                <div class="lqp-qr-wrap">
+                    <div id="lqpQrBox" class="lqp-qr" role="img" aria-label="Kode QR tautan"></div>
+                </div>
+                <div class="lqp-actions">
+                    <button type="button" id="lqpOpenBtn" class="lqp-btn">
+                        <span class="lqp-btn-ico" aria-hidden="true">&#128241;</span>
+                        <span class="lqp-btn-label">Buka Tautan</span>
+                    </button>
+                    <button type="button" id="lqpCloseBtn" class="lqp-btn lqp-btn--ghost">TUTUP</button>
+                </div>
+                <p id="lqpNote" class="lqp-note">-</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Container untuk cetak struk -->
     <div id="strukContainer" class="hidden">
         <div id="struk" style="width: var(--ticket-width); padding: 4mm 3mm 5mm; box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; font-size: 9pt; line-height: 1.3; text-transform: uppercase; background: #ffffff;">
@@ -297,7 +282,7 @@
                 <p>TANGGAL: <span id="strukTanggal"></span></p>
                 <p>WAKTU: <span id="strukWaktu"></span></p>
             </div>
-            <div style="text-align: center; margin-top: 3mm; font-size: 6.5pt; line-height: 1.25; font-family: 'Poppins', Arial, sans-serif; font-style: italic; letter-spacing: 0.2px;">
+            <div style="text-align: center; margin-top: 3mm; font-size: 6.5pt; line-height: 1.25; font-family: Inter, Arial, sans-serif; font-style: italic; letter-spacing: 0.2px;">
                 TERIMA KASIH TELAH DATANG<br>SILAKAN TUNGGU NOMOR ANDA DIPANGGIL
             </div>
         </div>
@@ -379,7 +364,7 @@
                 const machinePasswordInput = document.getElementById('machinePassword');
                 const machineLoginBtn = document.getElementById('machineLoginBtn');
                 const machineAuthMessage = document.getElementById('machineAuthMessage');
-                const machineSessionLabel = document.getElementById('machineSessionLabel');
+                const machineSessionLabel = document.getElementById('machineSessionLabel'); // opsional (dihapus dari header)
                 const machineLogoutBtn = document.getElementById('machineLogoutBtn');
                 const jenisModal = document.getElementById('jenisModal');
                 const modalUnitTitle = document.getElementById('modalUnitTitle');
@@ -427,7 +412,9 @@
                 function setMachineView(loggedIn, session = null) {
                     machineAuthScreen.classList.toggle('hidden', !!loggedIn);
                     machineDashboard.classList.toggle('hidden', !loggedIn);
-                    machineSessionLabel.textContent = loggedIn ? String(session?.user?.email || MACHINE_EMAIL) : MACHINE_EMAIL;
+                    if (machineSessionLabel) {
+                        machineSessionLabel.textContent = loggedIn ? String(session?.user?.email || MACHINE_EMAIL) : MACHINE_EMAIL;
+                    }
                 }
 
                 async function ensureMachineAccount(session) {
@@ -653,7 +640,7 @@
 
                         const btnText = this.innerHTML;
                         this.disabled = true;
-                        this.innerHTML = '⏳ Memproses...';
+                        this.innerHTML = 'Memproses…';
 
                         try {
                             await processTicket(unit, jenisPasien, 'FARMASI');
@@ -671,7 +658,7 @@
                         const poliTujuan = this.dataset.poli;
                         const btnText = this.innerHTML;
                         this.disabled = true;
-                        this.innerHTML = '⏳ Memproses...';
+                        this.innerHTML = 'Memproses…';
 
                         try {
                             await processTicket('POLIKLINIK', selectedJenis, poliTujuan);
@@ -715,7 +702,7 @@
 
                     hideAuthMessage();
                     machineLoginBtn.disabled = true;
-                    machineLoginBtn.textContent = 'MEMPROSES LOGIN...';
+                    machineLoginBtn.textContent = 'Memproses…';
 
                     try {
                         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -729,7 +716,7 @@
                         showAuthMessage('Login perangkat gagal: ' + (err?.message || String(err)), 'error');
                     } finally {
                         machineLoginBtn.disabled = false;
-                        machineLoginBtn.textContent = 'MASUK KE DASHBOARD MESIN';
+                        machineLoginBtn.textContent = 'Masuk';
                     }
                 });
 
@@ -761,5 +748,22 @@
             }
         });
     </script>
+
+    <script>
+        // Konfigurasi popup tautan QR di halaman "Pilih Unit Tujuan Pasien".
+        // Tautan dibuka di tab baru (bukan iframe) karena server tujuan
+        // mengirim X-Frame-Options: SAMEORIGIN.
+        window.SIMAMI_LINK_POPUP = {
+            types: {
+                skm: {
+                    url: 'https://survei.kukarkab.go.id/isi-survei/layanan?perangkat_daerah=151'
+                },
+                pengaduan: {
+                    url: 'https://bit.ly/kanalpengaduanresmiRSUDAMI'
+                }
+            }
+        };
+    </script>
+    <script src="assets/js/link-qr-popup.js?v=20261021-linkqr"></script>
 </body>
 </html>
