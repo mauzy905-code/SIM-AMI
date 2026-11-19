@@ -1,0 +1,251 @@
+/* ==========================================================================
+   SIM-AMI - Kartu tautan ber-QR (SKM ungu, Pengaduan amber)
+   File terpisah agar tidak menumpuk di HTML halaman mesin antrean.
+   Dipakai oleh: assets/js/skm-widget.js
+   ========================================================================== */
+
+/* Warna dasar = varian Pengaduan (amber). Kartu SKM menimpa var di bawah. */
+.skm-card {
+    --accent: #b45309;
+    --accent-hover: #92400e;
+    --soft: #fffbeb;
+    --line: #fde68a;
+    --ink: #b45309;
+
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid var(--line);
+    background: var(--soft);
+    padding: 22px 22px 24px;
+    box-shadow: 0 10px 26px -22px rgba(15, 23, 42, 0.35);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    color: #0f172a;
+}
+
+/* Kartu SKM: ungu, sengaja beda dari kartu Pengaduan (amber). */
+.skm-card--skm {
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --soft: #faf5ff;
+    --line: #ddd6fe;
+    --ink: #6d28d9;
+}
+
+.skm-card * {
+    box-sizing: border-box;
+}
+
+.skm-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.skm-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1.45;
+}
+
+.skm-qr-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 18px 0 14px;
+}
+
+.skm-qr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 204px;
+    height: 204px;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: #ffffff;
+    box-shadow: 0 8px 20px -18px rgba(15, 23, 42, 0.35);
+}
+
+.skm-qr canvas,
+.skm-qr img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
+
+.skm-desc {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.skm-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 66px;
+    margin-top: 16px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 26px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 22px -16px rgba(15, 23, 42, 0.5);
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.skm-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px -16px rgba(15, 23, 42, 0.55);
+}
+
+.skm-btn:active {
+    transform: scale(0.99);
+}
+
+.skm-btn:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.skm-btn-label {
+    line-height: 1.25;
+}
+
+.skm-note {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+/* Catatan berisi URL: jangan di-uppercase, alamat jadi susah dibaca. */
+.skm-note--link {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Kartu Pengaduan: label tombol tiga kata; kecilkan sedikit agar tetap satu baris. */
+.skm-card--btn-sm .skm-btn {
+    font-size: 15px;
+    letter-spacing: 0.03em;
+}
+
+/* Jalan keluar bila pustaka QR gagal dimuat (mis. internet mati) */
+.skm-fallback {
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px dashed var(--line);
+    background: var(--soft);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    word-break: break-all;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Varian KOMPAK: QR kecil di kiri, judul + tombol di kanan.
+   Dipakai di kolom sidebar halaman mesin agar hemat tinggi.
+   -------------------------------------------------------------------------- */
+.skm-card--compact {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 24px;
+}
+
+.skm-card--compact .skm-qr-wrap {
+    margin: 0;
+    justify-content: flex-start;
+}
+
+.skm-card--compact .skm-qr {
+    width: 126px;
+    height: 126px;
+    padding: 8px;
+    border-radius: 16px;
+}
+
+.skm-card--compact .skm-compact-body {
+    min-width: 0;
+}
+
+.skm-card--compact .skm-head {
+    gap: 8px;
+}
+
+.skm-card--compact .skm-title {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    line-height: 1.35;
+}
+
+.skm-card--compact .skm-desc {
+    margin-top: 5px;
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.skm-card--compact .skm-btn {
+    min-height: 50px;
+    margin-top: 10px;
+    padding: 0 14px;
+    border-radius: 16px;
+    gap: 8px;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+}
+
+@media (max-width: 640px) {
+    .skm-title {
+        letter-spacing: 0.14em;
+    }
+
+    .skm-qr {
+        width: 164px;
+        height: 164px;
+        padding: 10px;
+    }
+
+    .skm-qr canvas,
+    .skm-qr img {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+/* Pastikan kartu tidak ikut tercetak ke struk antrean */
+@media print {
+    .skm-card {
+        display: none !important;
+    }
+}
